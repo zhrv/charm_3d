@@ -1,0 +1,3 @@
+[submodule "contrib/p4est"]
+	path = contrib/p4est
+	url = git@github.com:cburstedde/p4est.git
