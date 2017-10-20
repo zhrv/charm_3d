@@ -274,9 +274,151 @@ charm_conn_reader_inp (const char *filename)
     return NULL;
 }
 
+p4est_connectivity_t * charm_conn_reader_msh (const char *filename)
+{
+    int                 retval;
+    p4est_topidx_t      num_vertices = 0, num_trees = 0, num_trees_real = 0, tree;
+    int                 i;
+    int8_t              face;
+
+    char                *line;
+
+    long long int       node, type;
+    double              x, y, z;
+
+    p4est_connectivity_t *conn = NULL;
+    FILE                 *fid  = NULL;
+
+    P4EST_GLOBAL_PRODUCTIONF ("Reading connectivity from %s\n", filename);
+
+    fid = fopen (filename, "rb");
+    if (fid == NULL) {
+        P4EST_LERRORF ("Failed to open %s\n", filename);
+        goto dead;
+    }
+
+    double          *vert;
+    p4est_topidx_t  *trees;
+
+    while(1) {
+        line = charm_connectivity_getline_upper (fid);
+
+        if (line == NULL) {
+            break;
+        }
+
+        if (line[0] == '$') {
+            if (strstr(line, "$NODES")) {
+                P4EST_FREE(line);
+                line = charm_connectivity_getline_upper (fid);
+                sscanf(line, "%d", &num_vertices);
+                vert = P4EST_ALLOC(double, num_vertices*3);
+                for (i = 0; i < num_vertices; i++) {
+                    P4EST_FREE(line);
+                    line = charm_connectivity_getline_upper (fid);
+                    retval = sscanf (line, "%lld %lf %lf %lf", &node, &x, &y, &z);
+                    if (retval != 4) {
+                        P4EST_LERROR ("Premature end of file");
+                        P4EST_FREE (line);
+                        P4EST_FREE (vert);
+                        return NULL;
+                    }
+                    vert[3 * i + 0] = x;
+                    vert[3 * i + 1] = y;
+                    vert[3 * i + 2] = z;
+                }
+            }
+            else if(strstr(line, "$ELEMENTS")) {
+                P4EST_FREE(line);
+                line = charm_connectivity_getline_upper (fid);
+                sscanf(line, "%d", &num_trees);
+                trees = P4EST_ALLOC(p4est_topidx_t, num_trees*8);
+                for (i = 0; i < num_trees; i++) {
+                    P4EST_FREE(line);
+                    line = charm_connectivity_getline_upper (fid);
+                    retval = sscanf (line, "%lld %lld", &node, &type);
+                    if (retval != 2) {
+                        P4EST_LERROR ("Premature end of file");
+                        P4EST_FREE (line);
+                        P4EST_FREE (vert);
+                        P4EST_FREE (trees);
+                        return NULL;
+                    }
+
+                    if (type == 5) {
+                        int tagc, tag1, tag2;
+                        retval = sscanf (line, "%lld %lld %d %d %d %d %d %d %d %d %d %d %d", &node, &type, &tagc, &tag1, &tag2,
+                                         &trees[num_trees_real*P4EST_CHILDREN+0], &trees[num_trees_real*P4EST_CHILDREN+1], &trees[num_trees_real*P4EST_CHILDREN+3], &trees[num_trees_real*P4EST_CHILDREN+2],
+                                         &trees[num_trees_real*P4EST_CHILDREN+4], &trees[num_trees_real*P4EST_CHILDREN+5], &trees[num_trees_real*P4EST_CHILDREN+7], &trees[num_trees_real*P4EST_CHILDREN+6] );
+                        if (retval != 13) {
+                            P4EST_LERROR ("Premature end of file");
+                            P4EST_FREE (line);
+                            P4EST_FREE (vert);
+                            P4EST_FREE (trees);
+                            return NULL;
+                        }
+                        for (int j = 0; j < P4EST_CHILDREN; j++) {
+                            --trees[num_trees_real*P4EST_CHILDREN+j];
+                        }
+                        ++num_trees_real;
+                    }
+                }
+            }
+        }
+
+        P4EST_FREE(line);
+    }
+
+    conn = p4est_connectivity_new(num_vertices, num_trees_real, 0, 0, 0, 0);
+    memcpy(conn->vertices, vert, conn->num_vertices*3*sizeof(double));
+    memcpy(conn->tree_to_vertex, trees, conn->num_trees*P4EST_CHILDREN*sizeof(p4est_topidx_t));
+
+    P4EST_FREE(vert);
+    P4EST_FREE(trees);
+
+    /*
+     * Fill tree_to_tree and tree_to_face to make sure we have a valid
+     * connectivity.
+     */
+    for (tree = 0; tree < conn->num_trees; ++tree) {
+        for (face = 0; face < P4EST_FACES; ++face) {
+            conn->tree_to_tree[P4EST_FACES * tree + face] = tree;
+            conn->tree_to_face[P4EST_FACES * tree + face] = face;
+        }
+    }
+    P4EST_ASSERT (p4est_connectivity_is_valid (conn));
+
+    /* Compute real tree_to_* fields and complete (edge and) corner fields. */
+    p4est_connectivity_complete (conn);
+
+    retval = fclose (fid);
+    fid = NULL;
+    if (retval) {
+        P4EST_LERRORF ("Failed to close %s\n", filename);
+        goto dead;
+    }
+
+    P4EST_GLOBAL_PRODUCTIONF
+    ("New connectivity with %lld trees and %lld vertices\n",
+     (long long) conn->num_trees, (long long) conn->num_vertices);
+
+    return conn;
+
+    dead:
+    /* clean up on error */
+    if (fid != NULL) {
+        fclose (fid);
+    }
+    if (conn != NULL) {
+        p4est_connectivity_destroy (conn);
+    }
+    return NULL;
+}
+
+
 charm_conn_reader_t charm_get_conn_reader(charm_ctx_t *ctx)
 {
-    return charm_conn_reader_inp;
+    return charm_conn_reader_msh;
 }
 
 
@@ -289,7 +431,7 @@ p4est_connectivity_t* charm_conn_create(charm_ctx_t *ctx)
 
     reader_fn = charm_get_conn_reader(ctx);
 
-    conn = reader_fn("hole_3d_gmsh.inp");
+    conn = reader_fn("hole_3d_gmsh.msh");
 
 
     return conn;
