@@ -9,8 +9,8 @@
 
 #define SECOND_ORDER
 
-#define FLUX_RIM
-//#define FLUX_LF
+//#define FLUX_RIM
+#define FLUX_LF
 
 #define RIM_EPS 1.e-5
 
@@ -99,7 +99,7 @@ typedef struct charm_tree_attr
     int                 region;
 } charm_tree_attr_t;
 
-
+#define CHARM_FACE_TYPE_INNER 0
 
 
 #endif //CHAMR_3D_CHARM_GLOBALS_H

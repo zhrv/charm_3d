@@ -6,6 +6,14 @@
 
 typedef p4est_connectivity_t* (*charm_conn_reader_t)(const char*);
 
+const int charm_face_corners[6][4] =
+        {{ 0, 2, 4, 6 },
+         { 1, 3, 5, 7 },
+         { 0, 1, 4, 5 },
+         { 2, 3, 6, 7 },
+         { 0, 1, 2, 3 },
+         { 4, 5, 6, 7 }};
+
 
 /*
  * Read a line from a file. Obtained from:
@@ -274,6 +282,72 @@ charm_conn_reader_inp (const char *filename)
     return NULL;
 }
 
+
+int8_t charm_conn_faces_is_equal(p4est_topidx_t  *face_vert_1, p4est_topidx_t  *face_vert_2)
+{
+    if (    (face_vert_1[0] == face_vert_2[0]) && (face_vert_1[1] == face_vert_2[1]) &&
+            (face_vert_1[2] == face_vert_2[2]) && (face_vert_1[3] == face_vert_2[3]) ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+int charm_conn_find_tree_by_face(p4est_connectivity_t  *conn, p4est_topidx_t  *face_vert, int8_t bnd_type)
+{
+    int i, j, k;
+    p4est_topidx_t  tree_faces[4];
+    charm_tree_attr_t *attr;
+    p4est_topidx_t *ttv;
+
+    int find_count = 0;
+    p4est_topidx_bsort(face_vert, 4);
+    for (i = 0, attr = (charm_tree_attr_t*)(conn->tree_to_attr), ttv = conn->tree_to_vertex; i < conn->num_trees; i++, ++attr, ttv+=P4EST_CHILDREN) {
+        for (j = 0; j < P4EST_FACES; j++) {
+            for (k = 0; k < 4; k++) {
+                tree_faces[k] = ttv[charm_face_corners[j][k]];
+            }
+            p4est_topidx_bsort (tree_faces, 4);
+            if (charm_conn_faces_is_equal(tree_faces, face_vert)) {
+                attr->bnd_type[j] = bnd_type;
+                find_count++;
+            }
+        }
+    }
+    P4EST_ASSERT(find_count);
+}
+
+int8_t charm_conn_parse_face(char *line, p4est_topidx_t *fv)
+{
+    int retval;
+    int       node, type;
+
+    retval = sscanf (line, "%lld %lld", &node, &type);
+    if (retval != 2) {
+        P4EST_LERROR ("Premature end of file");
+        return 0;
+    }
+
+    if (type == 3) {
+        int tagc, tag1, tag2;
+        retval = sscanf (line, "%d %d %d %d %d %d %d %d %d %d %d %d %d",
+                         &node, &type, &tagc, &fv[4], &tag2,
+                         &fv[0], &fv[1], &fv[3], &fv[2] );
+        if (retval != 9) {
+            P4EST_LERROR ("Premature end of file");
+            return 0;
+        }
+        fv[0]--;
+        fv[1]--;
+        fv[2]--;
+        fv[3]--;
+        return 1;
+    }
+
+    return 0;
+}
+
 p4est_connectivity_t * charm_conn_reader_msh (const char *filename)
 {
     int                 retval;
@@ -288,6 +362,7 @@ p4est_connectivity_t * charm_conn_reader_msh (const char *filename)
 
     p4est_connectivity_t *conn = NULL;
     FILE                 *fid  = NULL;
+    fpos_t                fpos;
 
     P4EST_GLOBAL_PRODUCTIONF ("Reading connectivity from %s\n", filename);
 
@@ -329,6 +404,7 @@ p4est_connectivity_t * charm_conn_reader_msh (const char *filename)
                 }
             }
             else if(strstr(line, "$ELEMENTS")) {
+                fgetpos (fid, &fpos);
                 P4EST_FREE(line);
                 line = charm_connectivity_getline_upper (fid);
                 sscanf(line, "%d", &num_trees);
@@ -390,6 +466,30 @@ p4est_connectivity_t * charm_conn_reader_msh (const char *filename)
 
     /* Compute real tree_to_* fields and complete (edge and) corner fields. */
     p4est_connectivity_complete (conn);
+
+    p4est_connectivity_set_attr(conn, sizeof(charm_tree_attr_t));
+    charm_tree_attr_t * attr;
+    for (tree = 0, attr = (charm_tree_attr_t*)(conn->tree_to_attr); tree < conn->num_trees; ++tree, ++attr) {
+        for (face = 0; face < P4EST_FACES; ++face) {
+            attr->bnd_type[face]    = CHARM_FACE_TYPE_INNER;
+        }
+        attr->region            = 0;
+    }
+
+
+    fsetpos (fid, &fpos);
+    line = charm_connectivity_getline_upper(fid);
+    int ele_count = 0;
+    sscanf(line, "%d", &ele_count);
+    P4EST_FREE(line);
+    p4est_topidx_t fv[5];
+    for (; ele_count > 0; ele_count--) {
+        line = charm_connectivity_getline_upper(fid);
+        if (charm_conn_parse_face(line, fv)) {
+            charm_conn_find_tree_by_face(conn, fv, fv[4]);
+        }
+        P4EST_FREE(line);
+    }
 
     retval = fclose (fid);
     fid = NULL;

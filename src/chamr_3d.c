@@ -1173,7 +1173,7 @@ static void charm_upwind_flux (p4est_iter_face_info_t * info, void *user_data)
                 break;
         }
 
-        P4EST_ASSERT (vdotn == 1.0);
+//        P4EST_ASSERT (vdotn == 1.0);
 
         for (i = 0; i < 2; i++) {
             ro_avg[i] = 0;
@@ -1488,7 +1488,7 @@ charm_grad_face_iter_fn (p4est_iter_face_info_t * info, void *user_data)
                 break;
         }
 
-        P4EST_ASSERT (vdotn == 1.0);
+//        P4EST_ASSERT (vdotn == 1.0);
 
         for (i = 0; i < 2; i++) {
             ro[i] = 0;
@@ -1852,7 +1852,7 @@ void charm_init_context(charm_ctx_t *ctx)
     ctx->min_level              = 1;
     ctx->allowed_level          = 1;
 
-    ctx->write_period           = 100;
+    ctx->write_period           = 1;
 
     ctx->v_ref                  = 20.;
     ctx->CFL                    = 0.1;
