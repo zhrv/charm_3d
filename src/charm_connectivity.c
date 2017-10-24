@@ -14,6 +14,36 @@ const int charm_face_corners[6][4] =
          { 0, 1, 2, 3 },
          { 4, 5, 6, 7 }};
 
+typedef struct hash_elem {
+    p4est_topidx_t key[4];
+    long int val;
+} hash_elem_t;
+
+typedef struct face_hash {
+    long int     size;
+    hash_elem_t *elements;
+} face_hash_t;
+
+face_hash_t * face_hash_new(long int size) {
+    face_hash_t * fh = P4EST_ALLOC(face_hash_t, 1);
+    fh->size = size;
+    fh->elements = P4EST_ALLOC(hash_elem_t, fh->size);
+    return fh;
+}
+
+
+void face_hash_destroy(face_hash_t * fh) {
+    P4EST_FREE(fh->elements);
+    P4EST_FREE(fh);
+}
+
+
+void face_hash_insert(face_hash_t * fh, p4est_topidx_t *key, long int val)
+{
+    long int idx = p4est_topidx_hash4(key) % fh->size;
+    
+}
+
 
 /*
  * Read a line from a file. Obtained from:
