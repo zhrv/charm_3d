@@ -14,36 +14,91 @@ const int charm_face_corners[6][4] =
          { 0, 1, 2, 3 },
          { 4, 5, 6, 7 }};
 
-typedef struct hash_elem {
-    p4est_topidx_t key[4];
-    long int val;
-} hash_elem_t;
+typedef struct charm_fhash_elem {
+    p4est_topidx_t* key;
+    sc_array_t*     val;
+} charm_hash_elem_t;
 
-typedef struct face_hash {
-    long int     size;
-    hash_elem_t *elements;
-} face_hash_t;
+typedef struct charm_fhash {
+    p4est_topidx_t      size;
+    charm_hash_elem_t*  el;
+} charm_fhash_t;
 
-face_hash_t * face_hash_new(long int size) {
-    face_hash_t * fh = P4EST_ALLOC(face_hash_t, 1);
+
+
+int charm_face_cmp(void *_key1, void *_key2)
+{
+    p4est_topidx_t *key1 = _key1;
+    p4est_topidx_t *key2 = _key2;
+    if (key1 == NULL || key2 == NULL) {
+        return 0;
+    }
+    if (    key1[0] == key2[0] &&
+            key1[1] == key2[1] &&
+            key1[2] == key2[2] &&
+            key1[3] == key2[3] ) {
+        return 1;
+    }
+    return 0;
+}
+
+unsigned charm_face_hash(const void *v)
+{
+    const p4est_topidx_t *fi = (p4est_topidx_t *) v;
+
+#ifdef P4_TO_P8
+    return p4est_topidx_hash4 (fi);
+#else
+    return p4est_topidx_hash2 (fi);
+#endif
+}
+
+charm_fhash_t* charm_fhash_new(p4est_topidx_t size)
+{
+    int i;
+    charm_fhash_t * fh = P4EST_ALLOC(charm_fhash_t, 1);
     fh->size = size;
-    fh->elements = P4EST_ALLOC(hash_elem_t, fh->size);
+    fh->el = P4EST_ALLOC(charm_hash_elem_t, size);
+    for (i = 0; i < size; i++) {
+        fh->el[i].key = NULL;
+        fh->el[i].val = sc_array_new(sizeof(p4est_topidx_t));
+    }
     return fh;
 }
 
-
-void face_hash_destroy(face_hash_t * fh) {
-    P4EST_FREE(fh->elements);
-    P4EST_FREE(fh);
-}
-
-
-void face_hash_insert(face_hash_t * fh, p4est_topidx_t *key, long int val)
+void charm_fhash_insert(charm_fhash_t* fh, p4est_topidx_t* key, p4est_topidx_t val)
 {
-    long int idx = p4est_topidx_hash4(key) % fh->size;
-    
+    p4est_topidx_t * pval;
+    unsigned idx = charm_face_hash(key) % fh->size;
+    while(fh->el[idx].key != NULL) {
+        if (charm_face_cmp(fh->el[idx].key, key)) {
+            pval = sc_array_push(fh->el[idx].val);
+            *pval = val;
+            return;
+        }
+        idx = (idx + 1) % fh->size;
+    }
+    fh->el[idx].key = P4EST_ALLOC(p4est_topidx_t, 4);
+    memcpy(fh->el[idx].key, key, 4*sizeof(p4est_topidx_t));
+    pval = sc_array_push(fh->el[idx].val);
+    *pval = val;
 }
 
+
+sc_array_t* charm_fhash_lookup(charm_fhash_t* fh, p4est_topidx_t* key)
+{
+    p4est_topidx_t * pval;
+    unsigned c = 0;
+    unsigned idx = charm_face_hash(key) % fh->size;
+    while(!charm_face_cmp(fh->el[idx].key, key)) {
+        idx = (idx + 1) % fh->size;
+        c++;
+        if (c > fh->size) {
+            return 0;
+        }
+    }
+    return fh->el[idx].val;
+}
 
 /*
  * Read a line from a file. Obtained from:
@@ -394,6 +449,17 @@ p4est_connectivity_t * charm_conn_reader_msh (const char *filename)
     FILE                 *fid  = NULL;
     fpos_t                fpos;
 
+    charm_fhash_t * fh = charm_fhash_new(4);
+    p4est_topidx_t t1[4], t2[4];
+    t1[0] = 1;
+    t1[1] = 3;
+    t1[2] = 4;
+    t1[3] = 6;
+    charm_fhash_insert(fh, t1, 4);
+    charm_fhash_insert(fh, t1, 3);
+    t1[2] = 9;
+    charm_fhash_insert(fh, t1, 10);
+
     P4EST_GLOBAL_PRODUCTIONF ("Reading connectivity from %s\n", filename);
 
     fid = fopen (filename, "rb");
@@ -505,7 +571,6 @@ p4est_connectivity_t * charm_conn_reader_msh (const char *filename)
         }
         attr->region            = 0;
     }
-
 
     fsetpos (fid, &fpos);
     line = charm_connectivity_getline_upper(fid);
