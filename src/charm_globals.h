@@ -5,8 +5,6 @@
 #ifndef CHAMR_3D_CHARM_GLOBALS_H
 #define CHAMR_3D_CHARM_GLOBALS_H
 
-#define P4EST_ENABLE_DEBUG
-
 #include <p4est_to_p8est.h>
 
 #include <p8est_vtk.h>
@@ -16,7 +14,7 @@
 
 //#define CHARM_DEBUG
 
-#define SECOND_ORDER
+//#define SECOND_ORDER
 
 //#define FLUX_RIM
 #define FLUX_LF
@@ -44,6 +42,15 @@
 
 #define _MAX_(X,Y) ((X)>(Y) ? (X) : (Y))
 #define _MIN_(X,Y) ((X)<(Y) ? (X) : (Y))
+
+#define CHARM_FACE_TYPE_INNER 0
+#define CHARM_BND_MAX 128
+
+typedef void (*charm_bnd_cond_fn_t)(double ro, double ru, double rv, double rw, double re,
+                                    double* ro_, double* ru_, double* rv_, double* rw_, double* re_,
+                                    double* n, double* param);
+
+
 
 typedef struct param
 {
@@ -100,6 +107,9 @@ typedef struct charm_ctx
     double              CFL;                /**< the CFL */
     double              dt;
     double              time;               /**< the max time */
+
+    charm_bnd_cond_fn_t bnd_fn[CHARM_BND_MAX];
+
 } charm_ctx_t;
 
 typedef struct charm_tree_attr
@@ -108,7 +118,11 @@ typedef struct charm_tree_attr
     int                 region;
 } charm_tree_attr_t;
 
-#define CHARM_FACE_TYPE_INNER 0
+
+double scalar_prod(double v1[3], double v2[3]);
+double vect_length(double v[3]);
+void vect_prod(double v1[3], double v2[3], double res[3]);
+
 
 
 #endif //CHAMR_3D_CHARM_GLOBALS_H

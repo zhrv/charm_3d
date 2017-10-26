@@ -14,27 +14,19 @@ void charm_initial_condition (double x[], double u[FLD_COUNT], double du[FLD_COU
     double pi = 4.0*atan(1.0);
     double pi2 = pi*2.0;
 
-    if (x[2] < -0.005) {
-        r_ = 12.09;
-        u_ = 0.0;
-        v_ = 0.0;
-        w_ = 97.76;
-        p_ = 2.152e+5;
-    }
-//    else if (x[2] > -0.00005*(1.0-cos(pi2*x[0]/0.001))) {
-    else if (x[2] > -0.0005*(1.0-cos(pi2*x[0]/0.001))*(1.0-cos(pi2*x[1]/0.001))) {
-        r_ = 1.198;
-        u_ = 0.0;
-        v_ = 0.0;
-        w_ = 0.0;
-        p_ = 1.0e+5;
+    if (x[2] < 0.0) {
+        r_ = 1.;
+        u_ = 0.;
+        v_ = 0.;
+        w_ = 0.;
+        p_ = 1.;
     }
     else {
-        r_ = 6.037;
-        u_ = 0.0;
-        v_ = 0.0;
-        w_ = 0.0;
-        p_ = 1.0e+5;
+        r_ = 0.125;
+        u_ = 0.;
+        v_ = 0.;
+        w_ = 0.;
+        p_ = 0.1;
     }
     u[0] = r_;
     u[1] = r_*u_;
@@ -102,7 +94,7 @@ void charm_init_context(charm_ctx_t *ctx)
     ctx->min_level              = 1;
     ctx->allowed_level          = 1;
 
-    ctx->write_period           = 1;
+    ctx->write_period           = 100;
 
     ctx->v_ref                  = 20.;
     ctx->CFL                    = 0.1;

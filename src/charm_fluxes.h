@@ -11,7 +11,7 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
                 double RB, double PB, double UB, double VB, double WB,
                 double RE, double PE, double UE, double VE, double WE, double gam);
 
-void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_[2], double* qr, double* qu, double* qv, double* qw, double* qe, int which_face, int bnd);
+void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3], int bnd);
 
 
 #endif //CHAMR_3D_CHARM_FLUXES_H
