@@ -5,6 +5,15 @@
 #ifndef CHAMR_3D_CHARM_GLOBALS_H
 #define CHAMR_3D_CHARM_GLOBALS_H
 
+#define P4EST_ENABLE_DEBUG
+
+#include <p4est_to_p8est.h>
+
+#include <p8est_vtk.h>
+#include <p8est_bits.h>
+#include <p8est_extended.h>
+#include <p8est_iterate.h>
+
 //#define CHARM_DEBUG
 
 #define SECOND_ORDER
