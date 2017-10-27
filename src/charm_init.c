@@ -4,7 +4,7 @@
 
 #include "charm_init.h"
 #include "charm_geom.h"
-#include "yaml.h"
+#include "mxml.h"
 
 
 void charm_initial_condition (double x[], double u[FLD_COUNT], double du[FLD_COUNT][P4EST_DIM], charm_ctx_t * ctx)
