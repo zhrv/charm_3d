@@ -29,11 +29,11 @@ static void charm_interpolate_solution (p4est_iter_volume_info_t * info, void *u
     h =  CHARM_GET_H(q->level);
 
     for (i = 0; i < P4EST_CHILDREN; i++) {
-        this_u[0] = data->par.p.ro;
-        this_u[1] = data->par.p.ru;
-        this_u[2] = data->par.p.rv;
-        this_u[3] = data->par.p.rw;
-        this_u[4] = data->par.p.re;
+        this_u[0] = data->par.c.ro;
+        this_u[1] = data->par.c.ru;
+        this_u[2] = data->par.c.rv;
+        this_u[3] = data->par.c.rw;
+        this_u[4] = data->par.c.re;
         /* loop over the derivative components and linearly interpolate from the
          * midpoint to the corners */
         for (j = 0; j < P4EST_DIM; j++) {

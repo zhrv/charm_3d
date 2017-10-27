@@ -3,6 +3,7 @@
 //
 
 #include "charm_amr.h"
+#include "charm_geom.h"
 
 
 static double
@@ -16,7 +17,7 @@ charm_error_sqr_estimate (p4est_quadrant_t * q)
     double              vol;
 
     for (i = 0; i < P4EST_DIM; i++) {
-        du[i] = data->dro[i];
+//        du[i] = data->dro[i];
     }
 
     vol = h * h * h;
@@ -77,7 +78,7 @@ charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which_tree,
         return 0;
     }
 
-    charm_get_midpoint (p4est, which_tree, q, mp);
+    charm_quad_get_center (q, mp);
 
 //    if (( (-0.001 < mp[2]) && (mp[2] < 0.001) ) || ( (-0.006 < mp[2]) && (mp[2] < -0.004) )) {
     if (( (-0.005 < mp[2]) && (mp[2] < 0.002) )) {
@@ -133,7 +134,7 @@ static int charm_coarsen_err_estimate (p4est_t * p4est,
     parentu = 0.;
     for (i = 0; i < P4EST_CHILDREN; i++) {
         data = (charm_data_t *) children[i]->p.user_data;
-        parentu += data->par.p.ro / P4EST_CHILDREN;
+        parentu += data->par.c.ro / P4EST_CHILDREN;
     }
 
     err2 = 0.;
@@ -144,7 +145,7 @@ static int charm_coarsen_err_estimate (p4est_t * p4est,
             return 0;
         }
         err2 += childerr2;
-        diff = (parentu - data->par.p.ro) * (parentu - data->par.p.ro);
+        diff = (parentu - data->par.c.ro) * (parentu - data->par.c.ro);
         err2 += diff * vol;
     }
     if (err2 < global_err2 * (vol * P4EST_CHILDREN)) {
@@ -216,35 +217,36 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
     double              du_old, du_est;
 
     if (num_outgoing > 1) {
+        charm_geom_quad_calc(p4est, incoming[0], which_tree);
         /* this is coarsening */
         parent_data = (charm_data_t *) incoming[0]->p.user_data;
-        parent_data->par.p.ro = 0.;
-        parent_data->par.p.ru = 0.;
-        parent_data->par.p.rv = 0.;
-        parent_data->par.p.rw = 0.;
-        parent_data->par.p.re = 0.;
+        parent_data->par.c.ro = 0.;
+        parent_data->par.c.ru = 0.;
+        parent_data->par.c.rv = 0.;
+        parent_data->par.c.rw = 0.;
+        parent_data->par.c.re = 0.;
 
-        for (j = 0; j < P4EST_DIM; j++) {
-            parent_data->dro[j] = 0.0;
-            parent_data->dru[j] = 0.0;
-            parent_data->drv[j] = 0.0;
-            parent_data->drw[j] = 0.0;
-            parent_data->dre[j] = 0.0;
-        }
+//        for (j = 0; j < P4EST_DIM; j++) {
+//            parent_data->dro[j] = 0.0;
+//            parent_data->dru[j] = 0.0;
+//            parent_data->drv[j] = 0.0;
+//            parent_data->drw[j] = 0.0;
+//            parent_data->dre[j] = 0.0;
+//        }
         for (i = 0; i < P4EST_CHILDREN; i++) {
             child_data = (charm_data_t *) outgoing[i]->p.user_data;
-            parent_data->par.p.ro += child_data->par.p.ro / P4EST_CHILDREN;
-            parent_data->par.p.ru += child_data->par.p.ru / P4EST_CHILDREN;
-            parent_data->par.p.rv += child_data->par.p.rv / P4EST_CHILDREN;
-            parent_data->par.p.rw += child_data->par.p.rw / P4EST_CHILDREN;
-            parent_data->par.p.re += child_data->par.p.re / P4EST_CHILDREN;
-            for (j = 0; j < P4EST_DIM; j++) {
-                parent_data->dro[j] += child_data->dro[j] / P4EST_CHILDREN;
-                parent_data->dru[j] += child_data->dru[j] / P4EST_CHILDREN;
-                parent_data->drv[j] += child_data->drv[j] / P4EST_CHILDREN;
-                parent_data->drw[j] += child_data->drw[j] / P4EST_CHILDREN;
-                parent_data->dre[j] += child_data->dre[j] / P4EST_CHILDREN;
-            }
+            parent_data->par.c.ro += child_data->par.c.ro / P4EST_CHILDREN;
+            parent_data->par.c.ru += child_data->par.c.ru / P4EST_CHILDREN;
+            parent_data->par.c.rv += child_data->par.c.rv / P4EST_CHILDREN;
+            parent_data->par.c.rw += child_data->par.c.rw / P4EST_CHILDREN;
+            parent_data->par.c.re += child_data->par.c.re / P4EST_CHILDREN;
+//            for (j = 0; j < P4EST_DIM; j++) {
+//                parent_data->dro[j] += child_data->dro[j] / P4EST_CHILDREN;
+//                parent_data->dru[j] += child_data->dru[j] / P4EST_CHILDREN;
+//                parent_data->drv[j] += child_data->drv[j] / P4EST_CHILDREN;
+//                parent_data->drw[j] += child_data->drw[j] / P4EST_CHILDREN;
+//                parent_data->dre[j] += child_data->dre[j] / P4EST_CHILDREN;
+//            }
         }
 
     }
@@ -254,19 +256,20 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
         h = CHARM_GET_H(outgoing[0]->level);
 
         for (i = 0; i < P4EST_CHILDREN; i++) {
+            charm_geom_quad_calc(p4est, incoming[i], which_tree);
             child_data = (charm_data_t *) incoming[i]->p.user_data;
-            child_data->par.p.ro = parent_data->par.p.ro;
-            child_data->par.p.ru = parent_data->par.p.ru;
-            child_data->par.p.rv = parent_data->par.p.rv;
-            child_data->par.p.rw = parent_data->par.p.rw;
-            child_data->par.p.re = parent_data->par.p.re;
-            for (j = 0; j < P4EST_DIM; j++) {
-                child_data->dro[j] = parent_data->dro[j];
-                child_data->dru[j] = parent_data->dru[j];
-                child_data->drv[j] = parent_data->drv[j];
-                child_data->drw[j] = parent_data->drw[j];
-                child_data->dre[j] = parent_data->dre[j];
-            }
+            child_data->par.c.ro = parent_data->par.c.ro;
+            child_data->par.c.ru = parent_data->par.c.ru;
+            child_data->par.c.rv = parent_data->par.c.rv;
+            child_data->par.c.rw = parent_data->par.c.rw;
+            child_data->par.c.re = parent_data->par.c.re;
+//            for (j = 0; j < P4EST_DIM; j++) {
+//                child_data->dro[j] = parent_data->dro[j];
+//                child_data->dru[j] = parent_data->dru[j];
+//                child_data->drv[j] = parent_data->drv[j];
+//                child_data->drw[j] = parent_data->drw[j];
+//                child_data->dre[j] = parent_data->dre[j];
+//            }
         }
     }
 }

@@ -3,7 +3,8 @@
 //
 
 #include "charm_init.h"
-
+#include "charm_geom.h"
+#include "yaml.h"
 
 
 void charm_initial_condition (double x[], double u[FLD_COUNT], double du[FLD_COUNT][P4EST_DIM], charm_ctx_t * ctx)
@@ -14,27 +15,19 @@ void charm_initial_condition (double x[], double u[FLD_COUNT], double du[FLD_COU
     double pi = 4.0*atan(1.0);
     double pi2 = pi*2.0;
 
-    if (x[2] < -0.005) {
-        r_ = 12.09;
-        u_ = 0.0;
-        v_ = 0.0;
-        w_ = 97.76;
-        p_ = 2.152e+5;
-    }
-//    else if (x[2] > -0.00005*(1.0-cos(pi2*x[0]/0.001))) {
-    else if (x[2] > -0.0005*(1.0-cos(pi2*x[0]/0.001))*(1.0-cos(pi2*x[1]/0.001))) {
-        r_ = 1.198;
-        u_ = 0.0;
-        v_ = 0.0;
-        w_ = 0.0;
-        p_ = 1.0e+5;
+    if (x[2] < 0.0) {
+        r_ = 1.;
+        u_ = 0.;
+        v_ = 0.;
+        w_ = 0.;
+        p_ = 1.;
     }
     else {
-        r_ = 6.037;
-        u_ = 0.0;
-        v_ = 0.0;
-        w_ = 0.0;
-        p_ = 1.0e+5;
+        r_ = 0.125;
+        u_ = 0.;
+        v_ = 0.;
+        w_ = 0.;
+        p_ = 0.1;
     }
     u[0] = r_;
     u[1] = r_*u_;
@@ -53,16 +46,6 @@ void charm_initial_condition (double x[], double u[FLD_COUNT], double du[FLD_COU
     }
 }
 
-void charm_get_midpoint (p4est_t * p4est, p4est_topidx_t which_tree,
-                                p4est_quadrant_t * q, double xyz[3])
-{
-    p4est_qcoord_t      half_length = P4EST_QUADRANT_LEN (q->level) / 2;
-
-    p4est_qcoord_to_vertex (p4est->connectivity, which_tree,
-                            q->x + half_length, q->y + half_length, q->z + half_length,
-                            xyz);
-}
-
 void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree,
                                           p4est_quadrant_t * q)
 {
@@ -73,22 +56,24 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree,
 
     double du[FLD_COUNT][P4EST_DIM], u[FLD_COUNT];
 
-    charm_get_midpoint (p4est, which_tree, q, midpoint);
+    charm_geom_quad_calc(p4est, q, which_tree);
+
+    charm_quad_get_center (q, midpoint);
     charm_initial_condition (midpoint, u, du, ctx);
 
-    data->par.p.ro = u[0];
-    data->par.p.ru = u[1];
-    data->par.p.rv = u[2];
-    data->par.p.rw = u[3];
-    data->par.p.re = u[4];
+    data->par.c.ro = u[0];
+    data->par.c.ru = u[1];
+    data->par.c.rv = u[2];
+    data->par.c.rw = u[3];
+    data->par.c.re = u[4];
 
-    for (i = 0; i < P4EST_DIM; i++) {
-        data->dro[i] = du[0][i];
-        data->dru[i] = du[1][i];
-        data->drv[i] = du[2][i];
-        data->drw[i] = du[3][i];
-        data->dre[i] = du[4][i];
-    }
+//    for (i = 0; i < P4EST_DIM; i++) {
+//        data->dro[i] = du[0][i];
+//        data->dru[i] = du[1][i];
+//        data->drv[i] = du[2][i];
+//        data->drw[i] = du[3][i];
+//        data->dre[i] = du[4][i];
+//    }
 }
 
 
@@ -99,8 +84,8 @@ void charm_init_context(charm_ctx_t *ctx)
     ctx->refine_period          = 10;
     ctx->repartition_period     = 100;
 
-    ctx->min_level              = 1;
-    ctx->allowed_level          = 1;
+    ctx->min_level              = 2;
+    ctx->allowed_level          = 2;
 
     ctx->write_period           = 1;
 

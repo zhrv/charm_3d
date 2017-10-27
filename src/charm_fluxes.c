@@ -182,7 +182,7 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
 }
 
 
-void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_[2], double* qr, double* qu, double* qv, double* qw, double* qe, int which_face, int bnd)
+void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3], int bnd)
 {
 #ifdef FLUX_RIM
     double ri, ei, pi, ui, vi, wi;
@@ -290,58 +290,35 @@ void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_
     }
 #else
 #ifdef FLUX_LF
-    double fr[2], fu[2], fv[2], fe[2];
-    double ro[2], ru[2], rv[2], re[2];
+    double fr[2], fu[2], fv[2], fw[2], fe[2];
+    double ro[2], ru[2], rv[2], rw[2], re[2];
     double alpha;
-    double vn = 1.0;
+    double v[2][3] = {{u_[0], v_[0], w_[0]}, {u_[1], v_[1], w_[1]}};
+    double vn[2];
+    vn[0] = scalar_prod(v[0], n);
+    vn[1] = scalar_prod(v[1], n);
     int i;
 
     for (i = 0; i < 2; i++) {
         ro[i] = r_[i];
-        ru[i] = r_[i]*u_[i];
-        rv[i] = r_[i]*v_[i];
-        re[i] = p_[i]/(GAM-1.0)+0.5*r_[i]*(u_[i]*u_[i]+v_[i]*v_[i]);
-        switch (which_face) {
-            case 0:                      /* -x side */
-            case 1:                      /* +x side */
-                fr[i] = ru[i];
-                fu[i] = fr[i]*u_[i]+p_[i];
-                fv[i] = fr[i]*v_[i];
-                fe[i] = (re[i]+p_[i])*u_[i];
-                break;
-            case 2:                      /* -y side */
-            case 3:                      /* +y side */
-                fr[i] = rv[i];
-                fu[i] = fr[i]*u_[i];
-                fv[i] = fr[i]*v_[i]+p_[i];
-                fe[i] = (re[i]+p_[i])*v_[i];
-                break;
-        }
-    }
-    alpha = _MAX_(fabs(u_[0])+sqrt(GAM*p_[0]/r_[0]), fabs(u_[1])+sqrt(GAM*p_[1]/r_[1]));
+        ru[i] = r_[i] * u_[i];
+        rv[i] = r_[i] * v_[i];
+        rw[i] = r_[i] * w_[i];
+        re[i] = p_[i] / (GAM - 1.0) + 0.5 * r_[i] * (u_[i] * u_[i] + v_[i] * v_[i] + w_[i] * w_[i]);
 
-    if (bnd) {
-        switch (which_face) {
-            case 0:                      /* -x side */
-                vn = -1.0;
-                break;
-            case 1:                      /* +x side */
-                vn = 1.0;
-                break;
-            case 2:                      /* -y side */
-                vn = -1.0;
-                break;
-            case 3:                      /* +y side */
-                vn = 1.0;
-                break;
-        }
-
-        alpha *= vn;
+        fr[i] = r_[i]*vn[i];
+        fu[i] = fr[i]*u_[i]+p_[i]*n[0];
+        fv[i] = fr[i]*v_[i]+p_[i]*n[1];
+        fw[i] = fr[i]*w_[i]+p_[i]*n[2];
+        fe[i] = (re[i]+p_[i])*vn[i];
     }
+    alpha = _MAX_(fabs(vn[0])+sqrt(GAM*p_[0]/r_[0]), fabs(vn[1])+sqrt(GAM*p_[1]/r_[1]));
+
 
     *qr = 0.5*(fr[0]+fr[1]-alpha*(ro[1]-ro[0]));
     *qu = 0.5*(fu[0]+fu[1]-alpha*(ru[1]-ru[0]));
     *qv = 0.5*(fv[0]+fv[1]-alpha*(rv[1]-rv[0]));
+    *qw = 0.5*(fw[0]+fw[1]-alpha*(rw[1]-rw[0]));
     *qe = 0.5*(fe[0]+fe[1]-alpha*(re[1]-re[0]));
 #endif // FLUX_LF
 #endif // FLUX_RIM
