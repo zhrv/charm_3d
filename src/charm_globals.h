@@ -54,16 +54,16 @@ typedef void (*charm_bnd_cond_fn_t)(double ro, double ru, double rv, double rw, 
 
 typedef struct param
 {
-    struct prim
+    struct cons
     {
         double          ro;             /**< the state variable */
         double          ru;             /**< the state variable */
         double          rv;             /**< the state variable */
         double          rw;             /**< the state variable */
         double          re;             /**< the state variable */
-    } p;
+    } c;
 
-    struct cons
+    struct prim
     {
         double          r;             /**< density */
         double          u;             /**< velosity */
@@ -73,7 +73,16 @@ typedef struct param
         double          e_tot;         /**< total energy */
         double          p;             /**< pressure */
         double          t;             /**< temperature */
-    } c;
+    } p;
+
+    struct geom
+    {
+        double          n[P4EST_FACES][P4EST_DIM];
+        double          area[P4EST_FACES];
+        double          volume;
+        double          c[P4EST_DIM];
+        double          fc[P4EST_FACES][P4EST_DIM];
+    } g;
 } param_t;
 
 
@@ -86,11 +95,11 @@ typedef struct charm_data
     double              drwdt;          /**< the time derivative */
     double              dredt;          /**< the time derivative */
 
-    double              dro[P4EST_DIM];
-    double              dru[P4EST_DIM];
-    double              drv[P4EST_DIM];
-    double              drw[P4EST_DIM];
-    double              dre[P4EST_DIM];
+//    double              dro[P4EST_DIM];
+//    double              dru[P4EST_DIM];
+//    double              drv[P4EST_DIM];
+//    double              drw[P4EST_DIM];
+//    double              dre[P4EST_DIM];
 
     int                 ref_flag;
 } charm_data_t;
@@ -124,5 +133,9 @@ double vect_length(double v[3]);
 void vect_prod(double v1[3], double v2[3], double res[3]);
 
 
+double charm_face_get_normal(p4est_quadrant_t* q, int8_t face, double* n);
+void charm_quad_get_center(p4est_quadrant_t* q, double* c);
+void charm_face_get_center(p4est_quadrant_t* q, int8_t face, double* c);
+double charm_quad_get_volume(p4est_quadrant_t* q);
 
 #endif //CHAMR_3D_CHARM_GLOBALS_H

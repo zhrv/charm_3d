@@ -23,3 +23,27 @@ void vect_prod(double v1[3], double v2[3], double res[3])
 }
 
 
+double charm_face_get_normal(p4est_quadrant_t* q, int8_t face, double* n)
+{
+    charm_data_t* d = (charm_data_t*) q->p.user_data;
+    memcpy(n, d->par.g.n[face], 3*sizeof(double));
+    return d->par.g.area[face];
+}
+
+void charm_quad_get_center(p4est_quadrant_t* q, double* c)
+{
+    charm_data_t* d = (charm_data_t*) q->p.user_data;
+    memcpy(c, d->par.g.c, 3*sizeof(double));
+}
+
+void charm_face_get_center(p4est_quadrant_t* q, int8_t face, double* c)
+{
+    charm_data_t* d = (charm_data_t*) q->p.user_data;
+    memcpy(c, d->par.g.fc[face], 3*sizeof(double));
+}
+
+double charm_quad_get_volume(p4est_quadrant_t* q)
+{
+    charm_data_t* d = (charm_data_t*) q->p.user_data;
+    return d->par.g.volume;
+}

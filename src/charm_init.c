@@ -3,7 +3,8 @@
 //
 
 #include "charm_init.h"
-
+#include "charm_geom.h"
+#include "yaml.h"
 
 
 void charm_initial_condition (double x[], double u[FLD_COUNT], double du[FLD_COUNT][P4EST_DIM], charm_ctx_t * ctx)
@@ -45,16 +46,6 @@ void charm_initial_condition (double x[], double u[FLD_COUNT], double du[FLD_COU
     }
 }
 
-void charm_get_midpoint (p4est_t * p4est, p4est_topidx_t which_tree,
-                                p4est_quadrant_t * q, double xyz[3])
-{
-    p4est_qcoord_t      half_length = P4EST_QUADRANT_LEN (q->level) / 2;
-
-    p4est_qcoord_to_vertex (p4est->connectivity, which_tree,
-                            q->x + half_length, q->y + half_length, q->z + half_length,
-                            xyz);
-}
-
 void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree,
                                           p4est_quadrant_t * q)
 {
@@ -65,22 +56,24 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree,
 
     double du[FLD_COUNT][P4EST_DIM], u[FLD_COUNT];
 
-    charm_get_midpoint (p4est, which_tree, q, midpoint);
+    charm_geom_quad_calc(p4est, q, which_tree);
+
+    charm_quad_get_center (q, midpoint);
     charm_initial_condition (midpoint, u, du, ctx);
 
-    data->par.p.ro = u[0];
-    data->par.p.ru = u[1];
-    data->par.p.rv = u[2];
-    data->par.p.rw = u[3];
-    data->par.p.re = u[4];
+    data->par.c.ro = u[0];
+    data->par.c.ru = u[1];
+    data->par.c.rv = u[2];
+    data->par.c.rw = u[3];
+    data->par.c.re = u[4];
 
-    for (i = 0; i < P4EST_DIM; i++) {
-        data->dro[i] = du[0][i];
-        data->dru[i] = du[1][i];
-        data->drv[i] = du[2][i];
-        data->drw[i] = du[3][i];
-        data->dre[i] = du[4][i];
-    }
+//    for (i = 0; i < P4EST_DIM; i++) {
+//        data->dro[i] = du[0][i];
+//        data->dru[i] = du[1][i];
+//        data->drv[i] = du[2][i];
+//        data->drw[i] = du[3][i];
+//        data->dre[i] = du[4][i];
+//    }
 }
 
 
@@ -91,10 +84,10 @@ void charm_init_context(charm_ctx_t *ctx)
     ctx->refine_period          = 10;
     ctx->repartition_period     = 100;
 
-    ctx->min_level              = 1;
-    ctx->allowed_level          = 1;
+    ctx->min_level              = 2;
+    ctx->allowed_level          = 2;
 
-    ctx->write_period           = 100;
+    ctx->write_period           = 1;
 
     ctx->v_ref                  = 20.;
     ctx->CFL                    = 0.1;

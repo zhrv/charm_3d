@@ -48,7 +48,7 @@ int main (int argc, char **argv)
                            (void *) (&ctx));            /* context */
 
     charm_write_solution (p4est, 0);
-    charm_calc_grad(p4est, NULL, NULL);
+//    charm_calc_grad(p4est, NULL, NULL);
 
     charm_adapt_init(p4est);
 

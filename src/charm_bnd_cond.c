@@ -10,6 +10,11 @@ void charm_bnd_cond(p4est_t* p4est, p4est_topidx_t treeid, int8_t face,
                     double* ro_, double* ru_, double* rv_, double* rw_, double* re_)
 {
     p4est_topidx_t f_type;
+    *ro_ = ro;
+    *ru_ = ru;
+    *rv_ = rv;
+    *rw_ = rw;
+    *re_ = re;
     //f_type = charm_conn_get
 }
 
