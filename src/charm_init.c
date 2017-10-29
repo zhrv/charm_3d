@@ -77,8 +77,28 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree,
 }
 
 
+void charm_xml_node_value_double()
+
 void charm_init_context(charm_ctx_t *ctx)
 {
+
+    FILE *fp;
+    mxml_node_t *tree;
+
+    fp = fopen("task.xml", "r");
+    tree = mxmlLoadFile(NULL, fp,
+                        MXML_TEXT_CALLBACK);
+    fclose(fp);
+
+    mxml_node_t *node_task, *node_control, *node;
+
+    node_task = mxmlFindElement(tree, tree, "task",
+                                NULL, NULL,
+                                MXML_DESCEND);
+    node_control = mxmlFindElement(node_task, tree, "control",
+                                NULL, NULL,
+                                MXML_DESCEND);
+
     ctx->max_err                = 1.e-2;
 
     ctx->refine_period          = 10;

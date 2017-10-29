@@ -104,6 +104,17 @@ typedef struct charm_data
     int                 ref_flag;
 } charm_data_t;
 
+
+typedef struct charm_bnd
+{
+    char *name;
+    int id;
+    double *params;
+    charm_bnd_cond_fn_t bnd_fn;
+
+} charm_bnd_t;
+
+
 typedef struct charm_ctx
 {
     double              max_err;            /**< maximum allowed global interpolation error */
@@ -117,8 +128,7 @@ typedef struct charm_ctx
     double              dt;
     double              time;               /**< the max time */
 
-    charm_bnd_cond_fn_t bnd_fn[CHARM_BND_MAX];
-
+    charm_bnd_t         bnd[128];
 } charm_ctx_t;
 
 typedef struct charm_tree_attr
