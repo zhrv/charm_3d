@@ -1,8 +1,17 @@
 //
 // Created by zhrv on 26.10.17.
 //
-
+#define GLOBAL_H_FILE
 #include "charm_globals.h"
+
+const char *charm_bnd_types[] ={
+        "BOUND_INLET",
+        "BOUND_OUTLET",
+        "BOUND_WALL_SLIP",
+        "BOUND_WALL_NO_SLIP",
+        NULL
+};
+
 
 double scalar_prod(double v1[3], double v2[3])
 {

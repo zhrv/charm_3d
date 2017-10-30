@@ -4,7 +4,8 @@
 
 #include "charm_init.h"
 #include "charm_geom.h"
-#include "mxml.h"
+#include "charm_xml.h"
+#include "charm_bnd_cond.h"
 
 
 void charm_initial_condition (double x[], double u[FLD_COUNT], double du[FLD_COUNT][P4EST_DIM], charm_ctx_t * ctx)
@@ -77,7 +78,58 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree,
 }
 
 
-void charm_xml_node_value_double()
+void charm_init_fetch_bnd(mxml_node_t* node, charm_bnd_t *bnd)
+{
+    mxml_node_t * n1, *n2, *n3;
+    char str[64];
+    n1 = charm_xml_node_get_child(node, "name");
+    charm_xml_node_value_str(n1, bnd->name);
+    n1 = charm_xml_node_get_child(node, "type");
+    charm_xml_node_value_str(n1, str);
+    bnd->type = charm_bnd_type_by_name(str);
+    bnd->params = NULL;
+    switch (bnd->type) {
+        case BOUND_INLET:
+            bnd->bnd_fn = charm_bnd_cond_fn_inlet;
+            n2 = charm_xml_node_get_child(node, "parameters");
+            bnd->params = P4EST_ALLOC(double, 5);
+            charm_xml_node_child_param_dbl(n2, "Vx", &(bnd->params[0]));
+            charm_xml_node_child_param_dbl(n2, "Vy", &(bnd->params[1]));
+            charm_xml_node_child_param_dbl(n2, "Vz", &(bnd->params[2]));
+            charm_xml_node_child_param_dbl(n2, "T", &(bnd->params[3]));
+            charm_xml_node_child_param_dbl(n2, "P", &(bnd->params[4]));
+            break;
+        case BOUND_OUTLET:
+            bnd->bnd_fn = charm_bnd_cond_fn_outlet;
+            break;
+        case BOUND_WALL_SLIP: // @todo
+            bnd->bnd_fn = charm_bnd_cond_fn_wall;
+            break;
+        case BOUND_WALL_NO_SLIP: // @todo
+            bnd->bnd_fn = charm_bnd_cond_fn_wall;
+            break;
+    }
+
+
+}
+
+
+void charm_init_bnd(charm_ctx_t *ctx, mxml_node_t *node)
+{
+    mxml_node_t *node1;
+    int i;
+
+    for (i = 0; i < FACE_TYPE_COUNT; i++) {
+        ctx->bnd[i] = NULL;
+    }
+
+    for (node1 = charm_xml_node_get_child(node, "boundCond"); node1 != NULL; node1 = charm_xml_node_get_next_child(node1, node, "boundCond")) {
+        charm_xml_node_attr_int(node1, "faceType", &i);
+        ctx->bnd[i] = P4EST_ALLOC(charm_bnd_t, 1);
+        charm_init_fetch_bnd(node1, ctx->bnd[i]);
+    }
+}
+
 
 void charm_init_context(charm_ctx_t *ctx)
 {
@@ -90,31 +142,23 @@ void charm_init_context(charm_ctx_t *ctx)
                         MXML_TEXT_CALLBACK);
     fclose(fp);
 
-    mxml_node_t *node_task, *node_control, *node;
+    mxml_node_t *node_task, *node, *node1;
+    double x;
 
-    node_task = mxmlFindElement(tree, tree, "task",
-                                NULL, NULL,
-                                MXML_DESCEND);
-    node_control = mxmlFindElement(node_task, tree, "control",
-                                NULL, NULL,
-                                MXML_DESCEND);
+    node_task = charm_xml_node_get_child(tree, "task");
+    node = charm_xml_node_get_child(node_task, "control");
 
-    ctx->max_err                = 1.e-2;
+    charm_xml_node_child_param_dbl(node, "MAX_ERROR", &(ctx->max_err));
+    charm_xml_node_child_param_int(node, "REFINE_PERIOD", &(ctx->refine_period));
+    charm_xml_node_child_param_int(node, "REPARTITION_PERIOD", &(ctx->repartition_period));
+    charm_xml_node_child_param_int(node, "MIN_LEVEL", &(ctx->min_level));
+    charm_xml_node_child_param_int(node, "ALLOWED_LEVEL", &(ctx->allowed_level));
+    charm_xml_node_child_param_int(node, "FILE_OUTPUT_STEP", &(ctx->write_period));
 
-    ctx->refine_period          = 10;
-    ctx->repartition_period     = 100;
+    charm_xml_node_child_param_dbl(node, "TAU", &(ctx->dt));
+    charm_xml_node_child_param_dbl(node, "TMAX", &(ctx->time));
 
-    ctx->min_level              = 2;
-    ctx->allowed_level          = 2;
-
-    ctx->write_period           = 1;
-
-    ctx->v_ref                  = 20.;
-    ctx->CFL                    = 0.1;
-
-    ctx->dt                     = 1.e-8;
-
-    ctx->time                   = 3.5e-3;
+    charm_init_bnd(ctx, charm_xml_node_get_child(node_task, "boundaries"));
 }
 
 

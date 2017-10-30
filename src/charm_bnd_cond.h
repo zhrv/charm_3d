@@ -18,7 +18,7 @@ void charm_bnd_cond_fn_outlet(double ro, double ru, double rv, double rw, double
 
 void charm_bnd_cond_fn_wall(double ro, double ru, double rv, double rw, double re,
                             double* ro_, double* ru_, double* rv_, double* rw_, double* re_,
-                            double* n, double* param);
+                            double* n, double* param); // @todo
 
 
 
@@ -26,5 +26,7 @@ void charm_bnd_cond(p4est_t* p4est, p4est_topidx_t treeid, int8_t face,
                     double ro, double ru, double rv, double rw, double re,
                     double* ro_, double* ru_, double* rv_, double* rw_, double* re_);
 
+
+int charm_bnd_type_by_name(const char* name);
 
 #endif //CHAMR_3D_CHARM_BND_COND_H

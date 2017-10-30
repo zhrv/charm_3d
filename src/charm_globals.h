@@ -105,15 +105,28 @@ typedef struct charm_data
 } charm_data_t;
 
 
+#ifndef GLOBALS_H_FILE
+extern const char *charm_bnd_types[];
+#endif
+
+typedef enum {
+    BOUND_INLET,
+    BOUND_OUTLET,
+    BOUND_WALL_SLIP,
+    BOUND_WALL_NO_SLIP
+} bnd_types_t;
+
 typedef struct charm_bnd
 {
-    char *name;
+    char name[64];
+    int type;
     int id;
     double *params;
     charm_bnd_cond_fn_t bnd_fn;
 
 } charm_bnd_t;
 
+#define FACE_TYPE_COUNT 128
 
 typedef struct charm_ctx
 {
@@ -123,12 +136,11 @@ typedef struct charm_ctx
     int                 write_period;       /**< the number of time steps between writing vtk files */
     int                 allowed_level;      /**< the allowed level */
     int                 min_level;          /**< the minimal level */
-    double              v_ref;              /**< the reference velosity */
     double              CFL;                /**< the CFL */
     double              dt;
     double              time;               /**< the max time */
 
-    charm_bnd_t         bnd[128];
+    charm_bnd_t        *bnd[FACE_TYPE_COUNT];
 } charm_ctx_t;
 
 typedef struct charm_tree_attr
