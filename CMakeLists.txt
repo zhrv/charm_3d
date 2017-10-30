@@ -40,6 +40,8 @@ add_executable(	chamr_3d
         src/charm_geom.h
         src/charm_grad.c
         src/charm_grad.h
-		src/charm_xml.c src/charm_xml.h)
+		src/charm_xml.c
+        src/charm_xml.h
+)
 
 target_link_libraries(chamr_3d p4est sc mpi m mxml)

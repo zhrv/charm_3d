@@ -56,3 +56,56 @@ double charm_quad_get_volume(p4est_quadrant_t* q)
     charm_data_t* d = (charm_data_t*) q->p.user_data;
     return d->par.g.volume;
 }
+
+
+charm_mat_t * charm_mat_find_by_id(charm_ctx_t *ctx, int id)
+{
+    int i;
+    sc_array_t *arr = ctx->mat;
+    charm_mat_t * mat;
+
+
+    for (i = 0; i < arr->elem_count; i++) {
+        mat = sc_array_index(arr, i);
+        if (mat->id == id) {
+            return mat;
+        }
+    }
+
+    return NULL;
+}
+
+
+charm_bnd_t * charm_bnd_find_by_face_type(charm_ctx_t *ctx, int type)
+{
+    int i;
+    sc_array_t *arr = ctx->bnd;
+    charm_bnd_t * bnd;
+
+
+    for (i = 0; i < arr->elem_count; i++) {
+        bnd = sc_array_index(arr, i);
+        if (bnd->face_type == type) {
+            return bnd;
+        }
+    }
+
+    return NULL;
+}
+
+
+charm_mesh_type_t charm_mesh_get_type_by_str(char *str)
+{
+    if (strcmp(str, "gmsh_msh") == 0) {
+        return CHARM_MESH_GMSH_MSH;
+    }
+    else if (strcmp(str, "gmsh_unv") == 0) {
+        return CHARM_MESH_GMSH_UNV;
+    }
+    else if (strcmp(str, "gmsh_inp") == 0) {
+        return CHARM_MESH_GMSH_INP;
+    }
+    else {
+        return CHARM_MESH_UNKNOWN;
+    }
+}

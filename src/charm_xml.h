@@ -25,7 +25,7 @@ int charm_xml_node_child_value_str(mxml_node_t *, char*, char*);
 
 int charm_xml_node_child_param_dbl(mxml_node_t *, char*, double*);
 int charm_xml_node_child_param_int(mxml_node_t *n, char* name, int* val);
-int charm_xml_node_child_param_char(mxml_node_t *n, char* name, char* val);
+int charm_xml_node_child_param_str(mxml_node_t *n, char* name, char* val);
 
 
 #endif //CHAMR_3D_CHARM_XML_H

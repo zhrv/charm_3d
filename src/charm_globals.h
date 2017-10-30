@@ -105,6 +105,30 @@ typedef struct charm_data
 } charm_data_t;
 
 
+
+typedef struct charm_mat
+{
+    char name[64];
+    int id;
+    double m;
+    double cp;
+    double ml;
+    double k;
+} charm_mat_t;
+
+
+typedef struct charm_reg
+{
+    char name[64];
+    int id;
+    int cell_type;
+    charm_mat_t *mat;
+    double v[3];
+    double t;
+    double p;
+} charm_reg_t;
+
+
 #ifndef GLOBALS_H_FILE
 extern const char *charm_bnd_types[];
 #endif
@@ -120,13 +144,26 @@ typedef struct charm_bnd
 {
     char name[64];
     int type;
-    int id;
+    int face_type;
     double *params;
     charm_bnd_cond_fn_t bnd_fn;
 
 } charm_bnd_t;
 
-#define FACE_TYPE_COUNT 128
+typedef enum {
+    CHARM_MESH_UNKNOWN,
+    CHARM_MESH_GMSH_MSH,
+    CHARM_MESH_GMSH_INP,
+    CHARM_MESH_GMSH_UNV,
+    CHARM_MESH_SALOME_UNV,
+    CHARM_MESH_TETGEN
+} charm_mesh_type_t;
+
+typedef struct charm_mesh_info
+{
+    charm_mesh_type_t   type;
+    char                filename[128];
+} charm_mesh_info_t;
 
 typedef struct charm_ctx
 {
@@ -140,13 +177,17 @@ typedef struct charm_ctx
     double              dt;
     double              time;               /**< the max time */
 
-    charm_bnd_t        *bnd[FACE_TYPE_COUNT];
+    sc_array_t         *bnd;
+    sc_array_t         *mat;
+    sc_array_t         *reg;
+
+    charm_mesh_info_t  *msh;
 } charm_ctx_t;
 
 typedef struct charm_tree_attr
 {
-    int                 bnd_type[P4EST_FACES];
-    int                 region;
+    charm_bnd_t        *bnd[P4EST_FACES];
+    charm_reg_t        *reg;
 } charm_tree_attr_t;
 
 
@@ -159,5 +200,11 @@ double charm_face_get_normal(p4est_quadrant_t* q, int8_t face, double* n);
 void charm_quad_get_center(p4est_quadrant_t* q, double* c);
 void charm_face_get_center(p4est_quadrant_t* q, int8_t face, double* c);
 double charm_quad_get_volume(p4est_quadrant_t* q);
+
+
+charm_mat_t * charm_mat_find_by_id(charm_ctx_t *ctx, int id);
+charm_bnd_t * charm_bnd_find_by_face_type(charm_ctx_t *ctx, int type);
+
+charm_mesh_type_t charm_mesh_get_type_by_str(char*);
 
 #endif //CHAMR_3D_CHARM_GLOBALS_H

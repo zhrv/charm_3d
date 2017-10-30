@@ -82,6 +82,7 @@ void charm_init_fetch_bnd(mxml_node_t* node, charm_bnd_t *bnd)
 {
     mxml_node_t * n1, *n2, *n3;
     char str[64];
+    charm_xml_node_attr_int(node, "faceType", &(bnd->face_type));
     n1 = charm_xml_node_get_child(node, "name");
     charm_xml_node_value_str(n1, bnd->name);
     n1 = charm_xml_node_get_child(node, "type");
@@ -116,18 +117,98 @@ void charm_init_fetch_bnd(mxml_node_t* node, charm_bnd_t *bnd)
 
 void charm_init_bnd(charm_ctx_t *ctx, mxml_node_t *node)
 {
+    charm_bnd_t *bnd;
     mxml_node_t *node1;
     int i;
 
-    for (i = 0; i < FACE_TYPE_COUNT; i++) {
-        ctx->bnd[i] = NULL;
-    }
+    ctx->bnd = sc_array_new(sizeof(charm_bnd_t));
 
-    for (node1 = charm_xml_node_get_child(node, "boundCond"); node1 != NULL; node1 = charm_xml_node_get_next_child(node1, node, "boundCond")) {
-        charm_xml_node_attr_int(node1, "faceType", &i);
-        ctx->bnd[i] = P4EST_ALLOC(charm_bnd_t, 1);
-        charm_init_fetch_bnd(node1, ctx->bnd[i]);
+    for (node1 = charm_xml_node_get_child(node, "boundCond");
+         node1 != NULL;
+         node1 = charm_xml_node_get_next_child(node1, node, "boundCond")) {
+        bnd = (charm_bnd_t *) sc_array_push(ctx->bnd);
+        charm_init_fetch_bnd(node1, bnd);
     }
+}
+
+
+void charm_init_fetch_mat(mxml_node_t* node, charm_mat_t *mat)
+{
+    mxml_node_t * n1;
+    charm_xml_node_attr_int(node, "id", &(mat->id));
+    n1 = charm_xml_node_get_child(node, "name");
+    charm_xml_node_value_str(n1, mat->name);
+    n1 = charm_xml_node_get_child(node, "parameters");
+    charm_xml_node_child_param_dbl(n1, "M", &(mat->m));
+    charm_xml_node_child_param_dbl(n1, "Cp", &(mat->cp));
+    charm_xml_node_child_param_dbl(n1, "ML", &(mat->ml));
+    charm_xml_node_child_param_dbl(n1, "K", &(mat->k));
+}
+
+
+void charm_init_mat(charm_ctx_t *ctx, mxml_node_t *node)
+{
+    charm_mat_t *mat;
+    mxml_node_t *node1;
+    int i;
+
+    ctx->mat = sc_array_new(sizeof(charm_mat_t));
+
+    for (node1 = charm_xml_node_get_child(node, "material");
+         node1 != NULL;
+         node1 = charm_xml_node_get_next_child(node1, node, "material")) {
+        mat = (charm_mat_t *) sc_array_push(ctx->mat);
+        charm_init_fetch_mat(node1, mat);
+    }
+}
+
+
+void charm_init_fetch_reg(charm_ctx_t* ctx, mxml_node_t* node, charm_reg_t *reg)
+{
+    mxml_node_t * n1;
+    int tmp;
+    charm_mat_t *mat;
+    charm_xml_node_attr_int(node, "id", &(reg->id));
+    n1 = charm_xml_node_get_child(node, "name");
+    charm_xml_node_value_str(n1, reg->name);
+    charm_xml_node_child_param_int(node, "cell_type", &(reg->cell_type));
+    charm_xml_node_child_param_int(node, "material_id", &tmp);
+    mat = charm_mat_find_by_id(ctx, tmp);
+    reg->mat = mat;
+    n1 = charm_xml_node_get_child(node, "parameters");
+    charm_xml_node_child_param_dbl(n1, "Vx", &(reg->v[0]));
+    charm_xml_node_child_param_dbl(n1, "Vy", &(reg->v[1]));
+    charm_xml_node_child_param_dbl(n1, "Vz", &(reg->v[2]));
+    charm_xml_node_child_param_dbl(n1, "T", &(reg->t));
+    charm_xml_node_child_param_dbl(n1, "P", &(reg->p));
+}
+
+
+void charm_init_reg(charm_ctx_t *ctx, mxml_node_t *node)
+{
+    charm_reg_t *reg;
+    mxml_node_t *node1;
+    int i;
+
+    ctx->reg = sc_array_new(sizeof(charm_reg_t));
+
+    for (node1 = charm_xml_node_get_child(node, "region");
+         node1 != NULL;
+         node1 = charm_xml_node_get_next_child(node1, node, "region")) {
+        reg = (charm_reg_t *) sc_array_push(ctx->reg);
+        charm_init_fetch_reg(ctx, node1, reg);
+    }
+}
+
+
+void charm_init_mesh_info(charm_ctx_t *ctx, mxml_node_t *node)
+{
+    charm_mesh_info_t *m = ctx->msh;
+    char str[128];
+
+    charm_xml_node_child_param_str(node, "name", m->filename);
+    charm_xml_node_child_param_str(node, "filesType", str);
+    m->type = charm_mesh_get_type_by_str(str);
 }
 
 
@@ -159,6 +240,12 @@ void charm_init_context(charm_ctx_t *ctx)
     charm_xml_node_child_param_dbl(node, "TMAX", &(ctx->time));
 
     charm_init_bnd(ctx, charm_xml_node_get_child(node_task, "boundaries"));
+
+    charm_init_mat(ctx, charm_xml_node_get_child(node_task, "materials"));
+
+    charm_init_reg(ctx, charm_xml_node_get_child(node_task, "regions"));
+
+    charm_init_mesh_info(ctx, charm_xml_node_get_child(node_task, "mesh"));
 }
 
 

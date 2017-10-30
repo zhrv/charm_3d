@@ -98,7 +98,7 @@ int charm_xml_node_child_param_int(mxml_node_t *n, char* name, int* val)
 }
 
 
-int charm_xml_node_child_param_char(mxml_node_t *n, char* name, char* val)
+int charm_xml_node_child_param_str(mxml_node_t *n, char* name, char* val)
 {
     mxml_node_t *node = charm_xml_node_get_child(n, name);
     return charm_xml_node_attr_str(node, "value", val);
