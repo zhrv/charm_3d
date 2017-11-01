@@ -11,22 +11,14 @@ set(P4EST_LIB "${P4EST_INSTALL}/lib")
 
 set(MPI_INCLUDE "/usr/include/openmpi")
 
-set(YAML_INCLUDE "${CONTRIB_DIR}/yaml-0.1.7/include")
+set(MXML_INCLUDE "${CONTRIB_DIR}/mxml/local/include")
 
-set(YAML_SRC_DIR "${CONTRIB_DIR}/yaml-0.1.7/src")
+set(MXML_LIB "${CONTRIB_DIR}/mxml/local/lib")
 
-include_directories(${P4EST_INCLUDE} ${MPI_INCLUDE} ${YAML_INCLUDE})
-link_directories(${P4EST_LIB})
+include_directories(${P4EST_INCLUDE} ${MPI_INCLUDE} ${MXML_INCLUDE})
+link_directories(${P4EST_LIB} ${MXML_LIB})
 
 add_executable(	chamr_3d
-        ${YAML_SRC_DIR}/api.c
-        ${YAML_SRC_DIR}/dumper.c
-        ${YAML_SRC_DIR}/emitter.c
-        ${YAML_SRC_DIR}/loader.c
-        ${YAML_SRC_DIR}/parser.c
-        ${YAML_SRC_DIR}/reader.c
-        ${YAML_SRC_DIR}/scanner.c
-        ${YAML_SRC_DIR}/writer.c
         src/chamr_3d.c
 		src/charm_connectivity.c
         src/charm_connectivity.h
@@ -48,6 +40,8 @@ add_executable(	chamr_3d
         src/charm_geom.h
         src/charm_grad.c
         src/charm_grad.h
+		src/charm_xml.c
+        src/charm_xml.h
 )
 
-target_link_libraries(chamr_3d p4est sc mpi m)
+target_link_libraries(chamr_3d p4est sc mpi m mxml)

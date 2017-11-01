@@ -14,11 +14,11 @@
 int main (int argc, char **argv)
 {
 
-    int                 mpiret;
-    sc_MPI_Comm         mpicomm;
-    p4est_t            *p4est;
+    int                   mpiret;
+    sc_MPI_Comm           mpicomm;
+    p4est_t              *p4est;
     p4est_connectivity_t *conn;
-    charm_ctx_t         ctx;
+    charm_ctx_t           ctx;
 
     mpiret = sc_MPI_Init (&argc, &argv);
     SC_CHECK_MPI (mpiret);
@@ -27,15 +27,9 @@ int main (int argc, char **argv)
     sc_init (mpicomm, 0, 0, NULL, SC_LP_ESSENTIAL);
     p4est_init (NULL, SC_LP_ESSENTIAL);
 
-
     charm_init_context(&ctx);
 
-
-    /* Create a forest that consists of just one periodic quadtree/octree. */
-//    conn = charm_conn_create_n(40, 400);
     conn = charm_conn_create(&ctx);
-
-
     P4EST_ASSERT(p4est_connectivity_is_valid(conn));
 
     p4est = p4est_new_ext (mpicomm,              /* communicator */
