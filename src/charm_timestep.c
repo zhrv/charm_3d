@@ -155,7 +155,7 @@ static void charm_upwind_flux (p4est_iter_face_info_t * info, void *user_data)
     p4est_t            *p4est = info->p4est;
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
     charm_data_t       *ghost_data = (charm_data_t *) user_data;
-    charm_data_t       *udata;
+    charm_data_t       *udata, edata;
     p4est_quadrant_t   *quad;
     double              vdotn = 0., n[3];
     double              ro_avg[2], ru_avg[2], rv_avg[2], rw_avg[2], re_avg[2];
@@ -197,7 +197,13 @@ static void charm_upwind_flux (p4est_iter_face_info_t * info, void *user_data)
         rw_avg[0] = udata->par.c.rw;
         re_avg[0] = udata->par.c.re;
 
-        charm_bnd_cond(p4est, side[0]->treeid, face[0], ro_avg[0], ru_avg[0], rv_avg[0], rw_avg[0], re_avg[0], &ro_avg[1], &ru_avg[1], &rv_avg[1], &rw_avg[1], &re_avg[1]);
+        charm_bnd_cond(p4est, side[0]->treeid, face[0], &udata->par, &edata.par);
+
+        ro_avg[1] = edata.par.c.ro;
+        ru_avg[1] = edata.par.c.ru;
+        rv_avg[1] = edata.par.c.rv;
+        rw_avg[1] = edata.par.c.rw;
+        re_avg[1] = edata.par.c.re;
 
     }
     else {

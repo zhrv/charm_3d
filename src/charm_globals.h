@@ -46,10 +46,6 @@
 #define CHARM_FACE_TYPE_INNER 0
 #define CHARM_BND_MAX 128
 
-typedef void (*charm_bnd_cond_fn_t)(double ro, double ru, double rv, double rw, double re,
-                                    double* ro_, double* ru_, double* rv_, double* rw_, double* re_,
-                                    double* n, double* param);
-
 
 
 typedef struct charm_param
@@ -73,7 +69,7 @@ typedef struct charm_param
         double          e_tot;         /**< total energy */
         double          p;             /**< pressure */
         double          t;             /**< temperature */
-        double          cz;
+        double          cz;            /**< sound velosity */
     } p;
 
     struct geom
@@ -128,6 +124,10 @@ typedef struct charm_reg
     double t;
     double p;
 } charm_reg_t;
+
+
+typedef void (*charm_bnd_cond_fn_t)(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param);
+
 
 
 #ifndef GLOBALS_H_FILE
@@ -213,5 +213,7 @@ charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tr
 void charm_mat_eos(charm_mat_t * mat, charm_param_t * p, int variant);
 void charm_param_cons_to_prim(charm_mat_t * mat, charm_param_t * p);
 void charm_param_prim_to_cons(charm_mat_t * mat, charm_param_t * p);
+
+void charm_prim_cpy(charm_param_t * dest, charm_param_t * src);
 
 #endif //CHAMR_3D_CHARM_GLOBALS_H

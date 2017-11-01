@@ -17,36 +17,49 @@ int charm_bnd_type_by_name(const char* name) {
 
 
 void charm_bnd_cond(p4est_t* p4est, p4est_topidx_t treeid, int8_t face,
-                    double  ro,  double  ru,  double  rv,  double  rw,  double  re,
-                    double* ro_, double* ru_, double* rv_, double* rw_, double* re_)
+                    charm_param_t *par_in, charm_param_t *par_out)
 {
-    p4est_topidx_t f_type;
-    *ro_ = ro;
-    *ru_ = ru;
-    *rv_ = rv;
-    *rw_ = rw;
-    *re_ = re;
-    //f_type = charm_conn_get
+    charm_tree_attr_t *attr = charm_get_tree_attr(p4est, treeid);
+    charm_bnd_t *bnd = attr->bnd[face];
+    P4EST_ASSERT(bnd);
+    bnd->bnd_fn(par_in, par_out, face, bnd->params);
 }
 
 
-void charm_bnd_cond_fn_inlet(double ro, double ru, double rv, double rw, double re,
-                             double* ro_, double* ru_, double* rv_, double* rw_, double* re_,
-                             double* n, double* param)
+void charm_bnd_cond_fn_inlet(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param)
 {
+    P4EST_ASSERT(param);
 
+    par_out->p.u = param[0];
+    par_out->p.v = param[1];
+    par_out->p.w = param[2];
+    par_out->p.t = param[3];
+    par_out->p.p = param[4];
 }
 
-void charm_bnd_cond_fn_outlet(double ro, double ru, double rv, double rw, double re,
-                              double* ro_, double* ru_, double* rv_, double* rw_, double* re_,
-                              double* n, double* param)
+void charm_bnd_cond_fn_outlet(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param)
 {
-
+    par_out->c.ro = par_in->c.ro;
+    par_out->c.ru = par_in->c.ru;
+    par_out->c.rv = par_in->c.rv;
+    par_out->c.rw = par_in->c.rw;
+    par_out->c.re = par_in->c.re;
 }
 
-void charm_bnd_cond_fn_wall(double ro, double ru, double rv, double rw, double re,
-                            double* ro_, double* ru_, double* rv_, double* rw_, double* re_,
-                            double* n, double* param)
+void charm_bnd_cond_fn_wall(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param)
 {
+    int i;
+    double *n    = par_in->g.n[face];
+    double  v[3] = {par_in->p.u, par_in->p.v, par_in->p.w};
 
+    charm_prim_cpy(par_out, par_in);
+
+    double   svn = scalar_prod( v, n );
+    double   vv[3] = {n[0]*svn, n[1]*svn, n[3]*svn};
+    for (i = 0; i < 3; i++) {
+        v[i] -= vv[i];
+    }
+    par_out->p.u = v[0];
+    par_out->p.v = v[1];
+    par_out->p.w = v[2];
 }

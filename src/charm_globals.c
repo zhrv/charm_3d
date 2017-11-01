@@ -165,3 +165,17 @@ void charm_param_prim_to_cons(charm_mat_t * mat, charm_param_t * p)
     p->c.rw = p->p.r*p->p.w;
     p->c.re = p->p.r*(p->p.e+0.5*(p->p.u*p->p.u+p->p.v*p->p.v+p->p.w*p->p.w));
 }
+
+
+void charm_prim_cpy(charm_param_t * dest, charm_param_t * src)
+{
+    dest->p.r = src->p.r;
+    dest->p.p = src->p.p;
+    dest->p.u = src->p.u;
+    dest->p.v = src->p.v;
+    dest->p.w = src->p.w;
+    dest->p.t = src->p.t;
+    dest->p.cz = src->p.cz;
+    dest->p.e = src->p.e;
+    dest->p.e_tot = src->p.e_tot;
+}
