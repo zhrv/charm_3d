@@ -109,3 +109,59 @@ charm_mesh_type_t charm_mesh_get_type_by_str(char *str)
         return CHARM_MESH_UNKNOWN;
     }
 }
+
+charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tree)
+{
+    p4est_connectivity_t * conn = p4est->connectivity;
+    return (charm_tree_attr_t *)&(conn->tree_to_attr[sizeof(charm_tree_attr_t)*which_tree]);
+}
+
+double gR = 8.314472;
+void charm_mat_eos(charm_mat_t * mat, charm_param_t * p, int flag)
+{
+    double Cp = mat->cp;
+    double M  = mat->m;
+    double Cv = Cp-gR/M;
+    double gam = Cp/Cv;
+    switch (flag)
+    {
+        case 0:		// p=p(r,e)
+            p->p.p = p->p.r*p->p.e*(gam-1);
+            p->p.cz = sqrt(gam*p->p.p/p->p.r);
+            break;
+
+        case 1:		// e=e(r,p)
+            p->p.e = p->p.p/(p->p.r*(gam-1));
+            p->p.t = p->p.e/Cv;
+            break;
+
+        case 2:		// r=r(T,p)
+            p->p.r = p->p.p*M/(p->p.t*gR);
+            p->p.cz = sqrt(gam*p->p.p/p->p.r);
+            break;
+    }
+
+}
+
+
+void charm_param_cons_to_prim(charm_mat_t * mat, charm_param_t * p)
+{
+    p->p.r      = p->c.ro;
+    p->p.u      = p->c.ru/p->c.ro;
+    p->p.v      = p->c.rv/p->c.ro;
+    p->p.e_tot  = p->c.re/p->c.ro;
+    p->p.e      = p->p.e_tot-0.5*(p->p.u*p->p.u+p->p.v*p->p.v+p->p.w*p->p.w);
+
+    charm_mat_eos(mat, p, 0);
+    charm_mat_eos(mat, p, 1);
+}
+
+
+void charm_param_prim_to_cons(charm_mat_t * mat, charm_param_t * p)
+{
+    p->c.ro = p->p.r;
+    p->c.ru = p->p.r*p->p.u;
+    p->c.rv = p->p.r*p->p.v;
+    p->c.rw = p->p.r*p->p.w;
+    p->c.re = p->p.r*(p->p.e+0.5*(p->p.u*p->p.u+p->p.v*p->p.v+p->p.w*p->p.w));
+}

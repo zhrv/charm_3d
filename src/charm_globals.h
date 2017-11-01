@@ -52,7 +52,7 @@ typedef void (*charm_bnd_cond_fn_t)(double ro, double ru, double rv, double rw, 
 
 
 
-typedef struct param
+typedef struct charm_param
 {
     struct cons
     {
@@ -73,6 +73,7 @@ typedef struct param
         double          e_tot;         /**< total energy */
         double          p;             /**< pressure */
         double          t;             /**< temperature */
+        double          cz;
     } p;
 
     struct geom
@@ -83,12 +84,12 @@ typedef struct param
         double          c[P4EST_DIM];
         double          fc[P4EST_FACES][P4EST_DIM];
     } g;
-} param_t;
+} charm_param_t;
 
 
 typedef struct charm_data
 {
-    param_t             par;
+    charm_param_t       par;
     double              drodt;          /**< the time derivative */
     double              drudt;          /**< the time derivative */
     double              drvdt;          /**< the time derivative */
@@ -206,5 +207,11 @@ charm_mat_t * charm_mat_find_by_id(charm_ctx_t *ctx, int id);
 charm_bnd_t * charm_bnd_find_by_face_type(charm_ctx_t *ctx, int type);
 
 charm_mesh_type_t charm_mesh_get_type_by_str(char*);
+
+charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tree);
+
+void charm_mat_eos(charm_mat_t * mat, charm_param_t * p, int variant);
+void charm_param_cons_to_prim(charm_mat_t * mat, charm_param_t * p);
+void charm_param_prim_to_cons(charm_mat_t * mat, charm_param_t * p);
 
 #endif //CHAMR_3D_CHARM_GLOBALS_H

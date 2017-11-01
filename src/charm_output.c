@@ -61,13 +61,54 @@ static void charm_interpolate_solution (p4est_iter_volume_info_t * info, void *u
 
 
 
+static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, void *user_data)
+{
+    sc_array_t         **u_interp = (sc_array_t **) user_data;      /* we passed the array of values to fill as the user_data in the call to p4est_iterate */
+    p4est_t            *p4est = info->p4est;
+    p4est_quadrant_t   *q = info->quad;
+    p4est_topidx_t      which_tree = info->treeid;
+    p4est_locidx_t      local_id = info->quadid;  /* this is the index of q *within its tree's numbering*.  We want to convert it its index for all the quadrants on this process, which we do below */
+    p4est_tree_t       *tree;
+    charm_data_t       *data = (charm_data_t *) q->p.user_data;
+    double              h;
+    p4est_locidx_t      arrayoffset;
+    double              this_u[7];
+    double             *this_u_ptr;
+    int                 i, j;
+    p4est_locidx_t      fld_shift;
+
+    fld_shift = p4est->local_num_quadrants * P4EST_CHILDREN;
+
+    tree = p4est_tree_array_index (p4est->trees, which_tree);
+    local_id += tree->quadrants_offset;   /* now the id is relative to the MPI process */
+
+    charm_tree_attr_t * attr = (charm_tree_attr_t *)&(p4est->connectivity->tree_to_attr[which_tree*sizeof(charm_tree_attr_t)]);
+    charm_param_cons_to_prim(attr->reg->mat, &(data->par));
+
+    this_u[0] = data->par.p.r;
+    this_u[1] = data->par.p.p;
+    this_u[2] = data->par.p.e;
+    this_u[3] = data->par.p.e_tot;
+    this_u[4] = data->par.p.u;
+    this_u[5] = data->par.p.v;
+    this_u[6] = data->par.p.w;
+    /* loop over the derivative components and linearly interpolate from the
+     * midpoint to the corners */
+    for (j = 0; j < 7; j++) {
+        this_u_ptr = (double *) sc_array_index (u_interp[j], local_id);
+        this_u_ptr[0] = this_u[j];
+    }
+}
+
+
+
 
 void charm_write_solution (p4est_t * p4est, int timestep)
 {
     char                filename[BUFSIZ] = { '\0' };
-    sc_array_t         **u_interp;
-    p4est_locidx_t      numquads;
-    int                 fld_count = 5, i;
+    sc_array_t        **u_interp;
+    size_t              numquads;
+    int                 i;
 
     snprintf (filename, 33, P4EST_STRING "_charm_%08d", timestep);
 
@@ -75,9 +116,9 @@ void charm_write_solution (p4est_t * p4est, int timestep)
 
     /* create a vector with one value for the corner of every local quadrant
      * (the number of children is always the same as the number of corners) */
-    u_interp = P4EST_ALLOC(sc_array_t*, 5);
-    for (i = 0; i < 5; i++) {
-        u_interp[i] = sc_array_new_size (sizeof(double), numquads * P4EST_CHILDREN);
+    u_interp = P4EST_ALLOC(sc_array_t*, 7);
+    for (i = 0; i < 7; i++) {
+        u_interp[i] = sc_array_new_size (sizeof(double), numquads);
     }
 
     /* Use the iterator to visit every cell and fill in the solution values.
@@ -87,7 +128,7 @@ void charm_write_solution (p4est_t * p4est, int timestep)
      * the usage of p4est_iterate in this example */
     p4est_iterate (p4est, NULL,   /* we don't need any ghost quadrants for this loop */
                    (void *) u_interp,     /* pass in u_interp so that we can fill it */
-                   charm_interpolate_solution,    /* callback function that interpolates from the cell center to the cell corners, defined above */
+                   charm_interpolate_cell_solution,    /* callback function that interpolates from the cell center to the cell corners, defined above */
                    NULL,          /* there is no callback for the faces between quadrants */
 #ifdef P4_TO_P8
             NULL,          /* there is no callback for the edges between quadrants */
@@ -105,25 +146,32 @@ void charm_write_solution (p4est_t * p4est, int timestep)
 
     /* do not write the tree id's of each quadrant
      * (there is only one tree in this example) */
-    context = p4est_vtk_write_cell_dataf (context, 0, 1,  /* do write the refinement level of each quadrant */
+    context = p4est_vtk_write_cell_dataf (context, 1, 1,  /* do write the refinement level of each quadrant */
                                           1,      /* do write the mpi process id of each quadrant */
                                           0,      /* do not wrap the mpi rank (if this were > 0, the modulus of the rank relative to this number would be written instead of the rank) */
-                                          0,      /* there is no custom cell scalar data. */
+                                          7,      /* there is no custom cell scalar data. */
                                           0,      /* there is no custom cell vector data. */
+                                          "R",     u_interp[0],
+                                          "P",     u_interp[1],
+                                          "E",     u_interp[2],
+                                          "E_TOT", u_interp[3],
+                                          "U",     u_interp[4],
+                                          "V",     u_interp[5],
+                                          "W",     u_interp[6],
                                           context);       /* mark the end of the variable cell data. */
     SC_CHECK_ABORT (context != NULL,
                     P4EST_STRING "_vtk: Error writing cell data");
 
     /* write one scalar field: the solution value */
-    context = p4est_vtk_write_point_dataf (context, fld_count, 0, /* write no vector fields */
-                                           "RO", u_interp[0],
-                                           "RU", u_interp[1],
-                                           "RV", u_interp[2],
-                                           "RW", u_interp[3],
-                                           "RE", u_interp[4],
-                                           context);        /* mark the end of the variable cell data. */
-    SC_CHECK_ABORT (context != NULL,
-                    P4EST_STRING "_vtk: Error writing cell data");
+//    context = p4est_vtk_write_point_dataf (context, fld_count, 0, /* write no vector fields */
+//                                           "RO", u_interp[0],
+//                                           "RU", u_interp[1],
+//                                           "RV", u_interp[2],
+//                                           "RW", u_interp[3],
+//                                           "RE", u_interp[4],
+//                                           context);        /* mark the end of the variable cell data. */
+//    SC_CHECK_ABORT (context != NULL,
+//                    P4EST_STRING "_vtk: Error writing cell data");
 
     const int           retval = p4est_vtk_write_footer (context);
     SC_CHECK_ABORT (!retval, P4EST_STRING "_vtk: Error writing footer");
