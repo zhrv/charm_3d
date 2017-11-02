@@ -190,7 +190,7 @@ void charm_init_context(charm_ctx_t *ctx)
     charm_xml_node_child_param_int(node, "REFINE_PERIOD", &(ctx->refine_period));
     charm_xml_node_child_param_int(node, "REPARTITION_PERIOD", &(ctx->repartition_period));
     charm_xml_node_child_param_int(node, "MIN_LEVEL", &(ctx->min_level));
-    charm_xml_node_child_param_int(node, "ALLOWED_LEVEL", &(ctx->allowed_level));
+    charm_xml_node_child_param_int(node, "MAX_LEVEL", &(ctx->max_level));
     charm_xml_node_child_param_int(node, "FILE_OUTPUT_STEP", &(ctx->write_period));
 
     charm_xml_node_child_param_dbl(node, "TAU", &(ctx->dt));

@@ -74,11 +74,11 @@ charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which_tree,
 //    double              h = CHARM_GET_H(q->level);
     double              mp[3];
 
-    if (q->level >= ctx->allowed_level) {
+    if (q->level >= ctx->max_level) {
         return 0;
     }
 
-    charm_quad_get_center (q, mp);
+    charm_quad_get_center (q->p.user_data, mp);
 
 //    if (( (-0.001 < mp[2]) && (mp[2] < 0.001) ) || ( (-0.006 < mp[2]) && (mp[2] < -0.004) )) {
     if (( (-0.005 < mp[2]) && (mp[2] < 0.002) )) {
@@ -320,7 +320,7 @@ void charm_adapt(p4est_t *p4est, p4est_ghost_t **ghost, charm_data_t **ghost_dat
     int             callbackorphans = 0;
     charm_ctx_t      *ctx             = (charm_ctx_t *) p4est->user_pointer;
 
-    p4est_refine_ext (p4est, recursive, ctx->allowed_level,
+    p4est_refine_ext (p4est, recursive, ctx->max_level,
                       charm_refine_err_estimate, NULL,
                       charm_replace_quads);
     p4est_coarsen_ext (p4est, recursive, callbackorphans,
@@ -344,7 +344,7 @@ void charm_adapt(p4est_t *p4est, p4est_ghost_t **ghost, charm_data_t **ghost_dat
                    charm_ref_flag_face_iter_fn,
                    NULL,
                    NULL);
-    p4est_refine_ext (p4est, recursive, ctx->allowed_level,
+    p4est_refine_ext (p4est, recursive, ctx->max_level,
                       charm_refine_flag_estimate, NULL,
                       charm_replace_quads);
 

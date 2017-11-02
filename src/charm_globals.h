@@ -12,7 +12,9 @@
 #include <p8est_extended.h>
 #include <p8est_iterate.h>
 
-//#define CHARM_DEBUG
+#define CHARM_DIM P4EST_DIM
+
+#define CHARM_DEBUG
 
 //#define SECOND_ORDER
 
@@ -50,7 +52,7 @@
 
 typedef struct charm_param
 {
-    struct cons
+    struct
     {
         double          ro;             /**< the state variable */
         double          ru;             /**< the state variable */
@@ -59,7 +61,7 @@ typedef struct charm_param
         double          re;             /**< the state variable */
     } c;
 
-    struct prim
+    struct
     {
         double          r;             /**< density */
         double          u;             /**< velosity */
@@ -72,13 +74,22 @@ typedef struct charm_param
         double          cz;            /**< sound velosity */
     } p;
 
+    struct
+    {
+        double          r[CHARM_DIM];             /**< density */
+        double          u[CHARM_DIM];             /**< velosity */
+        double          v[CHARM_DIM];             /**< velosity */
+        double          w[CHARM_DIM];             /**< velosity */
+        double          p[CHARM_DIM];             /**< pressure */
+    } grad;
+
     struct geom
     {
-        double          n[P4EST_FACES][P4EST_DIM];
+        double          n[P4EST_FACES][CHARM_DIM];
         double          area[P4EST_FACES];
         double          volume;
-        double          c[P4EST_DIM];
-        double          fc[P4EST_FACES][P4EST_DIM];
+        double          c[CHARM_DIM];
+        double          fc[P4EST_FACES][CHARM_DIM];
     } g;
 } charm_param_t;
 
@@ -91,12 +102,6 @@ typedef struct charm_data
     double              drvdt;          /**< the time derivative */
     double              drwdt;          /**< the time derivative */
     double              dredt;          /**< the time derivative */
-
-//    double              dro[P4EST_DIM];
-//    double              dru[P4EST_DIM];
-//    double              drv[P4EST_DIM];
-//    double              drw[P4EST_DIM];
-//    double              dre[P4EST_DIM];
 
     int                 ref_flag;
 } charm_data_t;
@@ -120,7 +125,7 @@ typedef struct charm_reg
     int id;
     int cell_type;
     charm_mat_t *mat;
-    double v[3];
+    double v[CHARM_DIM];
     double t;
     double p;
 } charm_reg_t;
@@ -172,8 +177,8 @@ typedef struct charm_ctx
     int                 refine_period;      /**< the number of time steps between mesh refinement */
     int                 repartition_period; /**< the number of time steps between repartitioning */
     int                 write_period;       /**< the number of time steps between writing vtk files */
-    int                 allowed_level;      /**< the allowed level */
     int                 min_level;          /**< the minimal level */
+    int                 max_level;          /**< the allowed level */
     double              CFL;                /**< the CFL */
     double              dt;
     double              time;               /**< the max time */
@@ -192,15 +197,15 @@ typedef struct charm_tree_attr
 } charm_tree_attr_t;
 
 
-double scalar_prod(double v1[3], double v2[3]);
-double vect_length(double v[3]);
-void vect_prod(double v1[3], double v2[3], double res[3]);
+double scalar_prod(double v1[CHARM_DIM], double v2[CHARM_DIM]);
+double vect_length(double v[CHARM_DIM]);
+void vect_prod(double v1[CHARM_DIM], double v2[CHARM_DIM], double res[CHARM_DIM]);
 
 
-double charm_face_get_normal(p4est_quadrant_t* q, int8_t face, double* n);
-void charm_quad_get_center(p4est_quadrant_t* q, double* c);
-void charm_face_get_center(p4est_quadrant_t* q, int8_t face, double* c);
-double charm_quad_get_volume(p4est_quadrant_t* q);
+double charm_face_get_normal(charm_data_t *d, int8_t face, double* n);
+void charm_quad_get_center(charm_data_t *d, double* c);
+void charm_face_get_center(charm_data_t *d, int8_t face, double* c);
+double charm_quad_get_volume(charm_data_t *d);
 
 
 charm_mat_t * charm_mat_find_by_id(charm_ctx_t *ctx, int id);

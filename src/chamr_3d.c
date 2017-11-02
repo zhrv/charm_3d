@@ -48,7 +48,7 @@ int main (int argc, char **argv)
 
 
 
-    charm_write_solution (p4est, 0);
+   // charm_write_solution (p4est, 0);
 
 
 
