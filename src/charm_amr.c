@@ -255,8 +255,8 @@ void charm_adapt_init(p4est_t *p4est)
     p4est_coarsen (p4est, recursive, charm_coarsen_initial_condition,
                    charm_init_initial_condition);
 
-    p4est_balance (p4est, P4EST_CONNECT_FACE, charm_init_initial_condition);
-
+//    p4est_balance (p4est, P4EST_CONNECT_FACE, charm_init_initial_condition);
+//
 //    ghost = p4est_ghost_new (p4est, P4EST_CONNECT_FULL);
 //    ghost_data = P4EST_ALLOC (charm_data_t, ghost->ghosts.elem_count);
 //    p4est_ghost_exchange_data (p4est, ghost, ghost_data);
@@ -274,9 +274,9 @@ void charm_adapt_init(p4est_t *p4est)
 //    ghost = NULL;
 //    ghost_data = NULL;
 //
-//    partforcoarsen = 1;
-//    p4est_balance (p4est, P4EST_CONNECT_FACE, charm_init_initial_condition);
-//    p4est_partition (p4est, partforcoarsen, NULL);
+    partforcoarsen = 1;
+    p4est_balance (p4est, P4EST_CONNECT_FACE, charm_init_initial_condition);
+    p4est_partition (p4est, partforcoarsen, NULL);
 
 }
 

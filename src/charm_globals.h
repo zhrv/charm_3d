@@ -202,6 +202,7 @@ double vect_length(double v[CHARM_DIM]);
 void vect_prod(double v1[CHARM_DIM], double v2[CHARM_DIM], double res[CHARM_DIM]);
 
 
+double charm_face_get_area(charm_data_t *d, int8_t face);
 double charm_face_get_normal(charm_data_t *d, int8_t face, double* n);
 void charm_quad_get_center(charm_data_t *d, double* c);
 void charm_face_get_center(charm_data_t *d, int8_t face, double* c);

@@ -32,6 +32,11 @@ void vect_prod(double v1[CHARM_DIM], double v2[CHARM_DIM], double res[CHARM_DIM]
 }
 
 
+double charm_face_get_area(charm_data_t *d, int8_t face)
+{
+    return d->par.g.area[face];
+}
+
 double charm_face_get_normal(charm_data_t *d, int8_t face, double* n)
 {
     memcpy(n, d->par.g.n[face], CHARM_DIM*sizeof(double));
@@ -145,6 +150,7 @@ void charm_param_cons_to_prim(charm_mat_t * mat, charm_param_t * p)
     p->p.r      = p->c.ro;
     p->p.u      = p->c.ru/p->c.ro;
     p->p.v      = p->c.rv/p->c.ro;
+    p->p.w      = p->c.rw/p->c.ro;
     p->p.e_tot  = p->c.re/p->c.ro;
     p->p.e      = p->p.e_tot-0.5*(p->p.u*p->p.u+p->p.v*p->p.v+p->p.w*p->p.w);
 

@@ -177,6 +177,7 @@ static void charm_grad_face_iter_fn (p4est_iter_face_info_t * info, void *user_d
                     quad = side[i]->is.hanging.quad[j];
                     if (!side[i]->is.hanging.is_ghost[j]) {
                         udata = (charm_data_t *) quad->p.user_data;
+                        facearea = charm_face_get_area(udata, side[i]->face);
                         udata->par.grad.r[k] += qr * n[k] * facearea * (i ? 1. : -1.);
                         udata->par.grad.u[k] += qu * n[k] * facearea * (i ? 1. : -1.);
                         udata->par.grad.v[k] += qv * n[k] * facearea * (i ? 1. : -1.);
@@ -189,6 +190,7 @@ static void charm_grad_face_iter_fn (p4est_iter_face_info_t * info, void *user_d
                 quad = side[i]->is.full.quad;
                 if (!side[i]->is.full.is_ghost) {
                     udata = (charm_data_t *) quad->p.user_data;
+                    facearea = charm_face_get_area(udata, side[i]->face);
                     udata->par.grad.r[k] += qr * n[k] * facearea * (i ? 1. : -1.);
                     udata->par.grad.u[k] += qu * n[k] * facearea * (i ? 1. : -1.);
                     udata->par.grad.v[k] += qv * n[k] * facearea * (i ? 1. : -1.);

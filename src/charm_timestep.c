@@ -65,12 +65,12 @@ void charm_timestep (p4est_t * p4est, double time)
 //                P4EST_GLOBAL_PRODUCTIONF ("u_max %f\n", global_umax);
 
                 charm_adapt(p4est); /* adapt */
-                if (ghost) {
-                    p4est_ghost_destroy(ghost);
-                    P4EST_FREE (ghost_data);
-                    ghost = NULL;
-                    ghost_data = NULL;
-                }
+//                if (ghost) {
+//                    p4est_ghost_destroy(ghost);
+//                    P4EST_FREE (ghost_data);
+//                    ghost = NULL;
+//                    ghost_data = NULL;
+//                }
 
 
             }
@@ -100,26 +100,14 @@ void charm_timestep (p4est_t * p4est, double time)
 
             ghost = p4est_ghost_new (p4est, P4EST_CONNECT_FULL);
             ghost_data = P4EST_ALLOC (charm_data_t, ghost->ghosts.elem_count);
+            p4est_ghost_exchange_data(p4est, ghost, ghost_data);
         }
-
-        p4est_ghost_exchange_data (p4est, ghost, ghost_data);
-
         charm_calc_grad(p4est, ghost, ghost_data);
-
         /* compute du/dt */
         p4est_iterate (p4est,                                /* the forest */
                        ghost,                                /* the ghost layer */
                        (void *) ghost_data,                  /* the synchronized ghost data */
                        charm_zero_quad_iter_fn,              /* callback to compute each quad's interior contribution to du/dt */
-                       /*charm_convect_flux_face_iter_fn, */NULL,     /* callback to compute each quads' faces' contributions to du/du */
-                       NULL,
-                       NULL);                                /* there is no callback for the
-                                                                corners between quadrants */
-
-        p4est_iterate (p4est,                                /* the forest */
-                       ghost,                                /* the ghost layer */
-                       (void *) ghost_data,                  /* the synchronized ghost data */
-                       /*charm_zero_quad_iter_fn,*/NULL,              /* callback to compute each quad's interior contribution to du/dt */
                        charm_convect_flux_face_iter_fn,      /* callback to compute each quads' faces' contributions to du/du */
                        NULL,
                        NULL);                                /* there is no callback for the
@@ -158,9 +146,6 @@ static void charm_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user
     p4est_quadrant_t   *q = info->quad;
     charm_data_t       *data = (charm_data_t *) q->p.user_data;
 
-    if (data->drodt != data->drodt) {
-        int iiii=0;
-    }
     data->drodt = 0.;
     data->drudt = 0.;
     data->drvdt = 0.;
@@ -192,9 +177,11 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
 
 
     if (sides->elem_count != 2) {
+        P4EST_ASSERT(info->tree_boundary);
 
         side[0] = p4est_iter_fside_array_index_int(sides, 0);
         P4EST_ASSERT(!side[0]->is_hanging);
+
         if (side[0]->is.full.is_ghost) {
             udata = &ghost_data[side[0]->is.full.quadid];
         }
@@ -202,7 +189,7 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
             udata = (charm_data_t *) side[0]->is.full.quad->p.user_data;
         }
         face[0] = side[0]->face;
-        facearea = charm_face_get_normal(udata, face[0], n);
+        charm_face_get_normal(udata, face[0], n);
         charm_quad_get_center(udata, c[0]);
         charm_face_get_center(udata, face[0], c[1]);
 
@@ -237,7 +224,7 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
         face[0] = side[0]->face;
         face[1] = side[1]->face;
 
-        i = side[0]->is_hanging ? 1 : 0;
+        i = (side[0]->is_hanging ? 1 : 0);
 
         if (side[i]->is.full.is_ghost) {
             udata = &ghost_data[side[i]->is.full.quadid];
@@ -245,7 +232,7 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
         else {
             udata = (charm_data_t *) side[i]->is.full.quad->p.user_data;
         }
-        facearea = charm_face_get_normal(udata, face[i], n);
+        charm_face_get_normal(udata, face[i], n);
         charm_quad_get_center(udata, c[0]);
         charm_face_get_center(udata, face[i], c[1]);
 
@@ -262,32 +249,34 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
 
 
         for (i = 0; i < 2; i++) {
-            ro_avg[i] = 0;
-            ru_avg[i] = 0;
-            rv_avg[i] = 0;
-            rw_avg[i] = 0;
-            re_avg[i] = 0;
+            ro_avg[i] = 0.;
+            ru_avg[i] = 0.;
+            rv_avg[i] = 0.;
+            rw_avg[i] = 0.;
+            re_avg[i] = 0.;
             if (side[i]->is_hanging) {
                 /* there are 2^(d-1) (P4EST_HALF) subfaces */
+                double v = 0.;
                 for (j = 0; j < P4EST_HALF; j++) {
                     if (side[i]->is.hanging.is_ghost[j]) {
-                        udata = (charm_data_t *) &ghost_data[side[i]->is.hanging.quadid[j]];
+                        udata = &ghost_data[side[i]->is.hanging.quadid[j]];
                     }
                     else {
-                        udata =
-                                (charm_data_t *) side[i]->is.hanging.quad[j]->p.user_data;
+                        udata = (charm_data_t *) side[i]->is.hanging.quad[j]->p.user_data;
                     }
-                    ro_avg[i] += udata->par.c.ro;
-                    ru_avg[i] += udata->par.c.ru;
-                    rv_avg[i] += udata->par.c.rv;
-                    rw_avg[i] += udata->par.c.rw;
-                    re_avg[i] += udata->par.c.re;
+                    double vj = charm_quad_get_volume(udata);
+                    v += vj;
+                    ro_avg[i] += udata->par.c.ro*vj;
+                    ru_avg[i] += udata->par.c.ru*vj;
+                    rv_avg[i] += udata->par.c.rv*vj;
+                    rw_avg[i] += udata->par.c.rw*vj;
+                    re_avg[i] += udata->par.c.re*vj;
                 }
-                ro_avg[i] /= P4EST_HALF;
-                ru_avg[i] /= P4EST_HALF;
-                rv_avg[i] /= P4EST_HALF;
-                rw_avg[i] /= P4EST_HALF;
-                re_avg[i] /= P4EST_HALF;
+                ro_avg[i] /= v;
+                ru_avg[i] /= v;
+                rv_avg[i] /= v;
+                rw_avg[i] /= v;
+                re_avg[i] /= v;
             }
             else {
                 if (side[i]->is.full.is_ghost) {
@@ -308,7 +297,6 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
 
     double r_[2], p_[2], u_[2], v_[2], w_[2];
     charm_tree_attr_t *attr;
-    charm_mat_t *mat;
     for (i = 0; i < 2; i++) {
         edata.par.c.ro = ro_avg[i];
         edata.par.c.ru = ru_avg[i];
@@ -324,16 +312,13 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
         v_[i] = edata.par.p.v;
         w_[i] = edata.par.p.w;
         p_[i] = edata.par.p.p;
-//
-//        r_[i] = ro_avg[i];
-//        u_[i] = ru_avg[i]/r_[i];
-//        v_[i] = rv_avg[i]/r_[i];
-//        w_[i] = rw_avg[i]/r_[i];
-//        p_[i] = (re_avg[i]-0.5*r_[i]*(u_[i]*u_[i]+v_[i]*v_[i]+w_[i]*w_[i]))*(GAM-1.0); //@todo сделать с использованием УРС
+
     }
 
     /* flux from side 0 to side 1 */
     calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n, bnd);
+
+    double sss[2] = {0., 0.};
 
     for (i = 0; i < sides->elem_count; i++) {
         if (side[i]->is_hanging) {
@@ -342,17 +327,13 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
                 quad = side[i]->is.hanging.quad[j];
                 if (!side[i]->is.hanging.is_ghost[j]) {
                     udata = (charm_data_t *) quad->p.user_data;
-                    if (udata->drodt != udata->drodt) {
-                        int iiii=0;
-                    }
+                    facearea = charm_face_get_area(udata, side[i]->face);
+                    sss[i]+=facearea;
                     udata->drodt += qr * facearea * (i ? 1. : -1.);
                     udata->drudt += qu * facearea * (i ? 1. : -1.);
                     udata->drvdt += qv * facearea * (i ? 1. : -1.);
                     udata->drwdt += qw * facearea * (i ? 1. : -1.);
                     udata->dredt += qe * facearea * (i ? 1. : -1.);
-                    if (udata->drodt != udata->drodt) {
-                        int iiii=0;
-                    }
                 }
             }
         }
@@ -360,6 +341,8 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
             quad = side[i]->is.full.quad;
             if (!side[i]->is.full.is_ghost) {
                 udata = (charm_data_t *) quad->p.user_data;
+                facearea = charm_face_get_area(udata, side[i]->face);
+                sss[i]+=facearea;
                 udata->drodt += qr * facearea * (i ? 1. : -1.);
                 udata->drudt += qu * facearea * (i ? 1. : -1.);
                 udata->drvdt += qv * facearea * (i ? 1. : -1.);
@@ -443,9 +426,5 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
     data->par.c.rv += dt * data->drvdt / vol;
     data->par.c.rw += dt * data->drwdt / vol;
     data->par.c.re += dt * data->dredt / vol;
-
-    if (data->par.c.ro != data->par.c.ro) {
-        int iiii=0;
-    }
 }
 
