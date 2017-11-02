@@ -14,7 +14,7 @@
 
 #define CHARM_DIM P4EST_DIM
 
-#define CHARM_DEBUG
+//#define CHARM_DEBUG
 
 //#define SECOND_ORDER
 
@@ -28,11 +28,11 @@
 
 #ifdef CHARM_DEBUG
 
-#define DBG_CH() printf("Line: %d\n", __LINE__)
+#define DBG_CH(R) {printf("Rank: %d. File: %s. Line: %d\n", (R), __FILE__, __LINE__);fflush(stdout);}
 
 #else
 
-#define DBG_CH() ((void)0)
+#define DBG_CH(R) ((void)0)
 
 #endif
 

@@ -9,11 +9,8 @@
 
 
 
-
-
 int main (int argc, char **argv)
 {
-
     int                   mpiret;
     sc_MPI_Comm           mpicomm;
     p4est_t              *p4est;
@@ -41,8 +38,8 @@ int main (int argc, char **argv)
                            charm_init_initial_condition,  /* initializes data */
                            (void *) (&ctx));            /* context */
 
-    charm_write_solution (p4est, 0);
-//    charm_calc_grad(p4est, NULL, NULL);
+//    charm_write_solution (p4est, 0);
+    charm_calc_grad(p4est, NULL, NULL);
 
     charm_adapt_init(p4est);
 
