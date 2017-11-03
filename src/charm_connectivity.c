@@ -4,7 +4,7 @@
 
 #include "charm_connectivity.h"
 
-typedef p4est_connectivity_t* (*charm_conn_reader_t)(const char*);
+typedef p4est_connectivity_t* (*charm_conn_reader_t)(charm_ctx_t*);
 
 const int charm_face_corners[6][4] =
         {{ 0, 2, 4, 6 },
@@ -28,6 +28,18 @@ typedef struct charm_face_info {
     p4est_topidx_t  tree;
     int             type;
 } charm_face_info_t;
+
+typedef struct {
+    char  name[128];
+    int   id;
+    int   dim;
+} charm_patch_t;
+
+static sc_array_t *patches;
+
+
+
+
 
 int charm_face_cmp(const void *_key1, const void *_key2)
 {
@@ -75,9 +87,6 @@ charm_fhash_t* charm_fhash_new(p4est_topidx_t size)
 
 void charm_fhash_insert(charm_fhash_t* fh, const p4est_topidx_t* key, charm_face_info_t* val)
 {
-    if (key[0] == 1 && key[1] == 25 && key[2] == 137 && key[3] == 353) {
-        int iiiii=0;
-    }
     charm_face_info_t * pval;
     unsigned idx = charm_face_hash(key) % fh->size;
     while(fh->el[idx].key != NULL) {
@@ -158,50 +167,88 @@ charm_connectivity_getline_upper (FILE * stream)
 }
 
 
-int charm_conn_faces_is_equal(p4est_topidx_t  *face_vert_1, p4est_topidx_t  *face_vert_2)
+//int charm_conn_faces_is_equal(p4est_topidx_t  *face_vert_1, p4est_topidx_t  *face_vert_2)
+//{
+//    return charm_face_cmp(face_vert_1, face_vert_2);
+//}
+
+
+charm_bnd_t * charm_conn_bnd_find_by_id(charm_ctx_t* ctx, int id)
 {
-    return charm_face_cmp(face_vert_1, face_vert_2);
+    size_t i;
+    int patch_found = 0;
+    charm_patch_t *p;
+    charm_bnd_t   *bnd;
+    char *name = NULL;
+    // find by name
+    for (i = 0; i < patches->elem_count; i++) {
+        p = sc_array_index(patches, i);
+        if (p->id == id) {
+            patch_found = 1;
+            name = p->name;
+        }
+    }
+
+
+
+    P4EST_ASSERT(patch_found);
+
+    for (i = 0; i < ctx->bnd->elem_count; i++) {
+        bnd = sc_array_index(ctx->bnd, i);
+        if (strcmp(name, bnd->name) == 0) {
+            return bnd;
+        }
+    }
+    P4EST_LERRORF("Patch (id=%d) is nod defined in task.xml\n", id);
+    return NULL;
 }
 
-int charm_conn_find_tree_by_face(p4est_connectivity_t  *conn, charm_fhash_t* fh, p4est_topidx_t  *face_vert, int8_t bnd_type)
+
+charm_reg_t * charm_conn_reg_find_by_id(charm_ctx_t* ctx, int id)
 {
-    int i, j, k;
-    p4est_topidx_t  tree_faces[4];
+    size_t i;
+    int patch_found = 0;
+    charm_patch_t *p;
+    charm_reg_t   *reg;
+    char *name = NULL;
+    // find by name
+    for (i = 0; i < patches->elem_count; i++) {
+        p = sc_array_index(patches, i);
+        if (p->id == id) {
+            patch_found = 1;
+            name = p->name;
+        }
+    }
+
+
+
+    P4EST_ASSERT(patch_found);
+
+    for (i = 0; i < ctx->reg->elem_count; i++) {
+        reg = sc_array_index(ctx->reg, i);
+        if (strcmp(name, reg->name) == 0) {
+            return reg;
+        }
+    }
+    P4EST_LERRORF("Patch (id=%d) is nod defined in task.xml\n", id);
+    return NULL;
+}
+
+
+int charm_conn_find_tree_by_face(charm_ctx_t *ctx, p4est_connectivity_t  *conn, charm_fhash_t* fh, p4est_topidx_t  *face_vert, int8_t face_type)
+{
+    int i;
     charm_tree_attr_t *attr;
-    p4est_topidx_t *ttv;
 
     sc_array_t* arr = charm_fhash_lookup(fh, face_vert);
     P4EST_ASSERT(arr != NULL);
     for (i = 0; i < arr->elem_count; i++) {
         charm_face_info_t * fi = (charm_face_info_t *)sc_array_index(arr, i);
         attr = (charm_tree_attr_t *)&(conn->tree_to_attr[sizeof(charm_tree_attr_t)*fi->tree]);
-        attr->bnd_type[fi->type] = bnd_type;
+        attr->bnd[fi->type] = charm_conn_bnd_find_by_id(ctx, face_type);
     }
 }
 
-int __charm_conn_find_tree_by_face(p4est_connectivity_t  *conn, p4est_topidx_t  *face_vert, int8_t bnd_type)
-{
-    int i, j, k;
-    p4est_topidx_t  tree_faces[4];
-    charm_tree_attr_t *attr;
-    p4est_topidx_t *ttv;
-
-    int find_count = 0;
-    p4est_topidx_bsort(face_vert, 4);
-    for (i = 0, attr = (charm_tree_attr_t*)(conn->tree_to_attr), ttv = conn->tree_to_vertex; i < conn->num_trees; i++, ++attr, ttv+=P4EST_CHILDREN) {
-        for (j = 0; j < P4EST_FACES; j++) {
-            for (k = 0; k < 4; k++) {
-                tree_faces[k] = ttv[charm_face_corners[j][k]];
-            }
-            p4est_topidx_bsort (tree_faces, 4);
-            if (charm_conn_faces_is_equal(tree_faces, face_vert)) {
-                attr->bnd_type[j] = bnd_type;
-                find_count++;
-            }
-        }
-    }
-    P4EST_ASSERT(find_count);
-}
 
 int8_t charm_conn_parse_face(char *line, p4est_topidx_t *fv)
 {
@@ -215,7 +262,7 @@ int8_t charm_conn_parse_face(char *line, p4est_topidx_t *fv)
     }
 
     if (type == 3) {
-        int tagc, tag1, tag2;
+        int tagc, tag2;
         retval = sscanf (line, "%d %d %d %d %d %d %d %d %d",
                          &node, &type, &tagc, &fv[4], &tag2,
                          &(fv[0]), &(fv[1]), &(fv[3]), &(fv[2]) );
@@ -234,10 +281,41 @@ int8_t charm_conn_parse_face(char *line, p4est_topidx_t *fv)
 }
 
 
-p4est_connectivity_t * charm_conn_reader_msh (const char *filename)
+int8_t charm_conn_parse_cell(char *line, p4est_topidx_t *fv)
+{
+    int i, retval;
+    int       node, type;
+
+    retval = sscanf (line, "%d %d", &node, &type);
+    if (retval != 2) {
+        P4EST_LERROR ("Premature end of file");
+        return 0;
+    }
+
+    if (type == 5) {
+        int tagc, tag2;
+        retval = sscanf (line, "%d %d %d %d %d %d %d %d %d %d %d %d %d",
+                         &node, &type, &tagc, &fv[8], &tag2,
+                         &(fv[0]), &(fv[1]), &(fv[3]), &(fv[2]),
+                         &(fv[4]), &(fv[5]), &(fv[7]), &(fv[6]));
+        if (retval != 13) {
+            P4EST_LERROR ("Premature end of file");
+            return 0;
+        }
+        for (i = 0; i < 8; i++) {
+            fv[i]--;
+        }
+        return 1;
+    }
+
+    return 0;
+}
+
+
+p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
 {
     int                 retval;
-    p4est_topidx_t      num_vertices = 0, num_trees = 0, num_trees_real = 0, tree;
+    p4est_topidx_t      num_vertices = 0, num_patches = 0, num_trees = 0, num_trees_real = 0, tree;
     int                 i;
     int8_t              face;
 
@@ -253,6 +331,15 @@ p4est_connectivity_t * charm_conn_reader_msh (const char *filename)
     charm_fhash_t *     fh;
     charm_face_info_t   fi;
     p4est_topidx_t      fkey[4];
+
+    charm_patch_t      *patch;
+
+    char *filename;
+
+    P4EST_ASSERT(ctx->msh->type != CHARM_MESH_UNKNOWN);
+    P4EST_ASSERT(ctx->msh->filename);
+
+    filename = ctx->msh->filename;
 
     P4EST_GLOBAL_PRODUCTIONF ("Reading connectivity from %s\n", filename);
 
@@ -273,7 +360,19 @@ p4est_connectivity_t * charm_conn_reader_msh (const char *filename)
         }
 
         if (line[0] == '$') {
-            if (strstr(line, "$NODES")) {
+            if (strstr(line, "$PHYSICALNAMES")) {
+                P4EST_FREE(line);
+                line = charm_connectivity_getline_upper (fid);
+                sscanf(line, "%d", &num_patches);
+                patches = sc_array_new(sizeof(charm_patch_t));
+                for (i = 0; i < num_patches; i++) {
+                    P4EST_FREE(line);
+                    line = charm_connectivity_getline_upper (fid);
+                    patch = sc_array_push(patches);
+                    sscanf(line, "%d %d \"%[^\"]", &(patch->dim), &(patch->id), patch->name);
+                }
+            }
+            else if (strstr(line, "$NODES")) {
                 P4EST_FREE(line);
                 line = charm_connectivity_getline_upper (fid);
                 sscanf(line, "%d", &num_vertices);
@@ -317,9 +416,6 @@ p4est_connectivity_t * charm_conn_reader_msh (const char *filename)
                         retval = sscanf (line, "%lld %lld %d %d %d %d %d %d %d %d %d %d %d", &node, &type, &tagc, &tag1, &tag2,
                                          &trees[num_trees_real*P4EST_CHILDREN+0], &trees[num_trees_real*P4EST_CHILDREN+1], &trees[num_trees_real*P4EST_CHILDREN+3], &trees[num_trees_real*P4EST_CHILDREN+2],
                                          &trees[num_trees_real*P4EST_CHILDREN+4], &trees[num_trees_real*P4EST_CHILDREN+5], &trees[num_trees_real*P4EST_CHILDREN+7], &trees[num_trees_real*P4EST_CHILDREN+6] );
-                        if (node == 779) {
-                            int iiii=0;
-                        }
                         if (retval != 13) {
                             P4EST_LERROR ("Premature end of file");
                             P4EST_FREE (line);
@@ -373,9 +469,9 @@ p4est_connectivity_t * charm_conn_reader_msh (const char *filename)
     charm_tree_attr_t * attr;
     for (tree = 0, attr = (charm_tree_attr_t*)(conn->tree_to_attr); tree < conn->num_trees; ++tree, ++attr) {
         for (face = 0; face < P4EST_FACES; ++face) {
-            attr->bnd_type[face]    = CHARM_FACE_TYPE_INNER;
+            attr->bnd[face] = NULL;
         }
-        attr->region            = 0;
+        attr->reg = NULL;
     }
 
     fsetpos (fid, &fpos);
@@ -383,15 +479,21 @@ p4est_connectivity_t * charm_conn_reader_msh (const char *filename)
     int ele_count = 0;
     sscanf(line, "%d", &ele_count);
     P4EST_FREE(line);
-    p4est_topidx_t fv[5];
+    p4est_topidx_t fv[32];
+    attr = (charm_tree_attr_t*)(conn->tree_to_attr);
     for (; ele_count > 0; ele_count--) {
         line = charm_connectivity_getline_upper(fid);
         if (charm_conn_parse_face(line, fv)) {
-            charm_conn_find_tree_by_face(conn, fh, fv, fv[4]);
+            charm_conn_find_tree_by_face(ctx, conn, fh, fv, fv[4]);
+        }
+        else if (charm_conn_parse_cell(line, fv)) { // @todo предполагаем, что последовательность считывания совпадет с предыдущей последовательностью
+            attr->reg = charm_conn_reg_find_by_id(ctx, fv[8]);
+            attr++;
         }
         P4EST_FREE(line);
     }
 
+    sc_array_destroy(patches);
     retval = fclose (fid);
     fid = NULL;
     if (retval) {
@@ -565,7 +667,7 @@ charm_connectivity_read_inp_stream (FILE * stream,
 
 
 p4est_connectivity_t *
-charm_conn_reader_inp (const char *filename)
+charm_conn_reader_inp (charm_ctx_t *ctx)
 {
     int                 retval;
     p4est_topidx_t      num_vertices = 0, num_trees = 0, tree;
@@ -573,6 +675,13 @@ charm_conn_reader_inp (const char *filename)
 
     p4est_connectivity_t *conn = NULL;
     FILE               *fid = NULL;
+
+    char *filename;
+
+    P4EST_ASSERT(ctx->msh->type != CHARM_MESH_UNKNOWN);
+    P4EST_ASSERT(ctx->msh->filename);
+
+    filename = ctx->msh->filename;
 
     P4EST_GLOBAL_PRODUCTIONF ("Reading connectivity from %s\n", filename);
 
@@ -649,7 +758,15 @@ charm_conn_reader_inp (const char *filename)
 
 charm_conn_reader_t charm_get_conn_reader(charm_ctx_t *ctx)
 {
-    return charm_conn_reader_msh;
+    switch (ctx->msh->type) {
+        case CHARM_MESH_GMSH_MSH:
+            return charm_conn_reader_msh;
+        case CHARM_MESH_GMSH_INP:
+            return charm_conn_reader_inp;
+        case CHARM_MESH_UNKNOWN:
+        default:
+            return NULL;
+    }
 }
 
 
@@ -662,7 +779,7 @@ p4est_connectivity_t* charm_conn_create(charm_ctx_t *ctx)
 
     reader_fn = charm_get_conn_reader(ctx);
 
-    conn = reader_fn("hole_3d_gmsh.msh");
+    conn = reader_fn(ctx);
 
 
     return conn;
