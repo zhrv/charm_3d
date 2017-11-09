@@ -99,6 +99,7 @@ void charm_init_fetch_mat(mxml_node_t* node, charm_mat_t *mat)
     charm_xml_node_child_param_dbl(n1, "M", &(mat->m));
     charm_xml_node_child_param_dbl(n1, "Cp", &(mat->cp));
     charm_xml_node_child_param_dbl(n1, "ML", &(mat->ml));
+    charm_xml_node_child_param_dbl(n1, "Lambda", &(mat->lambda));
     charm_xml_node_child_param_dbl(n1, "K", &(mat->k));
 }
 

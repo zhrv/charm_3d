@@ -37,6 +37,7 @@ void charm_timestep (p4est_t * p4est, double time)
     double              orig_max_err = ctx->max_err;
     double              umax, global_umax;
     p4est_ghost_t      *ghost;
+    int                 ref_flag = 0;
 
 
     ghost = p4est_ghost_new (p4est, P4EST_CONNECT_FULL);
@@ -45,36 +46,29 @@ void charm_timestep (p4est_t * p4est, double time)
 
     charm_calc_grad(p4est, ghost, ghost_data);
 
+    dt = charm_get_timestep(p4est);
 
     for (t = 0., i = 0; t < time; t += dt, i++) {
 
+
         /* refine */
-        if (!(i % refine_period)) {
-            if (i) {
-                umax = 1.;
-//                p4est_iterate (p4est, NULL, (void *) &umax,     /* pass in ghost data that we just exchanged */
-//                               charm_compute_max,       /* blank the previously calculated derivatives */
-//                               NULL,    /* there is no callback for the faces between quadrants */
-//                               NULL);   /* there is no callback for the corners between quadrants */
+        ref_flag = 0;
+        if (refine_period) {
+            if (!(i % refine_period)) {
+                if (i) {
+                    charm_adapt(p4est); /* adapt */
+                    if (ghost) {
+                        p4est_ghost_destroy(ghost);
+                        P4EST_FREE (ghost_data);
+                        ghost = NULL;
+                        ghost_data = NULL;
+                    }
 
-//                mpiret =
-//                        sc_MPI_Allreduce (&umax, &global_umax, 1, sc_MPI_DOUBLE, sc_MPI_MAX,
-//                                          p4est->mpicomm);
-//                SC_CHECK_MPI (mpiret);
-//                ctx->max_err = orig_max_err * global_umax;
-//                P4EST_GLOBAL_PRODUCTIONF ("u_max %f\n", global_umax);
-
-                charm_adapt(p4est); /* adapt */
-                if (ghost) {
-                    p4est_ghost_destroy(ghost);
-                    P4EST_FREE (ghost_data);
-                    ghost = NULL;
-                    ghost_data = NULL;
+                    ref_flag = 1;
                 }
-
+                dt = charm_get_timestep(p4est);
 
             }
-            dt = charm_get_timestep (p4est);
         }
         /* repartition */
         if (i && !(i % repartition_period)) {
@@ -96,13 +90,15 @@ void charm_timestep (p4est_t * p4est, double time)
 
         /* synchronize the ghost data */
         if (!ghost) {
-            DBG_CH(p4est->mpirank);
-
             ghost = p4est_ghost_new (p4est, P4EST_CONNECT_FULL);
             ghost_data = P4EST_ALLOC (charm_data_t, ghost->ghosts.elem_count);
             p4est_ghost_exchange_data(p4est, ghost, ghost_data);
         }
-        charm_calc_grad(p4est, ghost, ghost_data);
+
+        if (ref_flag) {
+            charm_calc_grad(p4est, ghost, ghost_data);
+        }
+
         /* compute du/dt */
         p4est_iterate (p4est,                                /* the forest */
                        ghost,                                /* the ghost layer */
@@ -159,7 +155,7 @@ static void charm_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user
 
 static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void *user_data)
 {
-    int                 i, j;
+    int                 i, j, h_side;
     p4est_t            *p4est = info->p4est;
     charm_data_t       *ghost_data = (charm_data_t *) user_data;
     charm_data_t       *udata[2];
@@ -174,9 +170,7 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
     int bnd = 0;
     int8_t face[2];
     double c[2][3], l[3];
-    int8_t is_hanging = 0;
     double r_[2], p_[2], u_[2], v_[2], w_[2];
-
 
 
 
@@ -216,7 +210,7 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
 
 
         for (i = 0; i < 2; i++) {
-            charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[0]->treeid);
+            attr = charm_get_tree_attr(p4est, side[0]->treeid);
             charm_param_cons_to_prim(attr->reg->mat, &(udata[i]->par));
             r_[i] = udata[i]->par.p.r;
             u_[i] = udata[i]->par.p.u;
@@ -229,7 +223,6 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
         calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n, bnd);
 
         if (!side[0]->is.full.is_ghost) {
-            //facearea = charm_face_get_area(udata[0], side[0]->face);
             udata[0]->drodt -= qr * facearea;
             udata[0]->drudt -= qu * facearea;
             udata[0]->drvdt -= qv * facearea;
@@ -244,6 +237,7 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
         face[0] = side[0]->face;
         face[1] = side[1]->face;
 
+        h_side = -1;
         if (side[0]->is_hanging || side[1]->is_hanging) {
             for (j = 0; j < P4EST_HALF; j++) {
                 for (i = 0; i < 2; i++) {
@@ -254,7 +248,7 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
                         else {
                             udata[i] = (charm_data_t *) side[i]->is.hanging.quad[j]->p.user_data;
                         }
-                        facearea = charm_face_get_area(udata[i], side[i]->face);
+                        h_side = i;
                     }
                     else {
                         if (side[i]->is.full.is_ghost) {
@@ -265,6 +259,10 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
                         }
                     }
                 }
+
+                P4EST_ASSERT(h_side != -1);
+
+                facearea = charm_face_get_area(udata[h_side], side[h_side]->face);
                 charm_face_get_normal(udata[0], face[0], n);
                 charm_quad_get_center(udata[0], c[0]);
                 charm_face_get_center(udata[0], face[0], c[1]);
@@ -304,7 +302,6 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
                             continue;
                         }
                     }
-                    //facearea = charm_face_get_area(udata[i], side[i]->face);
                     udata[i]->drodt += qr * facearea * (i ? 1. : -1.);
                     udata[i]->drudt += qu * facearea * (i ? 1. : -1.);
                     udata[i]->drvdt += qv * facearea * (i ? 1. : -1.);
@@ -354,7 +351,6 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
 
             for (i = 0; i < 2; i++) {
                 if (!side[i]->is.full.is_ghost) {
-                    facearea = charm_face_get_area(udata[i], side[i]->face);
                     udata[i]->drodt += qr * facearea * (i ? 1. : -1.);
                     udata[i]->drudt += qu * facearea * (i ? 1. : -1.);
                     udata[i]->drvdt += qv * facearea * (i ? 1. : -1.);
@@ -372,6 +368,197 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
 
 static void charm_diffusion_flux_face_iter_fn (p4est_iter_face_info_t * info, void *user_data)
 {
+    int                 i, j, h_side;
+    p4est_t            *p4est = info->p4est;
+    charm_data_t       *ghost_data = (charm_data_t *) user_data;
+    charm_data_t       *udata[2];
+    p4est_quadrant_t   *quad;
+    double              n[3];
+    double              qu, qv, qw, qe;
+    double              facearea;
+    p4est_iter_face_side_t *side[2];
+    sc_array_t         *sides = &(info->sides);
+
+    int bnd = 0;
+    int8_t face[2];
+    double c[2][3], l[3];
+
+    double t_xx, t_yy, t_zz, t_xy, t_yz, t_xz;
+    double fu[2], fv[2], fw[2], fe[2];
+
+
+
+    if (sides->elem_count != 2) {
+        // @todo is diff. flux a zero on boundary ?
+    }
+    else {
+        side[0] = p4est_iter_fside_array_index_int(sides, 0);
+        side[1] = p4est_iter_fside_array_index_int(sides, 1);
+        face[0] = side[0]->face;
+        face[1] = side[1]->face;
+
+        h_side = -1;
+        if (side[0]->is_hanging || side[1]->is_hanging) {
+            for (j = 0; j < P4EST_HALF; j++) {
+                for (i = 0; i < 2; i++) {
+                    if (side[i]->is_hanging) {
+                        if (side[i]->is.hanging.is_ghost[j]) {
+                            udata[i] = &(ghost_data[side[i]->is.hanging.quadid[j]]);
+                        }
+                        else {
+                            udata[i] = (charm_data_t *) side[i]->is.hanging.quad[j]->p.user_data;
+                        }
+                        h_side = i;
+                    }
+                    else {
+                        if (side[i]->is.full.is_ghost) {
+                            udata[i] = &ghost_data[side[i]->is.full.quadid];
+                        }
+                        else {
+                            udata[i] = (charm_data_t *) side[i]->is.full.quad->p.user_data;
+                        }
+                    }
+                }
+
+                P4EST_ASSERT(h_side != -1);
+
+                facearea = charm_face_get_area(udata[h_side], side[h_side]->face);
+                charm_face_get_normal(udata[0], face[0], n);
+                charm_quad_get_center(udata[0], c[0]);
+                charm_face_get_center(udata[0], face[0], c[1]);
+
+                for (i = 0; i < 3; i++) {
+                    l[i] = c[1][i]-c[0][i];
+                }
+
+                if (scalar_prod(n, l) < 0) {
+                    for (i = 0; i < 3; i++) {
+                        n[i] *= -1.0;
+                    }
+                }
+
+                qu = 0.;
+                qv = 0.;
+                qw = 0.;
+                qe = 0.;
+                for (i = 0; i < 2; i++) {
+                    charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[i]->treeid);
+                    double ml = attr->reg->mat->ml;
+                    double lambda = 0.;
+                    charm_param_t *p = &(udata[i]->par);
+                    double div_v = p->grad.u[0] + p->grad.v[1] + p->grad.w[2];
+                    charm_param_cons_to_prim(attr->reg->mat, p);
+
+                    t_xx = (lambda-2.*ml/3.)*div_v+2.*ml*p->grad.u[0];
+                    t_yy = (lambda-2.*ml/3.)*div_v+2.*ml*p->grad.v[1];
+                    t_zz = (lambda-2.*ml/3.)*div_v+2.*ml*p->grad.w[2];
+                    t_xy = ml*(p->grad.u[1] + p->grad.v[0]);
+                    t_xz = ml*(p->grad.w[0] + p->grad.u[2]);
+                    t_yz = ml*(p->grad.w[1] + p->grad.v[2]);
+
+                    qu += t_xx*n[0]+t_xy*n[1]+t_xz*n[2];
+                    qv += t_xy*n[0]+t_yy*n[1]+t_yz*n[2];
+                    qw += t_xz*n[0]+t_yz*n[1]+t_zz*n[2];
+                    qe +=   (t_xx*p->p.u+t_xy*p->p.v+t_xz*p->p.w)*n[0]+
+                            (t_xy*p->p.u+t_yy*p->p.v+t_yz*p->p.w)*n[1]+
+                            (t_xz*p->p.u+t_yz*p->p.v+t_zz*p->p.w)*n[2];
+                }
+
+                qu *= 0.5;
+                qv *= 0.5;
+                qw *= 0.5;
+                qe *= 0.5;
+
+                for (i = 0; i < 2; i++) {
+                    if (side[i]->is_hanging) {
+                        if (side[i]->is.hanging.is_ghost[j]) {
+                            continue;
+                        }
+
+                    }
+                    else {
+                        if (side[i]->is.full.is_ghost) {
+                            continue;
+                        }
+                    }
+                    udata[i]->drudt -= qu * facearea * (i ? 1. : -1.);
+                    udata[i]->drvdt -= qv * facearea * (i ? 1. : -1.);
+                    udata[i]->drwdt -= qw * facearea * (i ? 1. : -1.);
+                    udata[i]->dredt -= qe * facearea * (i ? 1. : -1.);
+
+                }
+
+            }
+        }
+        else {
+
+            for (i = 0; i < 2; i++) {
+                if (side[i]->is.full.is_ghost) {
+                    udata[i] = &(ghost_data[side[i]->is.full.quadid]);
+                }
+                else {
+                    udata[i] = (charm_data_t *) side[i]->is.full.quad->p.user_data;
+                }
+            }
+            facearea = charm_face_get_normal(udata[0], face[0], n);
+            charm_quad_get_center(udata[0], c[0]);
+            charm_face_get_center(udata[0], face[0], c[1]);
+
+            for (i = 0; i < 3; i++) {
+                l[i] = c[1][i]-c[0][i];
+            }
+
+            if (scalar_prod(n, l) < 0) {
+                for (i = 0; i < 3; i++) {
+                    n[i] *= -1.0;
+                }
+            }
+
+            qu = 0.;
+            qv = 0.;
+            qw = 0.;
+            qe = 0.;
+            for (i = 0; i < 2; i++) {
+                charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[i]->treeid);
+                double ml = attr->reg->mat->ml;
+                double lambda = attr->reg->mat->lambda;
+                charm_param_t *p = &(udata[i]->par);
+                double div_v = p->grad.u[0] + p->grad.v[1] + p->grad.w[2];
+                charm_param_cons_to_prim(attr->reg->mat, p);
+                t_xx = (lambda-2.*ml/3.)*div_v+2.*ml*p->grad.u[0];
+                t_yy = (lambda-2.*ml/3.)*div_v+2.*ml*p->grad.v[1];
+                t_zz = (lambda-2.*ml/3.)*div_v+2.*ml*p->grad.w[2];
+                t_xy = ml*(p->grad.u[1] + p->grad.v[0]);
+                t_xz = ml*(p->grad.w[0] + p->grad.u[2]);
+                t_yz = ml*(p->grad.w[1] + p->grad.v[2]);
+
+                qu += t_xx*n[0]+t_xy*n[1]+t_xz*n[2];
+                qv += t_xy*n[0]+t_yy*n[1]+t_yz*n[2];
+                qw += t_xz*n[0]+t_yz*n[1]+t_zz*n[2];
+                qe += (t_xx*p->p.u+t_xy*p->p.v+t_xz*p->p.w)*n[0]+
+                      (t_xy*p->p.u+t_yy*p->p.v+t_yz*p->p.w)*n[1]+
+                      (t_xz*p->p.u+t_yz*p->p.v+t_zz*p->p.w)*n[2];
+            }
+
+            qu *= 0.5;
+            qv *= 0.5;
+            qw *= 0.5;
+            qe *= 0.5;
+
+            for (i = 0; i < 2; i++) {
+                if (side[i]->is.full.is_ghost) {
+                    continue;
+                }
+                udata[i]->drudt -= qu * facearea * (i ? 1. : -1.);
+                udata[i]->drvdt -= qv * facearea * (i ? 1. : -1.);
+                udata[i]->drwdt -= qw * facearea * (i ? 1. : -1.);
+                udata[i]->dredt -= qe * facearea * (i ? 1. : -1.);
+
+            }
+
+        }
+
+    }
 
 }
 
