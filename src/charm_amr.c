@@ -203,6 +203,7 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
 {
     charm_data_t       *parent_data, *child_data;
     int                 i;
+    double              vol, svol;
 
     if (num_outgoing > 1) {
         charm_geom_quad_calc(p4est, incoming[0], which_tree);
@@ -214,15 +215,23 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
         parent_data->par.c.rw = 0.;
         parent_data->par.c.re = 0.;
 
+        svol = 0.;
+
         for (i = 0; i < P4EST_CHILDREN; i++) {
             child_data = (charm_data_t *) outgoing[i]->p.user_data;
-            parent_data->par.c.ro += child_data->par.c.ro / P4EST_CHILDREN;
-            parent_data->par.c.ru += child_data->par.c.ru / P4EST_CHILDREN;
-            parent_data->par.c.rv += child_data->par.c.rv / P4EST_CHILDREN;
-            parent_data->par.c.rw += child_data->par.c.rw / P4EST_CHILDREN;
-            parent_data->par.c.re += child_data->par.c.re / P4EST_CHILDREN;
+            vol  = charm_quad_get_volume(child_data);
+            svol += vol;
+            parent_data->par.c.ro += child_data->par.c.ro * vol;
+            parent_data->par.c.ru += child_data->par.c.ru * vol;
+            parent_data->par.c.rv += child_data->par.c.rv * vol;
+            parent_data->par.c.rw += child_data->par.c.rw * vol;
+            parent_data->par.c.re += child_data->par.c.re * vol;
         }
-
+        parent_data->par.c.ro /= svol;
+        parent_data->par.c.ru /= svol;
+        parent_data->par.c.rv /= svol;
+        parent_data->par.c.rw /= svol;
+        parent_data->par.c.re /= svol;
     }
     else {
         /* this is refinement */

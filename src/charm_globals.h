@@ -14,7 +14,7 @@
 
 #define CHARM_DIM P4EST_DIM
 
-//#define CHARM_DEBUG
+#define CHARM_DEBUG
 
 //#define SECOND_ORDER
 
@@ -115,6 +115,7 @@ typedef struct charm_mat
     double m;
     double cp;
     double ml;
+    double lambda;
     double k;
 } charm_mat_t;
 
@@ -221,5 +222,8 @@ void charm_param_cons_to_prim(charm_mat_t * mat, charm_param_t * p);
 void charm_param_prim_to_cons(charm_mat_t * mat, charm_param_t * p);
 
 void charm_prim_cpy(charm_param_t * dest, charm_param_t * src);
+
+
+void dbg_print_param(charm_param_t *);
 
 #endif //CHAMR_3D_CHARM_GLOBALS_H
