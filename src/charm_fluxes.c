@@ -238,14 +238,10 @@ void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_
         }
     }
     *qr = ri*uu[0];
-    *qu = (*qr)*uv[0]+pi;
-    *qv = (*qr)*uv[1];
-    *qw = (*qr)*uv[2];
+    *qu = (*qr)*uv[0]+pi*n[0];
+    *qv = (*qr)*uv[1]+pi*n[1];
+    *qw = (*qr)*uv[2]+pi*n[2];
     *qe = (ri*(ei+0.5*(uv[0]*uv[0]+uv[1]*uv[1]+uv[2]*uv[2]))+pi)*uu[0];
-
-    if (*qr != *qr || *qu != *qu || *qv != *qv || *qw != *qw || *qe != *qe) {
-        int iii=0;
-    }
 
 #else
 #ifdef FLUX_LF
