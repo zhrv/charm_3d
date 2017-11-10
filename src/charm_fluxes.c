@@ -185,109 +185,68 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
 void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3], int bnd)
 {
 #ifdef FLUX_RIM
-    double ri, ei, pi, ui, vi, wi;
-    switch (which_face) {
-        case 0:                      /* -x side */
-            if (bnd) {
-                rim_orig(  &ri, &ei, &pi, &ui, &vi, &wi,
-                           r_[1], p_[1], u_[1], v_[1], w_[1],
-                           r_[0], p_[0], u_[0], v_[0], w_[0], GAM);
-                *qr = ri*ui;
-                *qu = (*qr)*ui+pi;
-                *qv = (*qr)*vi;
-                *qw = (*qr)*wi;
-                *qe = (ri*(ei+0.5*(ui*ui+vi*vi+wi*wi))+pi)*ui;
-
-            }
-            else {
-                rim_orig(  &ri, &ei, &pi, &ui, &vi, &wi,
-                           r_[0], p_[0], u_[0], v_[0], w_[0],
-                           r_[1], p_[1], u_[1], v_[1], w_[1], GAM);
-                *qr = ri*ui;
-                *qu = (*qr)*ui+pi;
-                *qv = (*qr)*vi;
-                *qw = (*qr)*wi;
-                *qe = (ri*(ei+0.5*(ui*ui+vi*vi+wi*wi))+pi)*ui;
-            }
-            break;
-        case 1:                      /* +x side */
-
-            rim_orig(  &ri, &ei, &pi, &ui, &vi, &wi,
-                       r_[0], p_[0], u_[0], v_[0], w_[0],
-                       r_[1], p_[1], u_[1], v_[1], w_[1], GAM);
-            *qr = ri*ui;
-            *qu = (*qr)*ui+pi;
-            *qv = (*qr)*vi;
-            *qw = (*qr)*wi;
-            *qe = (ri*(ei+0.5*(ui*ui+vi*vi+wi*wi))+pi)*ui;
-            break;
-        case 2:                      /* -y side */
-            if (bnd) {
-                rim_orig(  &ri, &ei, &pi, &vi, &wi, &ui,
-                           r_[1], p_[1], v_[1], w_[1], u_[1],
-                           r_[0], p_[0], v_[0], w_[0], u_[0], GAM);
-                *qr = ri*vi;
-                *qu = (*qr)*ui;
-                *qv = (*qr)*vi+pi;
-                *qw = (*qr)*wi;
-                *qe = (ri*(ei+0.5*(ui*ui+vi*vi+wi*wi))+pi)*vi;
-            }
-            else {
-                rim_orig(  &ri, &ei, &pi, &vi, &wi, &ui,
-                           r_[0], p_[0], v_[0], w_[0], u_[0],
-                           r_[1], p_[1], v_[1], w_[1], u_[1], GAM);
-                *qr = ri*vi;
-                *qu = (*qr)*ui;
-                *qv = (*qr)*vi+pi;
-                *qw = (*qr)*wi;
-                *qe = (ri*(ei+0.5*(ui*ui+vi*vi+wi*wi))+pi)*vi;
-            }
-            break;
-        case 3:                      /* +y side */
-
-            rim_orig(  &ri, &ei, &pi, &vi, &wi, &ui,
-                       r_[0], p_[0], v_[0], w_[0], u_[0],
-                       r_[1], p_[1], v_[1], w_[1], u_[1], GAM);
-            *qr = ri*vi;
-            *qu = (*qr)*ui;
-            *qv = (*qr)*vi+pi;
-            *qw = (*qr)*wi;
-            *qe = (ri*(ei+0.5*(ui*ui+vi*vi+wi*wi))+pi)*vi;
-            break;
-        case 4:                      /* -z side */
-            if (bnd) {
-                rim_orig(  &ri, &ei, &pi, &wi, &ui, &vi,
-                           r_[1], p_[1], w_[1], u_[1], v_[1],
-                           r_[0], p_[0], w_[0], u_[0], v_[0], GAM);
-                *qr = ri*wi;
-                *qu = (*qr)*ui;
-                *qv = (*qr)*vi;
-                *qw = (*qr)*wi+pi;
-                *qe = (ri*(ei+0.5*(ui*ui+vi*vi+wi*wi))+pi)*wi;
-            }
-            else {
-                rim_orig(  &ri, &ei, &pi, &wi, &ui, &vi,
-                           r_[0], p_[0], w_[0], u_[0], v_[0],
-                           r_[1], p_[1], w_[1], u_[1], v_[1], GAM);
-                *qr = ri*wi;
-                *qu = (*qr)*ui;
-                *qv = (*qr)*vi;
-                *qw = (*qr)*wi+pi;
-                *qe = (ri*(ei+0.5*(ui*ui+vi*vi+wi*wi))+pi)*wi;
-            }
-            break;
-        case 5:                      /* +z side */
-
-            rim_orig(  &ri, &ei, &pi, &wi, &ui, &vi,
-                       r_[0], p_[0], w_[0], u_[0], v_[0],
-                       r_[1], p_[1], w_[1], u_[1], v_[1], GAM);
-            *qr = ri*wi;
-            *qu = (*qr)*ui;
-            *qv = (*qr)*vi;
-            *qw = (*qr)*wi+pi;
-            *qe = (ri*(ei+0.5*(ui*ui+vi*vi+wi*wi))+pi)*wi;
-            break;
+    int i,j;
+    double ri, ei, pi, uu[3], uv[3];
+    double nt[3][3], vv[2][3], vn[2][3];
+    nt[0][0] = n[0];
+    nt[0][1] = n[1];
+    nt[0][2] = n[2];
+    ri = sqrt(n[0]*n[0]+n[1]*n[1]);
+    if (ri > CHARM_EPS) {
+        nt[1][0] = -n[1]/ri;
+        nt[1][1] =  n[0]/ri;
+        nt[1][2] =  0.;
     }
+    else {
+        ri = sqrt(n[1]*n[1]+n[2]*n[2]);
+        if (ri > CHARM_EPS) {
+            nt[1][0] =  0.;
+            nt[1][1] = -n[2]/ri;
+            nt[1][2] =  n[1]/ri;
+        }
+        else {
+            ri = sqrt(n[0]*n[0]+n[2]*n[2]);
+            if (ri > CHARM_EPS) {
+                nt[1][0] = -n[2]/ri;
+                nt[1][1] =  0.;
+                nt[1][2] =  n[0]/ri;
+            }
+            else {
+                P4EST_ASSERT(1./sqrt(n[1]*n[1]+n[2]*n[2]) > CHARM_EPS);
+            }
+        }
+    }
+    vect_prod(nt[0], nt[1], nt[2]);
+    for (i = 0; i < 2; i++) {
+        vv[i][0] = u_[i];
+        vv[i][1] = v_[i];
+        vv[i][2] = w_[i];
+    }
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 3; j++) {
+            vn[i][j] = scalar_prod(vv[i], nt[j]);
+        }
+    }
+    rim_orig(  &ri, &ei, &pi, &(uu[0]), &(uu[1]), &(uu[2]),
+               r_[0], p_[0], vn[0][0], vn[0][1], vn[0][2],
+               r_[1], p_[1], vn[1][0], vn[1][1], vn[1][2], GAM);
+
+    for (i = 0; i < 3; i++) {
+        uv[i] = 0.;
+        for (j = 0; j < 3; j++) {
+            uv[i] += nt[j][i]*uu[j];
+        }
+    }
+    *qr = ri*uu[0];
+    *qu = (*qr)*uv[0]+pi;
+    *qv = (*qr)*uv[1];
+    *qw = (*qr)*uv[2];
+    *qe = (ri*(ei+0.5*(uv[0]*uv[0]+uv[1]*uv[1]+uv[2]*uv[2]))+pi)*uu[0];
+
+    if (*qr != *qr || *qu != *qu || *qv != *qv || *qw != *qw || *qe != *qe) {
+        int iii=0;
+    }
+
 #else
 #ifdef FLUX_LF
     double fr[2], fu[2], fv[2], fw[2], fe[2];

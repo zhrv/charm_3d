@@ -268,8 +268,6 @@ void charm_calc_grad(p4est_t * p4est, p4est_ghost_t *ghost, charm_data_t *ghost_
 {
     int my_ghost = 0;
     if (!ghost) {
-        DBG_CH(p4est->mpirank);
-
         ghost = p4est_ghost_new (p4est, P4EST_CONNECT_FULL);
         ghost_data = P4EST_ALLOC (charm_data_t, ghost->ghosts.elem_count);
         p4est_ghost_exchange_data (p4est, ghost, ghost_data);

@@ -18,10 +18,11 @@
 
 //#define SECOND_ORDER
 
-//#define FLUX_RIM
-#define FLUX_LF
+#define FLUX_RIM
+//#define FLUX_LF
 
 #define RIM_EPS 1.e-5
+#define CHARM_EPS 1.e-11
 
 #define ROOT_LEN   0.04
 
