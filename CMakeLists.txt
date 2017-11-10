@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(chamr_3d)
+project(charm_3d)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
 
@@ -18,8 +18,8 @@ set(MXML_LIB "${CONTRIB_DIR}/mxml/local/lib")
 include_directories(${P4EST_INCLUDE} ${MPI_INCLUDE} ${MXML_INCLUDE})
 link_directories(${P4EST_LIB} ${MXML_LIB})
 
-add_executable(	chamr_3d
-        src/chamr_3d.c
+add_executable(	charm_3d
+        src/charm_3d.c
 		src/charm_connectivity.c
         src/charm_connectivity.h
         src/charm_globals.h
@@ -44,4 +44,4 @@ add_executable(	chamr_3d
         src/charm_xml.h
 )
 
-target_link_libraries(chamr_3d p4est sc mpi m mxml)
+target_link_libraries(charm_3d p4est sc mpi m mxml)
