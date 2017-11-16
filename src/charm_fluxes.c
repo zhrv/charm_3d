@@ -5,11 +5,11 @@
 #include "charm_fluxes.h"
 
 
-
+#ifdef CHARM_FLUX_RIM
 void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, double* WI,
                 double RB, double PB, double UB, double VB, double WB,
                 double RE, double PE, double UE, double VE, double WE, double gam) {
-
+    int    step;
     double AGAM = (gam - 1.0);
     double BGAM = (2.0 * sqrt(gam / AGAM));
     double CGAM = (1.0 / gam);
@@ -27,7 +27,7 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
     double UGAM = (sqrt(AGAM / gam));
 
     double RF, RS, EF, ES, SBL, SFL, SSL, SEL, D, FS1, F1, ZNB, PKB, ZFB, PKE, ZNE, F2, FS2, ZFE, DP, UBD, RUBD, UF, UED, RUED, US, PPE, PPB, P;
-    double eps = RIM_EPS;
+    double eps = CHARM_RIM_EPS;
     double CB = sqrt(gam * PB / RB);
     double CE = sqrt(gam * PE / RE);
     double EB = CB * CB / SGAM;
@@ -36,7 +36,7 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
     double RCE = RE * CE;
     double DU = UB - UE;
     if (DU < -2.0 * (CB + CE) / AGAM) {
-        printf(" ATTENTION!!!  VACUUM \n");
+        P4EST_GLOBAL_ESSENTIALF ("%s\n", " RIEMANN PROBLEM SOLVER: ATTENTION!!!  VACUUM!!!");
         RF = 0.0;
         RS = 0.0;
         EF = 0.0;
@@ -47,6 +47,7 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
         SEL = UE + CE;
     } else {
         P = (PB * RCE + PE * RCB + DU * RCB * RCE) / (RCB + RCE);
+        step = 0;
         do {
 
             if (P < eps) P = eps;
@@ -77,7 +78,7 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
             }
             DP = (DU - F1 - F2) / (FS1 + FS2);
             P = P + DP;
-        } while (fabs(DU - F1 - F2) > eps);
+        } while ((fabs(DU - F1 - F2) > eps) && (++step < CHARM_RIM_NEWTON_STEPS));
 
 
         PPB = P / PB;
@@ -180,11 +181,11 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
 
     return;
 }
-
+#endif // CHARM_FLUX_RIM
 
 void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3], int bnd)
 {
-#ifdef FLUX_RIM
+#ifdef CHARM_FLUX_RIM
     int i,j;
     double ri, ei, pi, uu[3], uv[3];
     double nt[3][3], vv[2][3], vn[2][3];
@@ -244,7 +245,6 @@ void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_
     *qe = (ri*(ei+0.5*(uv[0]*uv[0]+uv[1]*uv[1]+uv[2]*uv[2]))+pi)*uu[0];
 
 #else
-#ifdef FLUX_LF
     double fr[2], fu[2], fv[2], fw[2], fe[2];
     double ro[2], ru[2], rv[2], rw[2], re[2];
     double alpha;
@@ -275,7 +275,6 @@ void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_
     *qv = 0.5*(fv[0]+fv[1]-alpha*(rv[1]-rv[0]));
     *qw = 0.5*(fw[0]+fw[1]-alpha*(rw[1]-rw[0]));
     *qe = 0.5*(fe[0]+fe[1]-alpha*(re[1]-re[0]));
-#endif // FLUX_LF
-#endif // FLUX_RIM
+#endif // CHARM_FLUX_RIM
 }
 

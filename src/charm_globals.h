@@ -18,10 +18,16 @@
 
 //#define SECOND_ORDER
 
-#define FLUX_RIM
+#define CHARM_FLUX_RIM
 //#define FLUX_LF
 
-#define RIM_EPS 1.e-5
+#ifdef CHARM_FLUX_RIM
+
+#define CHARM_RIM_NEWTON_STEPS 5000
+#define CHARM_RIM_EPS 1.e-5
+
+#endif
+
 #define CHARM_EPS 1.e-11
 
 #define ROOT_LEN   0.04
