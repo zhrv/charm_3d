@@ -57,7 +57,7 @@ void charm_init_fetch_bnd(mxml_node_t* node, charm_bnd_t *bnd)
         case BOUND_OUTLET:
             bnd->bnd_fn = charm_bnd_cond_fn_outlet;
             break;
-        case BOUND_WALL_SLIP: // @todo
+        case BOUND_WALL_SLIP:
             bnd->bnd_fn = charm_bnd_cond_fn_wall_slip;
             break;
         case BOUND_WALL_NO_SLIP: // @todo

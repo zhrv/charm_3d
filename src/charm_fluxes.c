@@ -183,7 +183,7 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
 }
 #endif // CHARM_FLUX_RIM
 
-void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3], int bnd)
+void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
 {
 #ifdef CHARM_FLUX_RIM
     int i,j;

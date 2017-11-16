@@ -18,8 +18,7 @@
 
 //#define SECOND_ORDER
 
-#define CHARM_FLUX_RIM
-//#define FLUX_LF
+//#define CHARM_FLUX_RIM
 
 #ifdef CHARM_FLUX_RIM
 
@@ -157,7 +156,7 @@ typedef enum {
 typedef struct charm_bnd
 {
     char name[64];
-    int type;
+    bnd_types_t type;
     int face_type;
     double *params;
     charm_bnd_cond_fn_t bnd_fn;

@@ -16,8 +16,6 @@ void charm_bnd_cond_fn_wall_slip(charm_param_t *par_in, charm_param_t *par_out, 
 
 void charm_bnd_cond_fn_wall_no_slip(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param);
 
-
-
 void charm_bnd_cond(p4est_t* p4est, p4est_topidx_t treeid, int8_t face,
                     charm_param_t *par_in, charm_param_t *par_out);
 

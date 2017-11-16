@@ -219,8 +219,8 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
             p_[i] = udata[i]->par.p.p;
         }
 
-        /* flux from side 0 to side 1 */
-        calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n, bnd);
+         /* flux from side 0 to side 1 */
+        calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n);
 
         if (!side[0]->is.full.is_ghost) {
             udata[0]->drodt -= qr * facearea;
@@ -288,7 +288,7 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
                 }
 
                 /* flux from side 0 to side 1 */
-                calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n, bnd);
+                calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n);
 
                 for (i = 0; i < 2; i++) {
                     if (side[i]->is_hanging) {
@@ -347,7 +347,7 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
             }
 
             /* flux from side 0 to side 1 */
-            calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n, bnd);
+            calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n);
 
             for (i = 0; i < 2; i++) {
                 if (!side[i]->is.full.is_ghost) {
