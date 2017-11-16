@@ -12,7 +12,9 @@ void charm_bnd_cond_fn_inlet(charm_param_t *par_in, charm_param_t *par_out, int8
 
 void charm_bnd_cond_fn_outlet(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param);
 
-void charm_bnd_cond_fn_wall(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param); // @todo
+void charm_bnd_cond_fn_wall_slip(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param);
+
+void charm_bnd_cond_fn_wall_no_slip(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param);
 
 
 

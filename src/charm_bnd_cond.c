@@ -46,15 +46,39 @@ void charm_bnd_cond_fn_outlet(charm_param_t *par_in, charm_param_t *par_out, int
     charm_prim_cpy(par_out, par_in);
 }
 
-void charm_bnd_cond_fn_wall(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param)
+void charm_bnd_cond_fn_wall_slip(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param)
 {
-//    charm_bnd_cond_fn_outlet(par_in, par_out, face, param); return;
-
     int i;
     double *n    = par_in->g.n[face];
     double  v[3] = {par_in->p.u, par_in->p.v, par_in->p.w};
 
     charm_prim_cpy(par_out, par_in);
+
+    double   svn = scalar_prod( v, n );
+    double   vv[3] = {n[0]*svn, n[1]*svn, n[3]*svn};
+    for (i = 0; i < 3; i++) {
+        v[i] -= vv[i];
+        v[i] -= vv[i];
+    }
+    par_out->p.u = v[0];
+    par_out->p.v = v[1];
+    par_out->p.w = v[2];
+}
+
+
+// @todo
+void charm_bnd_cond_fn_wall_no_slip(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param)
+{
+    int i;
+    double *n    = par_in->g.n[face];
+    double  v[3] = {par_in->p.u, par_in->p.v, par_in->p.w};
+
+    charm_prim_cpy(par_out, par_in);
+    par_out->p.u *= -1.;
+    par_out->p.v *= -1.;
+    par_out->p.w *= -1.;
+
+    return;
 
     double   svn = scalar_prod( v, n );
     double   vv[3] = {n[0]*svn, n[1]*svn, n[3]*svn};

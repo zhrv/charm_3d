@@ -189,6 +189,7 @@ void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_
     int i,j;
     double ri, ei, pi, uu[3], uv[3];
     double nt[3][3], vv[2][3], vn[2][3];
+
     nt[0][0] = n[0];
     nt[0][1] = n[1];
     nt[0][2] = n[2];

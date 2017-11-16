@@ -58,10 +58,10 @@ void charm_init_fetch_bnd(mxml_node_t* node, charm_bnd_t *bnd)
             bnd->bnd_fn = charm_bnd_cond_fn_outlet;
             break;
         case BOUND_WALL_SLIP: // @todo
-            bnd->bnd_fn = charm_bnd_cond_fn_wall;
+            bnd->bnd_fn = charm_bnd_cond_fn_wall_slip;
             break;
         case BOUND_WALL_NO_SLIP: // @todo
-            bnd->bnd_fn = charm_bnd_cond_fn_wall;
+            bnd->bnd_fn = charm_bnd_cond_fn_wall_no_slip;
             break;
         default:
             P4EST_LERRORF("Unknown boundary type %d\n", bnd->type);
