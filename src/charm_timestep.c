@@ -170,7 +170,7 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
     int bnd = 0;
     int8_t face[2];
     double c[2][3], l[3];
-    double r_[2], p_[2], u_[2], v_[2], w_[2];
+    double r_[2], p_[2], u_[2], v_[2], w_[2], e_[2];
 
 
 
@@ -208,25 +208,19 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
         charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[0]->treeid);
         charm_param_cons_to_prim(attr->reg->mat, &(udata[1]->par));
 
+        r_[1] = udata[1]->par.p.r;
+        u_[1] = udata[1]->par.p.u;
+        v_[1] = udata[1]->par.p.v;
+        w_[1] = udata[1]->par.p.w;
+        p_[1] = udata[1]->par.p.p;
+        e_[1] = udata[1]->par.p.e;
 
-        for (i = 0; i < 2; i++) {
-            attr = charm_get_tree_attr(p4est, side[0]->treeid);
-            charm_param_cons_to_prim(attr->reg->mat, &(udata[i]->par));
-            r_[i] = udata[i]->par.p.r;
-            u_[i] = udata[i]->par.p.u;
-            v_[i] = udata[i]->par.p.v;
-            w_[i] = udata[i]->par.p.w;
-            p_[i] = udata[i]->par.p.p;
-        }
-//
-//         /* flux from side 0 to side 1 */
-//        charm_calc_flux_bnd(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n);
         double un = u_[1]*n[0] + v_[1]*n[1] + w_[1]*n[2];
         qr = r_[1]*un;
-        qu = un*u_[1]+p_[1]*n[0];
-        qv = un*v_[1]+p_[1]*n[1];
-        qw = un*w_[1]+p_[1]*n[2];
-        qe = (p_[1]/0.4+r_[1]*(u_[1]*u_[1]+v_[1]*v_[1]+w_[1]*w_[1])/2.)*un;
+        qu = qr*u_[1]+p_[1]*n[0];
+        qv = qr*v_[1]+p_[1]*n[1];
+        qw = qr*w_[1]+p_[1]*n[2];
+        qe = qr*(e_[1]+0.5*(u_[1]*u_[1]+v_[1]*v_[1]+w_[1]*w_[1]))+p_[1]*un;
 
         if (!side[0]->is.full.is_ghost) {
             udata[0]->drodt -= qr * facearea;

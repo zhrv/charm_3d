@@ -86,11 +86,11 @@ static void charm_grad_face_iter_fn (p4est_iter_face_info_t * info, void *user_d
         }
 
 
-        qr = 0.5*(r_[0]+r_[1]);
-        qu = 0.5*(u_[0]+u_[1]);
-        qv = 0.5*(v_[0]+v_[1]);
-        qw = 0.5*(w_[0]+w_[1]);
-        qp = 0.5*(p_[0]+p_[1]);
+        qr = r_[1];
+        qu = u_[1];
+        qv = v_[1];
+        qw = w_[1];
+        qp = p_[1];
 
         if (!side[0]->is.full.is_ghost) {
             for (k = 0; k < CHARM_DIM; k++) {

@@ -73,6 +73,9 @@ typedef struct charm_param
         double          p;             /**< pressure */
         double          t;             /**< temperature */
         double          cz;            /**< sound velosity */
+        double          gam;
+        double          cp;
+        double          cv;
     } p;
 
     struct
