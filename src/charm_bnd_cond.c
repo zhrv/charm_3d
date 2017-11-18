@@ -3,6 +3,7 @@
 //
 
 #include "charm_bnd_cond.h"
+#include "charm_grad.h"
 
 int charm_bnd_type_by_name(const char* name) {
     int i = 0;
@@ -43,7 +44,24 @@ void charm_bnd_cond_fn_inlet(charm_param_t *par_in, charm_param_t *par_out, int8
 
 void charm_bnd_cond_fn_outlet(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param)
 {
+#define REAL double
     charm_prim_cpy(par_out, par_in);
+    REAL fG = 1.4;
+    REAL fQ = par_in->p.u*par_in->p.u+par_in->p.v*par_in->p.v+par_in->p.w*par_in->p.w;
+    REAL fR = fQ + 2.0 * par_in->p.cz / ( fG - 1.0 );
+    REAL fS = par_in->p.p / pow( par_in->p.r, fG );
+
+    par_out->p.p = 46066.;
+    par_out->p.r = pow( par_out->p.p / fS, 1.0 / fG );
+    par_out->p.e = par_out->p.p / ( par_out->p.r * ( fG - 1.0 ) );
+
+    REAL fBeta = ( fR - 2.0 / ( fG - 1.0 ) * sqrt( fG * par_out->p.p / par_out->p.r ) ) / fQ;
+
+    par_out->p.u = fBeta * par_in->p.u;
+    par_out->p.v = fBeta * par_in->p.v;
+    par_out->p.w = fBeta * par_in->p.w;
+#undef REAL
+
 }
 
 void charm_bnd_cond_fn_wall_slip(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param)
@@ -57,7 +75,6 @@ void charm_bnd_cond_fn_wall_slip(charm_param_t *par_in, charm_param_t *par_out, 
     double   svn = scalar_prod( v, n );
     double   vv[3] = {n[0]*svn, n[1]*svn, n[3]*svn};
     for (i = 0; i < 3; i++) {
-        v[i] -= vv[i];
         v[i] -= vv[i];
     }
     par_out->p.u = v[0];
@@ -74,7 +91,7 @@ void charm_bnd_cond_fn_wall_no_slip(charm_param_t *par_in, charm_param_t *par_ou
     double  v[3] = {par_in->p.u, par_in->p.v, par_in->p.w};
 
     charm_prim_cpy(par_out, par_in);
-    par_out->p.u *= -1.;
-    par_out->p.v *= -1.;
-    par_out->p.w *= -1.;
+    par_out->p.u = 0.;
+    par_out->p.v = 0.;
+    par_out->p.w = 0.;
 }

@@ -18,14 +18,9 @@
 
 //#define SECOND_ORDER
 
-//#define CHARM_FLUX_RIM
-
-#ifdef CHARM_FLUX_RIM
 
 #define CHARM_RIM_NEWTON_STEPS 5000
 #define CHARM_RIM_EPS 1.e-5
-
-#endif
 
 #define CHARM_EPS 1.e-11
 

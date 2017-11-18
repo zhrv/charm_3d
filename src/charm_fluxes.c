@@ -5,7 +5,6 @@
 #include "charm_fluxes.h"
 
 
-#ifdef CHARM_FLUX_RIM
 void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, double* WI,
                 double RB, double PB, double UB, double VB, double WB,
                 double RE, double PE, double UE, double VE, double WE, double gam) {
@@ -181,11 +180,9 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
 
     return;
 }
-#endif // CHARM_FLUX_RIM
 
-void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
+void charm_calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
 {
-#ifdef CHARM_FLUX_RIM
     int i,j;
     double ri, ei, pi, uu[3], uv[3];
     double nt[3][3], vv[2][3], vn[2][3];
@@ -244,8 +241,10 @@ void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_
     *qv = (*qr)*uv[1]+pi*n[1];
     *qw = (*qr)*uv[2]+pi*n[2];
     *qe = (ri*(ei+0.5*(uv[0]*uv[0]+uv[1]*uv[1]+uv[2]*uv[2]))+pi)*uu[0];
+}
 
-#else
+void charm_calc_flux_bnd(double r_[2], double u_[2], double v_[2], double w_[2], double p_[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
+{
     double fr[2], fu[2], fv[2], fw[2], fe[2];
     double ro[2], ru[2], rv[2], rw[2], re[2];
     double alpha;
@@ -276,6 +275,5 @@ void calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_
     *qv = 0.5*(fv[0]+fv[1]-alpha*(rv[1]-rv[0]));
     *qw = 0.5*(fw[0]+fw[1]-alpha*(rw[1]-rw[0]));
     *qe = 0.5*(fe[0]+fe[1]-alpha*(re[1]-re[0]));
-#endif // CHARM_FLUX_RIM
 }
 
