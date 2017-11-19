@@ -3,6 +3,7 @@
 //
 #define GLOBAL_H_FILE
 #include "charm_globals.h"
+#include "charm_grad.h"
 
 const char *charm_bnd_types[] ={
         "BOUND_INLET",
@@ -124,6 +125,9 @@ void charm_mat_eos(charm_mat_t * mat, charm_param_t * p, int flag)
     double M  = mat->m;
     double Cv = Cp-gR/M;
     double gam = Cp/Cv;
+    p->p.gam = gam;
+    p->p.cp = Cp;
+    p->p.cv = Cv;
     switch (flag)
     {
         case 0:		// p=p(r,e)
@@ -154,8 +158,8 @@ void charm_param_cons_to_prim(charm_mat_t * mat, charm_param_t * p)
     p->p.e_tot  = p->c.re/p->c.ro;
     p->p.e      = p->p.e_tot-0.5*(p->p.u*p->p.u+p->p.v*p->p.v+p->p.w*p->p.w);
 
-    charm_mat_eos(mat, p, 0);
-    charm_mat_eos(mat, p, 1);
+    charm_mat_eos(mat, p, 0);  // {p,cz}=EOS(r,e)
+    charm_mat_eos(mat, p, 1);  // {e, t}=EOS(r,p)
 }
 
 
@@ -180,6 +184,10 @@ void charm_prim_cpy(charm_param_t * dest, charm_param_t * src)
     dest->p.cz = src->p.cz;
     dest->p.e = src->p.e;
     dest->p.e_tot = src->p.e_tot;
+    dest->p.cp = src->p.cp;
+    dest->p.cv = src->p.cv;
+    dest->p.gam = src->p.gam;
+
 }
 
 

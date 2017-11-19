@@ -18,10 +18,11 @@
 
 //#define SECOND_ORDER
 
-//#define FLUX_RIM
-#define FLUX_LF
 
-#define RIM_EPS 1.e-5
+#define CHARM_RIM_NEWTON_STEPS 5000
+#define CHARM_RIM_EPS 1.e-5
+
+#define CHARM_EPS 1.e-11
 
 #define ROOT_LEN   0.04
 
@@ -72,6 +73,9 @@ typedef struct charm_param
         double          p;             /**< pressure */
         double          t;             /**< temperature */
         double          cz;            /**< sound velosity */
+        double          gam;
+        double          cp;
+        double          cv;
     } p;
 
     struct
@@ -132,7 +136,7 @@ typedef struct charm_reg
 } charm_reg_t;
 
 
-typedef void (*charm_bnd_cond_fn_t)(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param);
+typedef void (*charm_bnd_cond_fn_t)(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param, double* n);
 
 
 
@@ -150,7 +154,7 @@ typedef enum {
 typedef struct charm_bnd
 {
     char name[64];
-    int type;
+    bnd_types_t type;
     int face_type;
     double *params;
     charm_bnd_cond_fn_t bnd_fn;

@@ -69,7 +69,7 @@ static void charm_grad_face_iter_fn (p4est_iter_face_info_t * info, void *user_d
 
         udata[1] = P4EST_ALLOC(charm_data_t, 1);
 
-        charm_bnd_cond(p4est, side[0]->treeid, face[0], &(udata[0]->par), &(udata[1]->par));
+        charm_bnd_cond(p4est, side[0]->treeid, face[0], &(udata[0]->par), &(udata[1]->par), n);
 
         charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[0]->treeid);
         charm_param_cons_to_prim(attr->reg->mat, &(udata[1]->par));
@@ -86,11 +86,11 @@ static void charm_grad_face_iter_fn (p4est_iter_face_info_t * info, void *user_d
         }
 
 
-        qr = 0.5*(r_[0]+r_[1]);
-        qu = 0.5*(u_[0]+u_[1]);
-        qv = 0.5*(v_[0]+v_[1]);
-        qw = 0.5*(w_[0]+w_[1]);
-        qp = 0.5*(p_[0]+p_[1]);
+        qr = r_[1];
+        qu = u_[1];
+        qv = v_[1];
+        qw = w_[1];
+        qp = p_[1];
 
         if (!side[0]->is.full.is_ghost) {
             for (k = 0; k < CHARM_DIM; k++) {
@@ -268,8 +268,6 @@ void charm_calc_grad(p4est_t * p4est, p4est_ghost_t *ghost, charm_data_t *ghost_
 {
     int my_ghost = 0;
     if (!ghost) {
-        DBG_CH(p4est->mpirank);
-
         ghost = p4est_ghost_new (p4est, P4EST_CONNECT_FULL);
         ghost_data = P4EST_ALLOC (charm_data_t, ghost->ghosts.elem_count);
         p4est_ghost_exchange_data (p4est, ghost, ghost_data);
