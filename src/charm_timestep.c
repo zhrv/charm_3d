@@ -203,24 +203,19 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
 
         udata[1] = P4EST_ALLOC(charm_data_t, 1);
 
-        charm_bnd_cond(p4est, side[0]->treeid, face[0], &(udata[0]->par), &(udata[1]->par));
+        charm_bnd_cond(p4est, side[0]->treeid, face[0], &(udata[0]->par), &(udata[1]->par), n);
 
         charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[0]->treeid);
         charm_param_cons_to_prim(attr->reg->mat, &(udata[1]->par));
 
-        r_[1] = udata[1]->par.p.r;
-        u_[1] = udata[1]->par.p.u;
-        v_[1] = udata[1]->par.p.v;
-        w_[1] = udata[1]->par.p.w;
-        p_[1] = udata[1]->par.p.p;
-        e_[1] = udata[1]->par.p.e;
-
-        double un = u_[1]*n[0] + v_[1]*n[1] + w_[1]*n[2];
-        qr = r_[1]*un;
-        qu = qr*u_[1]+p_[1]*n[0];
-        qv = qr*v_[1]+p_[1]*n[1];
-        qw = qr*w_[1]+p_[1]*n[2];
-        qe = qr*(e_[1]+0.5*(u_[1]*u_[1]+v_[1]*v_[1]+w_[1]*w_[1]))+p_[1]*un;
+        for (i = 0; i < 2; i++) {
+            r_[i] = udata[1]->par.p.r;
+            u_[i] = udata[1]->par.p.u;
+            v_[i] = udata[1]->par.p.v;
+            w_[i] = udata[1]->par.p.w;
+            p_[i] = udata[1]->par.p.p;
+        }
+        charm_calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n);
 
         if (!side[0]->is.full.is_ghost) {
             udata[0]->drodt -= qr * facearea;
@@ -390,6 +385,52 @@ static void charm_diffusion_flux_face_iter_fn (p4est_iter_face_info_t * info, vo
 
     if (sides->elem_count != 2) {
         // @todo is diff. flux a zero on boundary ?
+        P4EST_ASSERT(info->tree_boundary);
+
+        side[0] = p4est_iter_fside_array_index_int(sides, 0);
+        P4EST_ASSERT(!side[0]->is_hanging);
+        face[0] = side[0]->face;
+        charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[0]->treeid);
+        if (attr->bnd[face[0]]->type == BOUND_WALL_NO_SLIP) {
+            if (side[0]->is.full.is_ghost) {
+                udata[0] = &(ghost_data[side[0]->is.full.quadid]);
+            }
+            else {
+                udata[0] = (charm_data_t *) side[0]->is.full.quad->p.user_data;
+            }
+            double ml = attr->reg->mat->ml;
+            double lambda = 0.;
+            charm_param_t *p = &(udata[0]->par);
+            charm_param_cons_to_prim(attr->reg->mat, p);
+            facearea = charm_face_get_normal(udata[0], face[0], n);
+            charm_quad_get_center(udata[0], c[0]);
+            charm_face_get_center(udata[0], face[0], c[1]);
+
+            for (i = 0; i < 3; i++) {
+                l[i] = c[1][i] - c[0][i];
+            }
+
+            if (scalar_prod(n, l) < 0) {
+                for (i = 0; i < 3; i++) {
+                    n[i] *= -1.0;
+                }
+            }
+            double vv[3] = {p->p.u, p->p.v, p->p.w};
+            double un = scalar_prod(vv, n);
+            double vn[3] = {un*n[0], un*n[1], un*n[2]};
+            double vt[3] = {vv[0]-vn[0], vv[1]-vn[1], vv[2]-vn[2]};
+            double ll = sqrt(scalar_prod(l,l));
+            qu = -ml*vt[0]/ll;
+            qv = -ml*vt[1]/ll;
+            qw = -ml*vt[2]/ll;
+            qe = 0.;
+            if (!side[0]->is.full.is_ghost) {
+                udata[0]->drudt += qu * facearea;
+                udata[0]->drvdt += qv * facearea;
+                udata[0]->drwdt += qw * facearea;
+                udata[0]->dredt += qe * facearea;
+            }
+        }
     }
     else {
         side[0] = p4est_iter_fside_array_index_int(sides, 0);

@@ -184,6 +184,10 @@ void charm_prim_cpy(charm_param_t * dest, charm_param_t * src)
     dest->p.cz = src->p.cz;
     dest->p.e = src->p.e;
     dest->p.e_tot = src->p.e_tot;
+    dest->p.cp = src->p.cp;
+    dest->p.cv = src->p.cv;
+    dest->p.gam = src->p.gam;
+
 }
 
 
