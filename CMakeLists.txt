@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(charm_3d)
 
+set(CMAKE_C_COMPILER "mpicc")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
 
 set(CONTRIB_DIR "${CMAKE_SOURCE_DIR}/contrib")
@@ -44,4 +45,4 @@ add_executable(	charm_3d
         src/charm_xml.h
 )
 
-target_link_libraries(charm_3d p4est sc mpi m mxml)
+target_link_libraries(charm_3d p4est sc m mxml)
