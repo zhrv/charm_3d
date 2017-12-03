@@ -51,8 +51,8 @@ void charm_init_fetch_bnd(mxml_node_t* node, charm_bnd_t *bnd)
             charm_xml_node_child_param_dbl(n2, "Vx", &(bnd->params[0]));
             charm_xml_node_child_param_dbl(n2, "Vy", &(bnd->params[1]));
             charm_xml_node_child_param_dbl(n2, "Vz", &(bnd->params[2]));
-            charm_xml_node_child_param_dbl(n2, "T", &(bnd->params[3]));
-            charm_xml_node_child_param_dbl(n2, "P", &(bnd->params[4]));
+            charm_xml_node_child_param_dbl(n2, "T",  &(bnd->params[3]));
+            charm_xml_node_child_param_dbl(n2, "P",  &(bnd->params[4]));
             break;
         case BOUND_OUTLET:
             bnd->bnd_fn = charm_bnd_cond_fn_outlet;
@@ -62,6 +62,9 @@ void charm_init_fetch_bnd(mxml_node_t* node, charm_bnd_t *bnd)
             break;
         case BOUND_WALL_NO_SLIP: // @todo
             bnd->bnd_fn = charm_bnd_cond_fn_wall_no_slip;
+            n2 = charm_xml_node_get_child(node, "parameters");
+            bnd->params = P4EST_ALLOC(double, 1);
+            charm_xml_node_child_param_dbl(n2, "T", &(bnd->params[0]));
             break;
         default:
             P4EST_LERRORF("Unknown boundary type %d\n", bnd->type);

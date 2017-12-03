@@ -69,7 +69,7 @@ static void charm_grad_face_iter_fn (p4est_iter_face_info_t * info, void *user_d
 
         udata[1] = P4EST_ALLOC(charm_data_t, 1);
 
-        charm_bnd_cond(p4est, side[0]->treeid, face[0], &(udata[0]->par), &(udata[1]->par));
+        charm_bnd_cond(p4est, side[0]->treeid, face[0], &(udata[0]->par), &(udata[1]->par), n);
 
         charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[0]->treeid);
         charm_param_cons_to_prim(attr->reg->mat, &(udata[1]->par));

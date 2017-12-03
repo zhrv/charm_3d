@@ -136,7 +136,7 @@ typedef struct charm_reg
 } charm_reg_t;
 
 
-typedef void (*charm_bnd_cond_fn_t)(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param);
+typedef void (*charm_bnd_cond_fn_t)(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param, double* n);
 
 
 
