@@ -17,7 +17,7 @@
 #define CHARM_DEBUG
 
 //#define SECOND_ORDER
-
+#define CHARM_STRING "charm"
 
 #define CHARM_RIM_NEWTON_STEPS 5000
 #define CHARM_RIM_EPS 1.e-5

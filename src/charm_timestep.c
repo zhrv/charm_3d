@@ -13,6 +13,7 @@ static void charm_grad_face_iter_fn (p4est_iter_face_info_t * info, void *user_d
 static void charm_grad_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data);
 static double charm_get_timestep (p4est_t * p4est);
 static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data);
+static void charm_timestep_single(p4est_t * p4est, int step, double time, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 
 
 /** Timestep the advection problem.
@@ -22,22 +23,13 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
  * \param [in,out] p4est the forest, whose state is updated
  * \param [in] time      the end time
  */
-void charm_timestep (p4est_t * p4est, double time)
+void charm_timesteps (p4est_t * p4est, double time)
 {
-    double              t = 0.;
-    double              dt = 0.;
+    double              t;
+    double              dt;
     int                 i;
     charm_data_t       *ghost_data;
-    charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
-    int                 refine_period = ctx->refine_period;
-    int                 repartition_period = ctx->repartition_period;
-    int                 write_period = ctx->write_period;
-    int                 allowcoarsening = 1;
-    int                 mpiret;
-    double              orig_max_err = ctx->max_err;
-    double              umax, global_umax;
     p4est_ghost_t      *ghost;
-    int                 ref_flag = 0;
 
 
     ghost = p4est_ghost_new (p4est, P4EST_CONNECT_FULL);
@@ -49,92 +41,113 @@ void charm_timestep (p4est_t * p4est, double time)
     dt = charm_get_timestep(p4est);
 
     for (t = 0., i = 0; t < time; t += dt, i++) {
-
-
-        /* refine */
-        ref_flag = 0;
-        if (refine_period) {
-            if (!(i % refine_period)) {
-                if (i) {
-                    charm_adapt(p4est); /* adapt */
-                    if (ghost) {
-                        p4est_ghost_destroy(ghost);
-                        P4EST_FREE (ghost_data);
-                        ghost = NULL;
-                        ghost_data = NULL;
-                    }
-
-                    ref_flag = 1;
-                }
-                dt = charm_get_timestep(p4est);
-
-            }
-        }
-        /* repartition */
-        if (i && !(i % repartition_period)) {
-
-            p4est_partition (p4est, allowcoarsening, NULL);
-
-            if (ghost) {
-                p4est_ghost_destroy (ghost);
-                P4EST_FREE (ghost_data);
-                ghost = NULL;
-                ghost_data = NULL;
-            }
-        }
-        /* write out solution */
-        if (!(i % write_period)) {
-            charm_write_solution (p4est, i);
-            P4EST_GLOBAL_ESSENTIALF ("**************** File for %6d step is saved ***************\n", i);
-        }
-
-        /* synchronize the ghost data */
-        if (!ghost) {
-            ghost = p4est_ghost_new (p4est, P4EST_CONNECT_FULL);
-            ghost_data = P4EST_ALLOC (charm_data_t, ghost->ghosts.elem_count);
-            p4est_ghost_exchange_data(p4est, ghost, ghost_data);
-        }
-
-        if (ref_flag) {
-            charm_calc_grad(p4est, ghost, ghost_data);
-        }
-
-        /* compute du/dt */
-        p4est_iterate (p4est,                                /* the forest */
-                       ghost,                                /* the ghost layer */
-                       (void *) ghost_data,                  /* the synchronized ghost data */
-                       charm_zero_quad_iter_fn,              /* callback to compute each quad's interior contribution to du/dt */
-                       charm_convect_flux_face_iter_fn,      /* callback to compute each quads' faces' contributions to du/du */
-                       NULL,
-                       NULL);                                /* there is no callback for the
-                                                                corners between quadrants */
-
-        p4est_iterate (p4est,                                /* the forest */
-                       ghost,                                /* the ghost layer */
-                       (void *) ghost_data,                  /* the synchronized ghost data */
-                       NULL,                                 /* callback to compute each quad's interior contribution to du/dt */
-                       charm_diffusion_flux_face_iter_fn,    /* callback to compute each quads' faces' contributions to du/du */
-                       NULL,
-                       NULL);                                /* there is no callback for the
-                                                                corners between quadrants */
-        /* update u */
-        p4est_iterate (p4est, NULL,                              /* ghosts are not needed for this loop */
-                       (void *) &dt,                             /* pass in dt */
-                       charm_timestep_update_quad_iter_fn,       /* update each cell */
-                       NULL,                                     /* there is no callback for the faces between quadrants */
-                       NULL,                                     /* there is no callback for the faces between quadrants */
-                       NULL);                                    /* there is no callback for the corners between quadrants */
-
-        /* synchronize the ghost data */
-        p4est_ghost_exchange_data (p4est, ghost, ghost_data);
-
-        /* update grad */
-        charm_calc_grad(p4est, ghost, ghost_data);
+        charm_timestep_single(p4est, i, t, ghost, ghost_data);
     }
 
     P4EST_FREE (ghost_data);
     p4est_ghost_destroy (ghost);
 }
+
+
+static void charm_timestep_single(p4est_t * p4est, int step, double time, p4est_ghost_t * ghost, charm_data_t * ghost_data)
+{
+    double              t = 0.;
+    double              dt = 0.;
+    charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
+    int                 refine_period = ctx->refine_period;
+    int                 repartition_period = ctx->repartition_period;
+    int                 write_period = ctx->write_period;
+    int                 allowcoarsening = 1;
+    int                 mpiret;
+    double              orig_max_err = ctx->max_err;
+    double              umax, global_umax;
+    int                 ref_flag = 0;
+
+
+    /* refine */
+    ref_flag = 0;
+    if (refine_period) {
+        if (!(step % refine_period)) {
+            if (step) {
+                charm_adapt(p4est); /* adapt */
+                if (ghost) {
+                    p4est_ghost_destroy(ghost);
+                    P4EST_FREE (ghost_data);
+                    ghost = NULL;
+                    ghost_data = NULL;
+                }
+
+                ref_flag = 1;
+            }
+            dt = charm_get_timestep(p4est);
+
+        }
+    }
+
+    /* repartition */
+    if (step && !(step % repartition_period)) {
+
+        p4est_partition (p4est, allowcoarsening, NULL);
+
+        if (ghost) {
+            p4est_ghost_destroy (ghost);
+            P4EST_FREE (ghost_data);
+            ghost = NULL;
+            ghost_data = NULL;
+        }
+    }
+
+    /* write out solution */
+    if (!(step % write_period)) {
+        charm_write_solution (p4est, step);
+        P4EST_GLOBAL_ESSENTIALF ("**************** File for %6d step is saved ***************\n", step);
+    }
+
+    /* synchronize the ghost data */
+    if (!ghost) {
+        ghost = p4est_ghost_new (p4est, P4EST_CONNECT_FULL);
+        ghost_data = P4EST_ALLOC (charm_data_t, ghost->ghosts.elem_count);
+        p4est_ghost_exchange_data(p4est, ghost, ghost_data);
+    }
+
+    if (ref_flag) {
+        charm_calc_grad(p4est, ghost, ghost_data);
+    }
+
+    /* compute du/dt */
+    p4est_iterate (p4est,                                /* the forest */
+                   ghost,                                /* the ghost layer */
+                   (void *) ghost_data,                  /* the synchronized ghost data */
+                   charm_zero_quad_iter_fn,              /* callback to compute each quad's interior contribution to du/dt */
+                   charm_convect_flux_face_iter_fn,      /* callback to compute each quads' faces' contributions to du/du */
+                   NULL,
+                   NULL);                                /* there is no callback for the
+                                                                corners between quadrants */
+
+    p4est_iterate (p4est,                                /* the forest */
+                   ghost,                                /* the ghost layer */
+                   (void *) ghost_data,                  /* the synchronized ghost data */
+                   NULL,                                 /* callback to compute each quad's interior contribution to du/dt */
+                   charm_diffusion_flux_face_iter_fn,    /* callback to compute each quads' faces' contributions to du/du */
+                   NULL,
+                   NULL);                                /* there is no callback for the
+                                                                corners between quadrants */
+    /* update u */
+    p4est_iterate (p4est, NULL,                              /* ghosts are not needed for this loop */
+                   (void *) &dt,                             /* pass in dt */
+                   charm_timestep_update_quad_iter_fn,       /* update each cell */
+                   NULL,                                     /* there is no callback for the faces between quadrants */
+                   NULL,                                     /* there is no callback for the faces between quadrants */
+                   NULL);                                    /* there is no callback for the corners between quadrants */
+
+    /* synchronize the ghost data */
+    p4est_ghost_exchange_data (p4est, ghost, ghost_data);
+
+    /* update grad */
+    charm_calc_grad(p4est, ghost, ghost_data);
+
+}
+
 
 
 static void charm_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
@@ -147,7 +160,6 @@ static void charm_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user
     data->drvdt = 0.;
     data->drwdt = 0.;
     data->dredt = 0.;
-
 }
 
 
@@ -199,15 +211,30 @@ static void _charm_convect_flux_face_iter_bnd (p4est_iter_face_info_t * info, vo
     charm_bnd_cond(p4est, side[0]->treeid, face[0], &(udata[0]->par), &(udata[1]->par), n);
 
     charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[0]->treeid);
-    charm_param_cons_to_prim(attr->reg->mat, &(udata[1]->par));
+    //charm_param_cons_to_prim(attr->reg->mat, &(udata[1]->par));
 
     for (i = 0; i < 2; i++) {
-        r_[i] = udata[1]->par.p.r;
-        u_[i] = udata[1]->par.p.u;
-        v_[i] = udata[1]->par.p.v;
-        w_[i] = udata[1]->par.p.w;
-        p_[i] = udata[1]->par.p.p;
+        charm_param_cons_to_prim(attr->reg->mat, &(udata[i]->par));
+        r_[i] = udata[i]->par.p.r;
+        u_[i] = udata[i]->par.p.u;
+        v_[i] = udata[i]->par.p.v;
+        w_[i] = udata[i]->par.p.w;
+        p_[i] = udata[i]->par.p.p;
     }
+
+    /* flux from side 0 to side 1 */
+    charm_calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n);
+
+    if (!side[0]->is.full.is_ghost) {
+        udata[0]->drodt -= qr * facearea;
+        udata[0]->drudt -= qu * facearea;
+        udata[0]->drvdt -= qv * facearea;
+        udata[0]->drwdt -= qw * facearea;
+        udata[0]->dredt -= qe * facearea;
+    }
+
+    P4EST_FREE(udata[1]);
+
     charm_calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n);
 
     if (!side[0]->is.full.is_ghost) {

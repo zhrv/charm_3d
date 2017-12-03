@@ -48,7 +48,7 @@ void charm_write_solution (p4est_t * p4est, int timestep)
     size_t              numquads;
     int                 i;
 
-    snprintf (filename, 33, P4EST_STRING "_charm_%08d", timestep);
+    snprintf (filename, 33, CHARM_STRING "_%08d", timestep);
 
     numquads = (size_t)p4est->local_num_quadrants;
 
