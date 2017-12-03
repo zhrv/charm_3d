@@ -10,7 +10,7 @@
 #include "charm_output.h"
 
 
-void charm_timestep (p4est_t * p4est, double time);
+void charm_timesteps (p4est_t * p4est, double time);
 void charm_calc_grad(p4est_t * p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data);
 
 
