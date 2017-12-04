@@ -13,7 +13,7 @@ static void charm_grad_face_iter_fn (p4est_iter_face_info_t * info, void *user_d
 static void charm_grad_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data);
 static double charm_get_timestep (p4est_t * p4est);
 static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data);
-static void charm_timestep_single(p4est_t * p4est, int step, double time, p4est_ghost_t * ghost, charm_data_t * ghost_data);
+static void charm_timestep_single(p4est_t * p4est, int step, double time, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data);
 
 
 /** Timestep the advection problem.
@@ -41,7 +41,7 @@ void charm_timesteps (p4est_t * p4est, double time)
     dt = charm_get_timestep(p4est);
 
     for (t = 0., i = 0; t < time; t += dt, i++) {
-        charm_timestep_single(p4est, i, t, ghost, ghost_data);
+        charm_timestep_single(p4est, i, t, &ghost, &ghost_data);
     }
 
     P4EST_FREE (ghost_data);
@@ -49,7 +49,7 @@ void charm_timesteps (p4est_t * p4est, double time)
 }
 
 
-static void charm_timestep_single(p4est_t * p4est, int step, double time, p4est_ghost_t * ghost, charm_data_t * ghost_data)
+static void charm_timestep_single(p4est_t * p4est, int step, double time, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data)
 {
     double              t = 0.;
     double              dt = 0.;
@@ -62,7 +62,8 @@ static void charm_timestep_single(p4est_t * p4est, int step, double time, p4est_
     double              orig_max_err = ctx->max_err;
     double              umax, global_umax;
     int                 ref_flag = 0;
-
+    p4est_ghost_t      *ghost       = *_ghost;
+    charm_data_t       *ghost_data  = *_ghost_data;
 
     /* refine */
     ref_flag = 0;
@@ -107,7 +108,7 @@ static void charm_timestep_single(p4est_t * p4est, int step, double time, p4est_
     if (!ghost) {
         ghost = p4est_ghost_new (p4est, P4EST_CONNECT_FULL);
         ghost_data = P4EST_ALLOC (charm_data_t, ghost->ghosts.elem_count);
-        p4est_ghost_exchange_data(p4est, ghost, ghost_data);
+        p4est_ghost_exchange_data (p4est, ghost, ghost_data);
     }
 
     if (ref_flag) {
@@ -145,6 +146,9 @@ static void charm_timestep_single(p4est_t * p4est, int step, double time, p4est_
 
     /* update grad */
     charm_calc_grad(p4est, ghost, ghost_data);
+
+    *_ghost       = ghost;
+    *_ghost_data  = ghost_data;
 
 }
 
@@ -235,16 +239,6 @@ static void _charm_convect_flux_face_iter_bnd (p4est_iter_face_info_t * info, vo
 
     P4EST_FREE(udata[1]);
 
-    charm_calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n);
-
-    if (!side[0]->is.full.is_ghost) {
-        udata[0]->drodt -= qr * facearea;
-        udata[0]->drudt -= qu * facearea;
-        udata[0]->drvdt -= qv * facearea;
-        udata[0]->drwdt -= qw * facearea;
-        udata[0]->dredt -= qe * facearea;
-    }
-    P4EST_FREE(udata[1]);
 }
 
 static void _charm_convect_flux_face_iter_inner (p4est_iter_face_info_t * info, void *user_data)

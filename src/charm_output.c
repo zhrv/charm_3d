@@ -65,7 +65,8 @@ void charm_write_solution (p4est_t * p4est, int timestep)
                    NULL);         /* there is no callback for the corners between quadrants */
 
     p4est_vtk_context_t *context = p4est_vtk_context_new (p4est, filename);
-    p4est_vtk_context_set_scale (context, 0.9999);  /* quadrant at almost full scale */
+    p4est_vtk_context_set_scale (context, 1.);  /* quadrant at almost full scale */
+    p4est_vtk_context_set_continuous (context, 1);
 
     context = p4est_vtk_write_header (context);
     SC_CHECK_ABORT (context != NULL,
