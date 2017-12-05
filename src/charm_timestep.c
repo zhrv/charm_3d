@@ -28,6 +28,7 @@ void charm_timesteps (p4est_t * p4est, double time)
     double              t;
     double              dt;
     int                 i;
+    charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
     charm_data_t       *ghost_data;
     p4est_ghost_t      *ghost;
 
@@ -40,8 +41,12 @@ void charm_timesteps (p4est_t * p4est, double time)
 
     dt = charm_get_timestep(p4est);
 
+    CHARM_GLOBAL_ESSENTIAL("Starting time steps...\n");
     for (t = 0., i = 0; t < time; t += dt, i++) {
         charm_timestep_single(p4est, i, t, &ghost, &ghost_data);
+        if (i % ctx->log_period == 0) {
+            charm_log_statistics(p4est, i, t);
+        }
     }
 
     P4EST_FREE (ghost_data);
@@ -101,7 +106,7 @@ static void charm_timestep_single(p4est_t * p4est, int step, double time, p4est_
     /* write out solution */
     if (!(step % write_period)) {
         charm_write_solution (p4est, step);
-        P4EST_GLOBAL_ESSENTIALF ("**************** File for %6d step is saved ***************\n", step);
+        CHARM_GLOBAL_ESSENTIALF ("**************** File for step #%d is saved ***************\n", step);
     }
 
     /* synchronize the ghost data */

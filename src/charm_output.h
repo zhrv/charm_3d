@@ -8,6 +8,6 @@
 
 
 void charm_write_solution (p4est_t * p4est, int timestep);
-
+void charm_log_statistics(p4est_t * p4est, int timestep, double time);
 
 #endif //CHAMR_3D_CHARM_OUTPUT_H

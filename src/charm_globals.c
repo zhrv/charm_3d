@@ -5,6 +5,10 @@
 #include "charm_globals.h"
 #include "charm_grad.h"
 
+
+
+int charm_package_id = -1;
+
 const char *charm_bnd_types[] ={
         "BOUND_INLET",
         "BOUND_OUTLET",

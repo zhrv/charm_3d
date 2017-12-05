@@ -184,6 +184,8 @@ void charm_init_context(charm_ctx_t *ctx)
                         MXML_TEXT_CALLBACK);
     fclose(fp);
 
+    CHARM_GLOBAL_ESSENTIAL("Reading file 'task.xml'.\n");
+
     mxml_node_t *node_task, *node, *node1;
     double x;
 
@@ -196,6 +198,7 @@ void charm_init_context(charm_ctx_t *ctx)
     charm_xml_node_child_param_int(node, "MIN_LEVEL", &(ctx->min_level));
     charm_xml_node_child_param_int(node, "MAX_LEVEL", &(ctx->max_level));
     charm_xml_node_child_param_int(node, "FILE_OUTPUT_STEP", &(ctx->write_period));
+    charm_xml_node_child_param_int(node, "LOG_OUTPUT_STEP", &(ctx->log_period));
 
     charm_xml_node_child_param_dbl(node, "TAU", &(ctx->dt));
     charm_xml_node_child_param_dbl(node, "TMAX", &(ctx->time));

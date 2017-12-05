@@ -20,9 +20,12 @@ int main (int argc, char **argv)
     mpiret = sc_MPI_Init (&argc, &argv);
     SC_CHECK_MPI (mpiret);
     mpicomm = sc_MPI_COMM_WORLD;
+    sc_init (mpicomm, 0, 0, NULL, CHARM_LOG_LEVEL);
+    p4est_init (NULL, CHARM_LOG_LEVEL);
 
-    sc_init (mpicomm, 0, 0, NULL, SC_LP_ESSENTIAL);
-    p4est_init (NULL, SC_LP_ESSENTIAL);
+    charm_package_id = sc_package_register(NULL, CHARM_LOG_LEVEL, "charm_3d", "Chemistry on AMR");
+
+    CHARM_GLOBAL_ESSENTIAL("charm_3d started...\n");
 
     charm_init_context(&ctx);
 

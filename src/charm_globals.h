@@ -14,7 +14,121 @@
 
 #define CHARM_DIM P4EST_DIM
 
-#define CHARM_DEBUG
+#ifdef CHARM_DEBUG
+#define CHARM_LOG_LEVEL SC_LP_ESSENTIAL
+#else
+#define CHARM_LOG_LEVEL SC_LP_ESSENTIAL
+#endif
+
+/* log helper macros */
+#define CHARM_GLOBAL_LOG(p,s)                           \
+  SC_GEN_LOG (charm_package_id, SC_LC_GLOBAL, (p), (s))
+#define CHARM_LOG(p,s)                                  \
+  SC_GEN_LOG (charm_package_id, SC_LC_NORMAL, (p), (s))
+void                CHARM_GLOBAL_LOGF (int priority, const char *fmt, ...)
+__attribute__ ((format (printf, 2, 3)));
+void                CHARM_LOGF (int priority, const char *fmt, ...)
+__attribute__ ((format (printf, 2, 3)));
+#ifndef __cplusplus
+#define CHARM_GLOBAL_LOGF(p,f,...)                                      \
+  SC_GEN_LOGF (charm_package_id, SC_LC_GLOBAL, (p), (f), __VA_ARGS__)
+#define CHARM_LOGF(p,f,...)                                             \
+  SC_GEN_LOGF (charm_package_id, SC_LC_NORMAL, (p), (f), __VA_ARGS__)
+#endif
+
+/* convenience global log macros will only print if identifier <= 0 */
+#define CHARM_GLOBAL_TRACE(s) CHARM_GLOBAL_LOG (SC_LP_TRACE, (s))
+#define CHARM_GLOBAL_LDEBUG(s) CHARM_GLOBAL_LOG (SC_LP_DEBUG, (s))
+#define CHARM_GLOBAL_VERBOSE(s) CHARM_GLOBAL_LOG (SC_LP_VERBOSE, (s))
+#define CHARM_GLOBAL_INFO(s) CHARM_GLOBAL_LOG (SC_LP_INFO, (s))
+#define CHARM_GLOBAL_STATISTICS(s) CHARM_GLOBAL_LOG (SC_LP_STATISTICS, (s))
+#define CHARM_GLOBAL_PRODUCTION(s) CHARM_GLOBAL_LOG (SC_LP_PRODUCTION, (s))
+#define CHARM_GLOBAL_ESSENTIAL(s) CHARM_GLOBAL_LOG (SC_LP_ESSENTIAL, (s))
+#define CHARM_GLOBAL_LERROR(s) CHARM_GLOBAL_LOG (SC_LP_ERROR, (s))
+void                CHARM_GLOBAL_TRACEF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+void                CHARM_GLOBAL_LDEBUGF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+void                CHARM_GLOBAL_VERBOSEF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+void                CHARM_GLOBAL_INFOF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+void                CHARM_GLOBAL_STATISTICSF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+void                CHARM_GLOBAL_PRODUCTIONF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+void                CHARM_GLOBAL_ESSENTIALF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+void                CHARM_GLOBAL_LERRORF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+#ifndef __cplusplus
+#define CHARM_GLOBAL_TRACEF(f,...)                      \
+  CHARM_GLOBAL_LOGF (SC_LP_TRACE, (f), __VA_ARGS__)
+#define CHARM_GLOBAL_LDEBUGF(f,...)                     \
+  CHARM_GLOBAL_LOGF (SC_LP_DEBUG, (f), __VA_ARGS__)
+#define CHARM_GLOBAL_VERBOSEF(f,...)                    \
+  CHARM_GLOBAL_LOGF (SC_LP_VERBOSE, (f), __VA_ARGS__)
+#define CHARM_GLOBAL_INFOF(f,...)                       \
+  CHARM_GLOBAL_LOGF (SC_LP_INFO, (f), __VA_ARGS__)
+#define CHARM_GLOBAL_STATISTICSF(f,...)                         \
+  CHARM_GLOBAL_LOGF (SC_LP_STATISTICS, (f), __VA_ARGS__)
+#define CHARM_GLOBAL_PRODUCTIONF(f,...)                         \
+  CHARM_GLOBAL_LOGF (SC_LP_PRODUCTION, (f), __VA_ARGS__)
+#define CHARM_GLOBAL_ESSENTIALF(f,...)                          \
+  CHARM_GLOBAL_LOGF (SC_LP_ESSENTIAL, (f), __VA_ARGS__)
+#define CHARM_GLOBAL_LERRORF(f,...)                     \
+  CHARM_GLOBAL_LOGF (SC_LP_ERROR, (f), __VA_ARGS__)
+#endif
+#define CHARM_GLOBAL_NOTICE     CHARM_GLOBAL_STATISTICS
+#define CHARM_GLOBAL_NOTICEF    CHARM_GLOBAL_STATISTICSF
+
+/* convenience log macros that are active on every processor */
+#define CHARM_TRACE(s) CHARM_LOG (SC_LP_TRACE, (s))
+#define CHARM_LDEBUG(s) CHARM_LOG (SC_LP_DEBUG, (s))
+#define CHARM_VERBOSE(s) CHARM_LOG (SC_LP_VERBOSE, (s))
+#define CHARM_INFO(s) CHARM_LOG (SC_LP_INFO, (s))
+#define CHARM_STATISTICS(s) CHARM_LOG (SC_LP_STATISTICS, (s))
+#define CHARM_PRODUCTION(s) CHARM_LOG (SC_LP_PRODUCTION, (s))
+#define CHARM_ESSENTIAL(s) CHARM_LOG (SC_LP_ESSENTIAL, (s))
+#define CHARM_LERROR(s) CHARM_LOG (SC_LP_ERROR, (s))
+void                CHARM_TRACEF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+void                CHARM_LDEBUGF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+void                CHARM_VERBOSEF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+void                CHARM_INFOF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+void                CHARM_STATISTICSF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+void                CHARM_PRODUCTIONF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+void                CHARM_ESSENTIALF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+void                CHARM_LERRORF (const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+#ifndef __cplusplus
+#define CHARM_TRACEF(f,...)                     \
+  CHARM_LOGF (SC_LP_TRACE, (f), __VA_ARGS__)
+#define CHARM_LDEBUGF(f,...)                    \
+  CHARM_LOGF (SC_LP_DEBUG, (f), __VA_ARGS__)
+#define CHARM_VERBOSEF(f,...)                   \
+  CHARM_LOGF (SC_LP_VERBOSE, (f), __VA_ARGS__)
+#define CHARM_INFOF(f,...)                      \
+  CHARM_LOGF (SC_LP_INFO, (f), __VA_ARGS__)
+#define CHARM_STATISTICSF(f,...)                        \
+  CHARM_LOGF (SC_LP_STATISTICS, (f), __VA_ARGS__)
+#define CHARM_PRODUCTIONF(f,...)                        \
+  CHARM_LOGF (SC_LP_PRODUCTION, (f), __VA_ARGS__)
+#define CHARM_ESSENTIALF(f,...)                         \
+  CHARM_LOGF (SC_LP_ESSENTIAL, (f), __VA_ARGS__)
+#define CHARM_LERRORF(f,...)                    \
+  CHARM_LOGF (SC_LP_ERROR, (f), __VA_ARGS__)
+#endif
+#define CHARM_NOTICE            CHARM_STATISTICS
+#define CHARM_NOTICEF           CHARM_STATISTICSF
+
+
 
 //#define SECOND_ORDER
 #define CHARM_STRING "charm"
@@ -182,6 +296,7 @@ typedef struct charm_ctx
     int                 refine_period;      /**< the number of time steps between mesh refinement */
     int                 repartition_period; /**< the number of time steps between repartitioning */
     int                 write_period;       /**< the number of time steps between writing vtk files */
+    int                 log_period;         /**< the number of time steps between writing log */
     int                 min_level;          /**< the minimal level */
     int                 max_level;          /**< the allowed level */
     double              CFL;                /**< the CFL */
@@ -229,5 +344,8 @@ void charm_prim_cpy(charm_param_t * dest, charm_param_t * src);
 
 
 void dbg_print_param(charm_param_t *);
+
+
+extern int charm_package_id;
 
 #endif //CHAMR_3D_CHARM_GLOBALS_H

@@ -199,7 +199,7 @@ charm_bnd_t * charm_conn_bnd_find_by_id(charm_ctx_t* ctx, int id)
             return bnd;
         }
     }
-    P4EST_LERRORF("Patch (id=%d) is nod defined in task.xml\n", id);
+    CHARM_LERRORF("Patch (id=%d) is nod defined in task.xml\n", id);
     return NULL;
 }
 
@@ -230,7 +230,7 @@ charm_reg_t * charm_conn_reg_find_by_id(charm_ctx_t* ctx, int id)
             return reg;
         }
     }
-    P4EST_LERRORF("Patch (id=%d) is nod defined in task.xml\n", id);
+    CHARM_LERRORF("Patch (id=%d) is nod defined in task.xml\n", id);
     return NULL;
 }
 
@@ -257,7 +257,7 @@ int8_t charm_conn_parse_face(char *line, p4est_topidx_t *fv)
 
     retval = sscanf (line, "%d %d", &node, &type);
     if (retval != 2) {
-        P4EST_LERROR ("Premature end of file");
+        CHARM_LERROR ("Premature end of file");
         return 0;
     }
 
@@ -267,7 +267,7 @@ int8_t charm_conn_parse_face(char *line, p4est_topidx_t *fv)
                          &node, &type, &tagc, &fv[4], &tag2,
                          &(fv[0]), &(fv[1]), &(fv[3]), &(fv[2]) );
         if (retval != 9) {
-            P4EST_LERROR ("Premature end of file");
+            CHARM_LERROR ("Premature end of file");
             return 0;
         }
         fv[0]--;
@@ -288,7 +288,7 @@ int8_t charm_conn_parse_cell(char *line, p4est_topidx_t *fv)
 
     retval = sscanf (line, "%d %d", &node, &type);
     if (retval != 2) {
-        P4EST_LERROR ("Premature end of file");
+        CHARM_LERROR ("Premature end of file");
         return 0;
     }
 
@@ -299,7 +299,7 @@ int8_t charm_conn_parse_cell(char *line, p4est_topidx_t *fv)
                          &(fv[0]), &(fv[1]), &(fv[3]), &(fv[2]),
                          &(fv[4]), &(fv[5]), &(fv[7]), &(fv[6]));
         if (retval != 13) {
-            P4EST_LERROR ("Premature end of file");
+            CHARM_LERROR ("Premature end of file");
             return 0;
         }
         for (i = 0; i < 8; i++) {
@@ -341,11 +341,11 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
 
     filename = ctx->msh->filename;
 
-    P4EST_GLOBAL_PRODUCTIONF ("Reading connectivity from %s\n", filename);
+    CHARM_GLOBAL_ESSENTIALF ("Reading connectivity from '%s'.\n", filename);
 
     fid = fopen (filename, "rb");
     if (fid == NULL) {
-        P4EST_LERRORF ("Failed to open %s\n", filename);
+        CHARM_LERRORF ("Failed to open %s\n", filename);
         goto dead;
     }
 
@@ -382,7 +382,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
                     line = charm_connectivity_getline_upper (fid);
                     retval = sscanf (line, "%lld %lf %lf %lf", &node, &x, &y, &z);
                     if (retval != 4) {
-                        P4EST_LERROR ("Premature end of file");
+                        CHARM_LERROR ("Premature end of file");
                         P4EST_FREE (line);
                         P4EST_FREE (vert);
                         return NULL;
@@ -404,7 +404,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
                     line = charm_connectivity_getline_upper (fid);
                     retval = sscanf (line, "%lld %lld", &node, &type);
                     if (retval != 2) {
-                        P4EST_LERROR ("Premature end of file");
+                        CHARM_LERROR ("Premature end of file");
                         P4EST_FREE (line);
                         P4EST_FREE (vert);
                         P4EST_FREE (trees);
@@ -417,7 +417,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
                                          &trees[num_trees_real*P4EST_CHILDREN+0], &trees[num_trees_real*P4EST_CHILDREN+1], &trees[num_trees_real*P4EST_CHILDREN+3], &trees[num_trees_real*P4EST_CHILDREN+2],
                                          &trees[num_trees_real*P4EST_CHILDREN+4], &trees[num_trees_real*P4EST_CHILDREN+5], &trees[num_trees_real*P4EST_CHILDREN+7], &trees[num_trees_real*P4EST_CHILDREN+6] );
                         if (retval != 13) {
-                            P4EST_LERROR ("Premature end of file");
+                            CHARM_LERROR ("Premature end of file");
                             P4EST_FREE (line);
                             P4EST_FREE (vert);
                             P4EST_FREE (trees);
@@ -497,11 +497,11 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
     retval = fclose (fid);
     fid = NULL;
     if (retval) {
-        P4EST_LERRORF ("Failed to close %s\n", filename);
+        CHARM_LERRORF ("Failed to close %s\n", filename);
         goto dead;
     }
 
-    P4EST_GLOBAL_PRODUCTIONF
+    CHARM_GLOBAL_ESSENTIALF
     ("New connectivity with %lld trees and %lld vertices\n",
      (long long) conn->num_trees, (long long) conn->num_vertices);
 
@@ -587,13 +587,13 @@ charm_connectivity_read_inp_stream (FILE * stream,
 
                 retval = sscanf (line, "%lld, %lf, %lf, %lf", &node, &x, &y, &z);
                 if (retval != 4) {
-                    P4EST_LERROR ("Premature end of file");
+                    CHARM_LERROR ("Premature end of file");
                     P4EST_FREE (line);
                     return 1;
                 }
 
                 if (node > *num_vertices) {
-                    P4EST_LERRORF
+                    CHARM_LERRORF
                     ("Encountered vertex %lld that will not fit in vertices"
                              " array of length %lld.  Are the vertices contiguously"
                              " numbered?\n", node, (long long int) *num_vertices);
@@ -629,13 +629,13 @@ charm_connectivity_read_inp_stream (FILE * stream,
 #endif
                 );
                 if (retval != P4EST_CHILDREN + 1) {
-                    P4EST_LERROR ("Premature end of file");
+                    CHARM_LERROR ("Premature end of file");
                     P4EST_FREE (line);
                     return 1;
                 }
 
                 if (num_elements >= *num_trees) {
-                    P4EST_LERROR ("Encountered element that will not fit into"
+                    CHARM_LERROR ("Encountered element that will not fit into"
                                           " tree_to_vertex array. More elements than expected.\n");
                     P4EST_FREE (line);
                     return 1;
@@ -657,7 +657,7 @@ charm_connectivity_read_inp_stream (FILE * stream,
     *num_trees = num_elements;
 
     if (num_nodes == 0 || num_elements == 0) {
-        P4EST_LERROR ("No elements or nodes found in mesh file.\n");
+        CHARM_LERROR ("No elements or nodes found in mesh file.\n");
         return -1;
     }
     else {
@@ -683,17 +683,17 @@ charm_conn_reader_inp (charm_ctx_t *ctx)
 
     filename = ctx->msh->filename;
 
-    P4EST_GLOBAL_PRODUCTIONF ("Reading connectivity from %s\n", filename);
+    CHARM_GLOBAL_ESSENTIALF ("Reading connectivity from '%s'.\n", filename);
 
     fid = fopen (filename, "rb");
     if (fid == NULL) {
-        P4EST_LERRORF ("Failed to open %s\n", filename);
+        CHARM_LERRORF ("Failed to open %s\n", filename);
         goto dead;
     }
 
     if (charm_connectivity_read_inp_stream
             (fid, &num_vertices, &num_trees, NULL, NULL)) {
-        P4EST_LERRORF ("Failed to read %s: pass 1\n", filename);
+        CHARM_LERRORF ("Failed to read %s: pass 1\n", filename);
         goto dead;
     }
 
@@ -708,7 +708,7 @@ charm_conn_reader_inp (charm_ctx_t *ctx)
     if (charm_connectivity_read_inp_stream (fid, &conn->num_vertices,
                                             &conn->num_trees, conn->vertices,
                                             conn->tree_to_vertex)) {
-        P4EST_LERRORF ("Failed to read %s: pass 2\n", filename);
+        CHARM_LERRORF ("Failed to read %s: pass 2\n", filename);
         goto dead;
     }
 
@@ -730,11 +730,11 @@ charm_conn_reader_inp (charm_ctx_t *ctx)
     retval = fclose (fid);
     fid = NULL;
     if (retval) {
-        P4EST_LERRORF ("Failed to close %s\n", filename);
+        CHARM_LERRORF ("Failed to close %s\n", filename);
         goto dead;
     }
 
-    P4EST_GLOBAL_PRODUCTIONF
+    CHARM_GLOBAL_ESSENTIALF
     ("New connectivity with %lld trees and %lld vertices\n",
      (long long) conn->num_trees, (long long) conn->num_vertices);
 
