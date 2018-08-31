@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(charm_3d)
+project(charm_dg)
 
 set(CMAKE_C_COMPILER "mpicc")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -DCHARM_DEBUG") # for developing
@@ -20,7 +20,7 @@ set(MXML_LIB "${CONTRIB_DIR}/mxml/local/lib")
 include_directories(${P4EST_INCLUDE} ${MPI_INCLUDE} ${MXML_INCLUDE})
 link_directories(${P4EST_LIB} ${MXML_LIB})
 
-add_executable(	charm_3d
+add_executable(	charm_dg
         src/charm_3d.c
 		src/charm_connectivity.c
         src/charm_connectivity.h
@@ -44,6 +44,6 @@ add_executable(	charm_3d
         src/charm_grad.h
 		src/charm_xml.c
         src/charm_xml.h
-)
+		src/charm_base_func.c src/charm_base_func.h)
 
-target_link_libraries(charm_3d p4est sc m mxml)
+target_link_libraries(charm_dg p4est sc m mxml)

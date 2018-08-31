@@ -128,7 +128,7 @@ __attribute__ ((format (printf, 1, 2)));
 #define CHARM_NOTICE            CHARM_STATISTICS
 #define CHARM_NOTICEF           CHARM_STATISTICSF
 
-
+#define _SQR_(X) ((X)*(X))
 
 //#define SECOND_ORDER
 #define CHARM_STRING "charm"
@@ -140,6 +140,7 @@ __attribute__ ((format (printf, 1, 2)));
 
 #define ROOT_LEN   0.04
 
+#define CHARM_DG_FN_COUNT 4
 
 #ifdef CHARM_DEBUG
 
@@ -208,6 +209,7 @@ typedef struct charm_param
         double          volume;
         double          c[CHARM_DIM];
         double          fc[P4EST_FACES][CHARM_DIM];
+        double          dh[CHARM_DIM];
     } g;
 } charm_param_t;
 
