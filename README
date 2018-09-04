@@ -1,48 +1,98 @@
+# Последовательность сборки
+
 [zhrv@zhrv-appmath: AMR]$ git clone git@bitbucket.org:zhrv/charm_dg.git
+
 [zhrv@zhrv-appmath: AMR]$ cd charm_dg/
+
 [zhrv@zhrv-appmath: charm_dg (dev)]$ ls
+
     CMakeLists.txt  contrib  src
+
 [zhrv@zhrv-appmath: charm_dg (dev)]$ git submodule init
+
 [zhrv@zhrv-appmath: charm_dg (dev)]$ git submodule update
+
 [zhrv@zhrv-appmath: charm_dg (dev)]$ cd contrib/mxml/
+
 [zhrv@zhrv-appmath: mxml ((HEAD отделён на ef7e5d4))]$ pwd
+
     /{PATH_TO_PROJECT}/charm_dg/contrib/mxml
+
 [zhrv@zhrv-appmath: mxml ((HEAD отделён на ef7e5d4))]$ ./configure --prefix=/{PATH_TO_PROJECT}/charm_dg/contrib/mxml/local
+
 [zhrv@zhrv-appmath: mxml ((HEAD отделён на ef7e5d4))]$ make
+
 [zhrv@zhrv-appmath: mxml ((HEAD отделён на ef7e5d4))]$ make install
+
     Installing libmxml.so to /data/dev/sci/AMR/charm_dg/contrib/mxml/local/lib...
+
     Installing libmxml.a to /data/dev/sci/AMR/charm_dg/contrib/mxml/local/lib...
+
     Installing mxmldoc in /data/dev/sci/AMR/charm_dg/contrib/mxml/local/bin...
+
     Installing documentation in /data/dev/sci/AMR/charm_dg/contrib/mxml/local/share/doc/mxml...
+
     Installing header files in /data/dev/sci/AMR/charm_dg/contrib/mxml/local/include...
+
     Installing pkgconfig files in /data/dev/sci/AMR/charm_dg/contrib/mxml/local/lib/pkgconfig...
+
     Installing man pages in /data/dev/sci/AMR/charm_dg/contrib/mxml/local/share/man...
+
 [zhrv@zhrv-appmath: mxml ((HEAD отделён на ef7e5d4))]$ ls local
+
     bin  include  lib  share
+
 [zhrv@zhrv-appmath: mxml ((HEAD отделён на ef7e5d4))]$ cd ..
+
 [zhrv@zhrv-appmath: contrib (dev)]$ cd p4est/
+
 [zhrv@zhrv-appmath: p4est ((HEAD отделён на a9910fd))]$ ls
+
     AUTHORS    config        Doxyfile.in  Makefile.p4est.pre.in  sc
+
     bootstrap  configure.ac  example      NEWS                   src
+
     bugs       COPYING       INSTALL      p4estindent            test
+
     build-aux  doc           Makefile.am  README
+
 [zhrv@zhrv-appmath: p4est ((HEAD отделён на a9910fd))]$ ./bootstrap 
+
     Error: Cannot find directory sc/config
+
        If you just called ./bootstrap from a fresh clone of p4est
+
        you may need to checkout the submodule sc:
+
        $ git submodule init && git submodule update
+
 [zhrv@zhrv-appmath: p4est ((HEAD отделён на a9910fd))]$ git submodule init
+
     Подмодуль «sc» (https://github.com/cburstedde/libsc.git) зарегистрирован для пути «sc»
+
 [zhrv@zhrv-appmath: p4est ((HEAD отделён на a9910fd))]$ git submodule update
+
     Клонирование в «sc»…
+
     remote: Counting objects: 16216, done.
+
     remote: Total 16216 (delta 0), reused 0 (delta 0), pack-reused 16216
+
     Получение объектов: 100% (16216/16216), 4.89 MiB | 171.00 KiB/s, готово.
+
     Определение изменений: 100% (11635/11635), готово.
+
     Проверка соединения… готово.
+
     Подмодуль по пути «sc»: забрано состояние «f2c88cf80ca9dfc5038f0ac26a01d5015305dca2»
+
 [zhrv@zhrv-appmath: p4est ((HEAD отделён на a9910fd))]$ 
+
 [zhrv@zhrv-appmath: p4est ((HEAD отделён на a9910fd))]$ ./bootstrap 
+
 [zhrv@zhrv-appmath: p4est ((HEAD отделён на a9910fd))]$ ./configure --enable-mpi --enable-openmp
+
 [zhrv@zhrv-appmath: p4est ((HEAD отделён на a9910fd))]$ make
+
 [zhrv@zhrv-appmath: p4est ((HEAD отделён на a9910fd))]$ make install
+
