@@ -8,23 +8,23 @@
 
 static double charm_error_sqr_estimate (p4est_quadrant_t * q)
 {
-    charm_data_t       *data = (charm_data_t *) q->p.user_data;
-    int                 i;
-    double              du[P4EST_DIM];
-    double              h = CHARM_GET_H(q->level);
-    double              vol = charm_quad_get_volume((charm_data_t *)q->p.user_data);
-    double              diff2 = 0.;
-
-    for (i = 0; i < CHARM_DIM; i++) {
-        du[i] = data->par.grad.r[i];
-    }
-
-    /* use the approximate derivative to estimate the L2 error */
-    for (i = 0; i < CHARM_DIM; i++) {
-        diff2 += du[i] * du[i];
-    }
-
-    return diff2 * (1. / 12.) * exp(log(vol)*5./3.);
+//    charm_data_t       *data = (charm_data_t *) q->p.user_data;
+//    int                 i;
+//    double              du[P4EST_DIM];
+//    double              h = CHARM_GET_H(q->level);
+//    double              vol = charm_quad_get_volume((charm_data_t *)q->p.user_data);
+//    double              diff2 = 0.;
+//
+//    for (i = 0; i < CHARM_DIM; i++) {
+//        du[i] = data->par.grad.r[i];
+//    }
+//
+//    /* use the approximate derivative to estimate the L2 error */
+//    for (i = 0; i < CHARM_DIM; i++) {
+//        diff2 += du[i] * du[i];
+//    }
+//
+//    return diff2 * (1. / 12.) * exp(log(vol)*5./3.);
 }
 
 static int

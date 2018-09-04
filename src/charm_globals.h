@@ -164,52 +164,53 @@ __attribute__ ((format (printf, 1, 2)));
 #define CHARM_FACE_TYPE_INNER 0
 #define CHARM_BND_MAX 128
 
+#define CHARM_BASE_FN_COUNT 4
+#define CHARM_FASE_GP_COUNT 4
+#define CHARM_QUAD_GP_COUNT 8
+
+#define CHARM_ARR_SET_ZERO(A) {int i; for (i = 0; i < CHARM_BASE_FN_COUNT; i++) A[i] = 0.; }
+
+typedef struct charm_primitive
+{
+    double          r;             /**< density */
+    double          u;             /**< velosity */
+    double          v;             /**< velosity */
+    double          w;             /**< velosity */
+    double          e;             /**< energy */
+    double          e_tot;         /**< total energy */
+    double          p;             /**< pressure */
+    double          t;             /**< temperature */
+    double          cz;            /**< sound velosity */
+    double          gam;
+    double          cp;
+    double          cv;
+} charm_primitive_t;
 
 
 typedef struct charm_param
 {
     struct
     {
-        double          ro;             /**< the state variable */
-        double          ru;             /**< the state variable */
-        double          rv;             /**< the state variable */
-        double          rw;             /**< the state variable */
-        double          re;             /**< the state variable */
+        double          ro[CHARM_BASE_FN_COUNT];             /**< the state variable */
+        double          ru[CHARM_BASE_FN_COUNT];             /**< the state variable */
+        double          rv[CHARM_BASE_FN_COUNT];             /**< the state variable */
+        double          rw[CHARM_BASE_FN_COUNT];             /**< the state variable */
+        double          re[CHARM_BASE_FN_COUNT];             /**< the state variable */
     } c;
-
-    struct
-    {
-        double          r;             /**< density */
-        double          u;             /**< velosity */
-        double          v;             /**< velosity */
-        double          w;             /**< velosity */
-        double          e;             /**< energy */
-        double          e_tot;         /**< total energy */
-        double          p;             /**< pressure */
-        double          t;             /**< temperature */
-        double          cz;            /**< sound velosity */
-        double          gam;
-        double          cp;
-        double          cv;
-    } p;
-
-    struct
-    {
-        double          r[CHARM_DIM];             /**< density */
-        double          u[CHARM_DIM];             /**< velosity */
-        double          v[CHARM_DIM];             /**< velosity */
-        double          w[CHARM_DIM];             /**< velosity */
-        double          p[CHARM_DIM];             /**< pressure */
-    } grad;
 
     struct geom
     {
         double          n[P4EST_FACES][CHARM_DIM];
+        double          face_gp[P4EST_FACES][CHARM_FASE_GP_COUNT][CHARM_DIM];
+        double          face_gw[P4EST_FACES][CHARM_FASE_GP_COUNT];
+        double          quad_gp[CHARM_QUAD_GP_COUNT][CHARM_DIM];
+        double          quad_gw[CHARM_QUAD_GP_COUNT];
         double          area[P4EST_FACES];
         double          volume;
         double          c[CHARM_DIM];
         double          fc[P4EST_FACES][CHARM_DIM];
         double          dh[CHARM_DIM];
+        double          a_inv[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
     } g;
 } charm_param_t;
 
@@ -217,11 +218,11 @@ typedef struct charm_param
 typedef struct charm_data
 {
     charm_param_t       par;
-    double              drodt;          /**< the time derivative */
-    double              drudt;          /**< the time derivative */
-    double              drvdt;          /**< the time derivative */
-    double              drwdt;          /**< the time derivative */
-    double              dredt;          /**< the time derivative */
+    double              drodt[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    double              drudt[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    double              drvdt[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    double              drwdt[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    double              dredt[CHARM_BASE_FN_COUNT];          /**< the time derivative */
 
     int                 ref_flag;
 } charm_data_t;
