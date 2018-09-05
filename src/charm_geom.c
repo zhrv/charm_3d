@@ -83,6 +83,41 @@ static void charm_quad_calc_center(p4est_t* p4est, p4est_quadrant_t* q, p4est_to
 
 }
 
+static double charm_quad_calc_j(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, double* xyz)
+{
+    return 0; // @todo
+}
+
+static void charm_quad_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, double** gp, double* gw)
+{
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(q->level);
+    charm_data_t *p = (charm_data_t*)q->p.user_data;
+    int i, j;
+    double a[3], b[3];
+    double sqrt3 = 1./sqrt(3.);
+    double t[8][3] = {
+            {-sqrt3, -sqrt3, -sqrt3},
+            { sqrt3, -sqrt3, -sqrt3},
+            {-sqrt3,  sqrt3, -sqrt3},
+            { sqrt3,  sqrt3, -sqrt3},
+            {-sqrt3, -sqrt3,  sqrt3},
+            { sqrt3, -sqrt3,  sqrt3},
+            {-sqrt3,  sqrt3,  sqrt3},
+            { sqrt3,  sqrt3,  sqrt3}
+    };
+
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, q->x, q->y, q->z, a);
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, q->x + l, q->y + l, q->z + l, b);
+
+    for (i = 0; i < 8; i++) {
+        for (j = 0; j < 3; j++) {
+            gp[i][j] = 0.5*(a[j]+b[j]+(b[j]-a[j])*t[i][j]);
+        }
+        gw[i] = charm_quad_calc_j(p4est, q, treeid, gp[i]);
+    }
+
+}
+
 
 static void charm_face_calc_center(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, int8_t face, double* c)
 {
@@ -99,7 +134,22 @@ static void charm_face_calc_center(p4est_t* p4est, p4est_quadrant_t* q, p4est_to
     p4est_qcoord_to_vertex(p4est->connectivity, treeid, q->x + fc[face][0], q->y + fc[face][1], q->z + fc[face][2], c);
 }
 
-double charm_tet_calc_volume(double v[4][3])
+static void charm_face_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, int8_t face, double** gp, double* gw)
+{
+    p4est_qcoord_t l  = P4EST_QUADRANT_LEN(q->level);
+    p4est_qcoord_t l2 = l / 2;
+    p4est_qcoord_t fc[6][3] = {
+            {0, l2, l2},
+            {l, l2, l2},
+            {l2, 0, l2},
+            {l2, l, l2},
+            {l2, l2, 0},
+            {l2, l2, l},
+    };
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, q->x + fc[face][0], q->y + fc[face][1], q->z + fc[face][2], c);
+}
+
+double charm_tet_calc_volume(double v[4][3]) // @todo проверить корректность
 {
     int8_t i;
     double v1[3], v2[3], v3[3], v12[3];
@@ -149,11 +199,13 @@ void charm_geom_quad_calc(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t t
     for (i = 0; i < P4EST_FACES; i++) {
         charm_face_calc_center(p4est, q, treeid, i, p->par.g.fc[i]);
         charm_face_calc_normal(p4est, q, treeid, i, p->par.g.n[i]);
+        charm_face_calc_gp(p4est, q, treeid, i, p->par.g.face_gp[i], p->par.g.face_gw[i]);
         p->par.g.area[i] = charm_face_calc_area(p4est, q, treeid, i);
 
     }
-    charm_quad_calc_center(p4est, q, treeid, p->par.g.c);
     p->par.g.volume = charm_quad_calc_volume(p4est, q, treeid);
+    charm_quad_calc_center(p4est, q, treeid, p->par.g.c);
+    charm_quad_calc_gp(p4est, q, treeid, p->par.g.quad_gp, p->par.g.quad_gw);
 
 }
 
