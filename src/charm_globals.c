@@ -195,6 +195,47 @@ void charm_prim_cpy(charm_param_t * dest, charm_param_t * src)
 }
 
 
+double charm_matr3_det(double a[3][3])
+{
+    double det_a = 0.;
+
+    det_a += a[0][0]*a[1][1]*a[2][2];
+    det_a += a[0][2]*a[1][0]*a[2][1];
+    det_a += a[2][0]*a[0][1]*a[1][2];
+    det_a -= a[0][2]*a[1][1]*a[2][0];
+    det_a -= a[0][0]*a[1][2]*a[2][1];
+    det_a -= a[0][1]*a[1][0]*a[2][2];
+
+    return det_a;
+}
+
+void charm_matr3_inv(double a[3][3], double a_inv[3][3])
+{
+    double a_[3][3];
+    int i, j;
+    double det_a = charm_matr3_det(a);
+
+    P4EST_ASSERT(det_a != 0.);
+
+    a_[0][0] =  a[1][1]*a[2][2]-a[1][2]*a[2][1];
+    a_[0][1] = -a[0][1]*a[2][2]+a[0][2]*a[2][1];
+    a_[0][2] =  a[0][1]*a[1][2]-a[0][2]*a[1][1];
+
+    a_[1][0] = -a[1][0]*a[2][2]+a[1][2]*a[2][0];
+    a_[1][1] =  a[0][0]*a[2][2]-a[0][2]*a[2][0];
+    a_[1][2] = -a[0][0]*a[1][2]+a[0][2]*a[1][0];
+
+    a_[2][0] =  a[1][0]*a[2][1]-a[1][1]*a[2][0];
+    a_[2][1] = -a[0][0]*a[2][1]+a[0][1]*a[2][0];
+    a_[2][2] =  a[0][0]*a[1][1]-a[0][1]*a[1][0];
+
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
+            a_inv[i][j] = a_[i][j]/det_a;
+        }
+    }
+}
+
 void dbg_print_param(charm_param_t * par)
 {
     printf("*** charm_param_t ***\n");

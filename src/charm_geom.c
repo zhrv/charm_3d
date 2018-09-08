@@ -88,12 +88,103 @@ static double charm_quad_calc_j(p4est_t* p4est, p4est_quadrant_t* q, p4est_topid
     return 0; // @todo
 }
 
-static void charm_quad_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, double** gp, double* gw)
+static void _charm_quad_calc_gp_at_point(double vertices[8][3], double* ref_p, double* gp, double* gj)
+{
+    int                 ix, iy, iz, vindex;
+    double              wx[2], wy[2], wz[2];
+    double              xfactor, yfactor;
+    double              jacob[3][3], a;
+
+    wx[0] = 1.-ref_p[0];
+    wx[1] = 1.+ref_p[0];
+    wy[0] = 1.-ref_p[1];
+    wy[1] = 1.+ref_p[1];
+    wz[0] = 1.-ref_p[2];
+    wz[1] = 1.+ref_p[2];
+    gp[0] = gp[1] = gp[2] = 0.;
+    vindex = 0;
+    for (iz = 0; iz < 2; iz++) {
+        for (iy = 0; iy < 2; iy++) {
+            yfactor = wz[iz]*wy[iy];
+            for (ix = 0; ix < 2; ix++) {
+                xfactor = yfactor*wx[ix]/8.;
+                gp[0] += xfactor * vertices[vindex][0];
+                gp[1] += xfactor * vertices[vindex][1];
+                gp[2] += xfactor * vertices[vindex][2];
+                vindex++;
+            }
+        }
+    }
+
+    // d/dksi
+    wx[0] = -1.;
+    wx[1] =  1.;
+    jacob[0][0] = jacob[1][0] = jacob[2][0] = 0.;
+    vindex = 0;
+    for (iz = 0; iz < 2; iz++) {
+        for (iy = 0; iy < 2; iy++) {
+            yfactor = wz[iz]*wy[iy];
+            for (ix = 0; ix < 2; ix++) {
+                xfactor = yfactor*wx[ix]/8.;
+                jacob[0][0] += xfactor * vertices[vindex][0];
+                jacob[1][0] += xfactor * vertices[vindex][1];
+                jacob[2][0] += xfactor * vertices[vindex][2];
+                vindex++;
+            }
+        }
+    }
+
+    // d/deta
+    wx[0] = 1.-ref_p[0];
+    wx[1] = 1.+ref_p[0];
+    wy[0] = -1.;
+    wy[1] =  1.;
+    jacob[0][1] = jacob[1][1] = jacob[2][1] = 0.;
+    vindex = 0;
+    for (iz = 0; iz < 2; iz++) {
+        for (iy = 0; iy < 2; iy++) {
+            yfactor = wz[iz]*wy[iy];
+            for (ix = 0; ix < 2; ix++) {
+                xfactor = yfactor*wx[ix]/8.;
+                jacob[0][1] += xfactor * vertices[vindex][0];
+                jacob[1][1] += xfactor * vertices[vindex][1];
+                jacob[2][1] += xfactor * vertices[vindex][2];
+                vindex++;
+            }
+        }
+    }
+
+    // d/dmu
+    wy[0] = 1.-ref_p[1];
+    wy[1] = 1.+ref_p[1];
+    wz[0] = -1.;
+    wz[1] =  1.;
+    jacob[0][2] = jacob[1][2] = jacob[2][2] = 0.;
+    vindex = 0;
+    for (iz = 0; iz < 2; iz++) {
+        for (iy = 0; iy < 2; iy++) {
+            yfactor = wz[iz]*wy[iy];
+            for (ix = 0; ix < 2; ix++) {
+                xfactor = yfactor*wx[ix]/8.;
+                jacob[0][2] += xfactor * vertices[vindex][0];
+                jacob[1][2] += xfactor * vertices[vindex][1];
+                jacob[2][2] += xfactor * vertices[vindex][2];
+                vindex++;
+            }
+        }
+    }
+
+    *gj = charm_matr3_det(jacob);
+    P4EST_ASSERT(*gj != 0.);
+}
+
+static void charm_quad_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, double** gp, double* gw, double *gj)
 {
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(q->level);
+    p4est_qcoord_t qx, qy, qz;
     charm_data_t *p = (charm_data_t*)q->p.user_data;
-    int i, j;
-    double a[3], b[3];
+    int i, j, iz, iy, ix;
+    double v[8][3];
     double sqrt3 = 1./sqrt(3.);
     double t[8][3] = {
             {-sqrt3, -sqrt3, -sqrt3},
@@ -105,15 +196,22 @@ static void charm_quad_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx
             {-sqrt3,  sqrt3,  sqrt3},
             { sqrt3,  sqrt3,  sqrt3}
     };
-
-    p4est_qcoord_to_vertex(p4est->connectivity, treeid, q->x, q->y, q->z, a);
-    p4est_qcoord_to_vertex(p4est->connectivity, treeid, q->x + l, q->y + l, q->z + l, b);
+    i = 0;
+    for (iz = 0; iz < 2; iz++) {
+        qz = q->z + iz*l;
+        for (iy = 0; iy < 2; iy++) {
+            qy = q->y + iy*l;
+            for (ix = 0; ix < 2; ix++) {
+                qx = q->x + ix*l;
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, qx, qy, qz, v[i]);
+                i++;
+            }
+        }
+    }
 
     for (i = 0; i < 8; i++) {
-        for (j = 0; j < 3; j++) {
-            gp[i][j] = 0.5*(a[j]+b[j]+(b[j]-a[j])*t[i][j]);
-        }
-        gw[i] = charm_quad_calc_j(p4est, q, treeid, gp[i]);
+        _charm_quad_calc_gp_at_point(v, t[i], gp[i], &gj[i]);
+        gw[i] = 1.;
     }
 
 }

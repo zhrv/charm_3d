@@ -203,8 +203,10 @@ typedef struct charm_param
         double          n[P4EST_FACES][CHARM_DIM];
         double          face_gp[P4EST_FACES][CHARM_FASE_GP_COUNT][CHARM_DIM];
         double          face_gw[P4EST_FACES][CHARM_FASE_GP_COUNT];
+        double          face_gj[P4EST_FACES][CHARM_FASE_GP_COUNT];
         double          quad_gp[CHARM_QUAD_GP_COUNT][CHARM_DIM];
         double          quad_gw[CHARM_QUAD_GP_COUNT];
+        double          quad_gj[CHARM_QUAD_GP_COUNT];
         double          area[P4EST_FACES];
         double          volume;
         double          c[CHARM_DIM];
@@ -345,6 +347,8 @@ void charm_param_prim_to_cons(charm_mat_t * mat, charm_param_t * p);
 
 void charm_prim_cpy(charm_param_t * dest, charm_param_t * src);
 
+double charm_matr3_det(double a[3][3]);
+void   charm_matr3_inv(double a[3][3], double a_inv[3][3]);
 
 void dbg_print_param(charm_param_t *);
 
