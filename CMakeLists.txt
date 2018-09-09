@@ -40,8 +40,6 @@ add_executable(	charm_dg
         src/charm_bnd_cond.h
         src/charm_geom.c
         src/charm_geom.h
-        src/charm_grad.c
-        src/charm_grad.h
 		src/charm_xml.c
         src/charm_xml.h
 		src/charm_base_func.c src/charm_base_func.h)

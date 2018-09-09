@@ -37,7 +37,6 @@ void charm_timesteps (p4est_t * p4est, double time)
     ghost_data = P4EST_ALLOC (charm_data_t, ghost->ghosts.elem_count);
     p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 
-    charm_calc_grad(p4est, ghost, ghost_data);
 
     dt = charm_get_timestep(p4est);
 
@@ -116,10 +115,6 @@ static void charm_timestep_single(p4est_t * p4est, int step, double time, p4est_
         p4est_ghost_exchange_data (p4est, ghost, ghost_data);
     }
 
-    if (ref_flag) {
-        charm_calc_grad(p4est, ghost, ghost_data);
-    }
-
     /* compute du/dt */
     p4est_iterate (p4est,                                /* the forest */
                    ghost,                                /* the ghost layer */
@@ -150,7 +145,7 @@ static void charm_timestep_single(p4est_t * p4est, int step, double time, p4est_
     p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 
     /* update grad */
-    charm_calc_grad(p4est, ghost, ghost_data);
+//    charm_calc_grad(p4est, ghost, ghost_data);
 
     *_ghost       = ghost;
     *_ghost_data  = ghost_data;
@@ -222,25 +217,25 @@ static void _charm_convect_flux_face_iter_bnd (p4est_iter_face_info_t * info, vo
     charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[0]->treeid);
     //charm_param_cons_to_prim(attr->reg->mat, &(udata[1]->par));
 
-    for (i = 0; i < 2; i++) {
-        charm_param_cons_to_prim(attr->reg->mat, &(udata[i]->par));
-        r_[i] = udata[i]->par.p.r;
-        u_[i] = udata[i]->par.p.u;
-        v_[i] = udata[i]->par.p.v;
-        w_[i] = udata[i]->par.p.w;
-        p_[i] = udata[i]->par.p.p;
-    }
-
-    /* flux from side 0 to side 1 */
-    charm_calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n);
-
-    if (!side[0]->is.full.is_ghost) {
-        udata[0]->drodt -= qr * facearea;
-        udata[0]->drudt -= qu * facearea;
-        udata[0]->drvdt -= qv * facearea;
-        udata[0]->drwdt -= qw * facearea;
-        udata[0]->dredt -= qe * facearea;
-    }
+//    for (i = 0; i < 2; i++) {
+//        charm_param_cons_to_prim(attr->reg->mat, &(udata[i]->par));
+//        r_[i] = udata[i]->par.p.r;
+//        u_[i] = udata[i]->par.p.u;
+//        v_[i] = udata[i]->par.p.v;
+//        w_[i] = udata[i]->par.p.w;
+//        p_[i] = udata[i]->par.p.p;
+//    }
+//
+//    /* flux from side 0 to side 1 */
+//    charm_calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n);
+//
+//    if (!side[0]->is.full.is_ghost) {
+//        udata[0]->drodt -= qr * facearea;
+//        udata[0]->drudt -= qu * facearea;
+//        udata[0]->drvdt -= qv * facearea;
+//        udata[0]->drwdt -= qw * facearea;
+//        udata[0]->dredt -= qe * facearea;
+//    }
 
     P4EST_FREE(udata[1]);
 
@@ -309,13 +304,13 @@ static void _charm_convect_flux_face_iter_inner (p4est_iter_face_info_t * info, 
             }
 
             for (i = 0; i < 2; i++) {
-                charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[i]->treeid);
-                charm_param_cons_to_prim(attr->reg->mat, &(udata[i]->par));
-                r_[i] = udata[i]->par.p.r;
-                u_[i] = udata[i]->par.p.u;
-                v_[i] = udata[i]->par.p.v;
-                w_[i] = udata[i]->par.p.w;
-                p_[i] = udata[i]->par.p.p;
+//                charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[i]->treeid);
+//                charm_param_cons_to_prim(attr->reg->mat, &(udata[i]->par));
+//                r_[i] = udata[i]->par.p.r;
+//                u_[i] = udata[i]->par.p.u;
+//                v_[i] = udata[i]->par.p.v;
+//                w_[i] = udata[i]->par.p.w;
+//                p_[i] = udata[i]->par.p.p;
             }
 
             /* flux from side 0 to side 1 */
@@ -333,11 +328,11 @@ static void _charm_convect_flux_face_iter_inner (p4est_iter_face_info_t * info, 
                         continue;
                     }
                 }
-                udata[i]->drodt += qr * facearea * (i ? 1. : -1.);
-                udata[i]->drudt += qu * facearea * (i ? 1. : -1.);
-                udata[i]->drvdt += qv * facearea * (i ? 1. : -1.);
-                udata[i]->drwdt += qw * facearea * (i ? 1. : -1.);
-                udata[i]->dredt += qe * facearea * (i ? 1. : -1.);
+//                udata[i]->drodt += qr * facearea * (i ? 1. : -1.);
+//                udata[i]->drudt += qu * facearea * (i ? 1. : -1.);
+//                udata[i]->drvdt += qv * facearea * (i ? 1. : -1.);
+//                udata[i]->drwdt += qw * facearea * (i ? 1. : -1.);
+//                udata[i]->dredt += qe * facearea * (i ? 1. : -1.);
 
             }
 
@@ -368,13 +363,13 @@ static void _charm_convect_flux_face_iter_inner (p4est_iter_face_info_t * info, 
         }
 
         for (i = 0; i < 2; i++) {
-            charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[0]->treeid);
-            charm_param_cons_to_prim(attr->reg->mat, &(udata[i]->par));
-            r_[i] = udata[i]->par.p.r;
-            u_[i] = udata[i]->par.p.u;
-            v_[i] = udata[i]->par.p.v;
-            w_[i] = udata[i]->par.p.w;
-            p_[i] = udata[i]->par.p.p;
+//            charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[0]->treeid);
+//            charm_param_cons_to_prim(attr->reg->mat, &(udata[i]->par));
+//            r_[i] = udata[i]->par.p.r;
+//            u_[i] = udata[i]->par.p.u;
+//            v_[i] = udata[i]->par.p.v;
+//            w_[i] = udata[i]->par.p.w;
+//            p_[i] = udata[i]->par.p.p;
         }
 
         /* flux from side 0 to side 1 */
@@ -382,11 +377,11 @@ static void _charm_convect_flux_face_iter_inner (p4est_iter_face_info_t * info, 
 
         for (i = 0; i < 2; i++) {
             if (!side[i]->is.full.is_ghost) {
-                udata[i]->drodt += qr * facearea * (i ? 1. : -1.);
-                udata[i]->drudt += qu * facearea * (i ? 1. : -1.);
-                udata[i]->drvdt += qv * facearea * (i ? 1. : -1.);
-                udata[i]->drwdt += qw * facearea * (i ? 1. : -1.);
-                udata[i]->dredt += qe * facearea * (i ? 1. : -1.);
+//                udata[i]->drodt += qr * facearea * (i ? 1. : -1.);
+//                udata[i]->drudt += qu * facearea * (i ? 1. : -1.);
+//                udata[i]->drvdt += qv * facearea * (i ? 1. : -1.);
+//                udata[i]->drwdt += qw * facearea * (i ? 1. : -1.);
+//                udata[i]->dredt += qe * facearea * (i ? 1. : -1.);
             }
         }
 
@@ -408,8 +403,8 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
 }
 
 
-//static void _charm_diffusion_flux_face_iter_bnd (p4est_iter_face_info_t * info, void *user_data)
-//{
+static void _charm_diffusion_flux_face_iter_bnd (p4est_iter_face_info_t * info, void *user_data)
+{
 //    int                 i;
 //    p4est_t            *p4est = info->p4est;
 //    charm_data_t       *ghost_data = (charm_data_t *) user_data;
@@ -471,10 +466,10 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
 //            udata[0]->dredt += qe * facearea;
 //        }
 //    }
-//}
-//
-//static void _charm_diffusion_flux_face_iter_inner (p4est_iter_face_info_t * info, void *user_data)
-//{
+}
+
+static void _charm_diffusion_flux_face_iter_inner (p4est_iter_face_info_t * info, void *user_data)
+{
 //    int                 i, j, h_side;
 //    p4est_t            *p4est = info->p4est;
 //    charm_data_t       *ghost_data = (charm_data_t *) user_data;
@@ -656,21 +651,21 @@ static void charm_convect_flux_face_iter_fn (p4est_iter_face_info_t * info, void
 //
 //    }
 //
-//}
-//
-//static void charm_diffusion_flux_face_iter_fn (p4est_iter_face_info_t * info, void *user_data)
-//{
-//    sc_array_t         *sides = &(info->sides);
-//
-//    if (sides->elem_count != 2) {
-//        _charm_diffusion_flux_face_iter_bnd(info, user_data);
-//    }
-//    else {
-//        _charm_diffusion_flux_face_iter_inner(info, user_data);
-//    }
-//
-//}
-//
+}
+
+static void charm_diffusion_flux_face_iter_fn (p4est_iter_face_info_t * info, void *user_data)
+{
+    sc_array_t         *sides = &(info->sides);
+
+    if (sides->elem_count != 2) {
+        _charm_diffusion_flux_face_iter_bnd(info, user_data);
+    }
+    else {
+        _charm_diffusion_flux_face_iter_inner(info, user_data);
+    }
+
+}
+
 
 
 /** Compute the timestep.

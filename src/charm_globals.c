@@ -3,7 +3,6 @@
 //
 #define GLOBAL_H_FILE
 #include "charm_globals.h"
-#include "charm_grad.h"
 
 
 
@@ -123,74 +122,74 @@ charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tr
 }
 
 double gR = 8.314472;
-void charm_mat_eos(charm_mat_t * mat, charm_param_t * p, int flag)
+void charm_mat_eos(charm_mat_t * mat, charm_primitive_t * p, int flag)
 {
     double Cp = mat->cp;
     double M  = mat->m;
     double Cv = Cp-gR/M;
     double gam = Cp/Cv;
-    p->p.gam = gam;
-    p->p.cp = Cp;
-    p->p.cv = Cv;
+    p->gam = gam;
+    p->cp = Cp;
+    p->cv = Cv;
     switch (flag)
     {
         case 0:		// p=p(r,e)
-            p->p.p = p->p.r*p->p.e*(gam-1);
-            p->p.cz = sqrt(gam*p->p.p/p->p.r);
+            p->p = p->r*p->e*(gam-1);
+            p->cz = sqrt(gam*p->p/p->r);
             break;
 
         case 1:		// e=e(r,p)
-            p->p.e = p->p.p/(p->p.r*(gam-1));
-            p->p.t = p->p.e/Cv;
+            p->e = p->p/(p->r*(gam-1));
+            p->t = p->e/Cv;
             break;
 
         case 2:		// r=r(T,p)
-            p->p.r = p->p.p*M/(p->p.t*gR);
-            p->p.cz = sqrt(gam*p->p.p/p->p.r);
+            p->r = p->p*M/(p->t*gR);
+            p->cz = sqrt(gam*p->p/p->r);
             break;
     }
 
 }
 
 
-void charm_param_cons_to_prim(charm_mat_t * mat, charm_param_t * p)
+void charm_param_cons_to_prim(charm_mat_t * mat, charm_primitive_t * p, charm_cons_t * c)
 {
-    p->p.r      = p->c.ro;
-    p->p.u      = p->c.ru/p->c.ro;
-    p->p.v      = p->c.rv/p->c.ro;
-    p->p.w      = p->c.rw/p->c.ro;
-    p->p.e_tot  = p->c.re/p->c.ro;
-    p->p.e      = p->p.e_tot-0.5*(p->p.u*p->p.u+p->p.v*p->p.v+p->p.w*p->p.w);
+    p->r      = c->ro;
+    p->u      = c->ru/c->ro;
+    p->v      = c->rv/c->ro;
+    p->w      = c->rw/c->ro;
+    p->e_tot  = c->re/c->ro;
+    p->e      = p->e_tot-0.5*(p->u*p->u+p->v*p->v+p->w*p->w);
 
     charm_mat_eos(mat, p, 0);  // {p,cz}=EOS(r,e)
     charm_mat_eos(mat, p, 1);  // {e, t}=EOS(r,p)
 }
 
 
-void charm_param_prim_to_cons(charm_mat_t * mat, charm_param_t * p)
+void charm_param_prim_to_cons(charm_mat_t * mat, charm_cons_t * c, charm_primitive_t * p)
 {
-    p->c.ro = p->p.r;
-    p->c.ru = p->p.r*p->p.u;
-    p->c.rv = p->p.r*p->p.v;
-    p->c.rw = p->p.r*p->p.w;
-    p->c.re = p->p.r*(p->p.e+0.5*(p->p.u*p->p.u+p->p.v*p->p.v+p->p.w*p->p.w));
+    c->ro = p->r;
+    c->ru = p->r*p->u;
+    c->rv = p->r*p->v;
+    c->rw = p->r*p->w;
+    c->re = p->r*(p->e+0.5*(p->u*p->u+p->v*p->v+p->w*p->w));
 }
 
 
-void charm_prim_cpy(charm_param_t * dest, charm_param_t * src)
+void charm_prim_cpy(charm_primitive_t * dest, charm_primitive_t * src)
 {
-    dest->p.r = src->p.r;
-    dest->p.p = src->p.p;
-    dest->p.u = src->p.u;
-    dest->p.v = src->p.v;
-    dest->p.w = src->p.w;
-    dest->p.t = src->p.t;
-    dest->p.cz = src->p.cz;
-    dest->p.e = src->p.e;
-    dest->p.e_tot = src->p.e_tot;
-    dest->p.cp = src->p.cp;
-    dest->p.cv = src->p.cv;
-    dest->p.gam = src->p.gam;
+    dest->r = src->r;
+    dest->p = src->p;
+    dest->u = src->u;
+    dest->v = src->v;
+    dest->w = src->w;
+    dest->t = src->t;
+    dest->cz = src->cz;
+    dest->e = src->e;
+    dest->e_tot = src->e_tot;
+    dest->cp = src->cp;
+    dest->cv = src->cv;
+    dest->gam = src->gam;
 
 }
 
@@ -238,41 +237,41 @@ void charm_matr3_inv(double a[3][3], double a_inv[3][3])
 
 void dbg_print_param(charm_param_t * par)
 {
-    printf("*** charm_param_t ***\n");
-    printf("  CONS:\n");
-    printf("    RO: %f\n", par->c.ro);
-    printf("    RU: %f\n", par->c.ru);
-    printf("    RV: %f\n", par->c.rv);
-    printf("    RW: %f\n", par->c.rw);
-    printf("    RE: %f\n", par->c.re);
-    printf("  PRIM:\n");
-    printf("    R: %f\n", par->p.r);
-    printf("    U: %f\n", par->p.u);
-    printf("    V: %f\n", par->p.v);
-    printf("    W: %f\n", par->p.w);
-    printf("    P: %f\n", par->p.p);
-    printf("    e: %f\n", par->p.e);
-    printf("    E: %f\n", par->p.e_tot);
-    printf("    T: %f\n", par->p.t);
-    printf("    C: %f\n", par->p.cz);
-    printf("  GRAD:\n");
-    printf("    R: (%f, %f, %f)\n", par->grad.r[0], par->grad.r[1], par->grad.r[2]);
-    printf("    U: (%f, %f, %f)\n", par->grad.u[0], par->grad.u[1], par->grad.u[2]);
-    printf("    V: (%f, %f, %f)\n", par->grad.v[0], par->grad.v[1], par->grad.v[2]);
-    printf("    W: (%f, %f, %f)\n", par->grad.w[0], par->grad.w[1], par->grad.w[2]);
-    printf("    P: (%f, %f, %f)\n", par->grad.p[0], par->grad.p[1], par->grad.p[2]);
-    printf("  GEOM:\n");
-    for (int i = 0; i < P4EST_FACES; i++) {
-        printf("    n[%d]: (%f, %f, %f)\n", i, par->g.n[i][0], par->g.n[i][1], par->g.n[i][2]);
-    }
-    for (int i = 0; i < P4EST_FACES; i++) {
-        printf("    AREA[%d]: %f\n", i, par->g.area[i]);
-    }
-    printf("    Vol: %f\n", par->g.volume);
-    printf("    c: (%f, %f, %f)\n", par->g.c[0], par->g.c[1], par->g.c[2]);
-    for (int i = 0; i < P4EST_FACES; i++) {
-        printf("    fc[%d]: (%f, %f, %f)\n", i, par->g.fc[i][0], par->g.fc[i][1], par->g.fc[i][2]);
-    }
-    printf("*********************\n");
-    fflush(stdout);
+//    printf("*** charm_param_t ***\n");
+//    printf("  CONS:\n");
+//    printf("    RO: %f\n", par->c.ro);
+//    printf("    RU: %f\n", par->c.ru);
+//    printf("    RV: %f\n", par->c.rv);
+//    printf("    RW: %f\n", par->c.rw);
+//    printf("    RE: %f\n", par->c.re);
+//    printf("  PRIM:\n");
+//    printf("    R: %f\n", par->p.r);
+//    printf("    U: %f\n", par->p.u);
+//    printf("    V: %f\n", par->p.v);
+//    printf("    W: %f\n", par->p.w);
+//    printf("    P: %f\n", par->p.p);
+//    printf("    e: %f\n", par->p.e);
+//    printf("    E: %f\n", par->p.e_tot);
+//    printf("    T: %f\n", par->p.t);
+//    printf("    C: %f\n", par->p.cz);
+//    printf("  GRAD:\n");
+//    printf("    R: (%f, %f, %f)\n", par->grad.r[0], par->grad.r[1], par->grad.r[2]);
+//    printf("    U: (%f, %f, %f)\n", par->grad.u[0], par->grad.u[1], par->grad.u[2]);
+//    printf("    V: (%f, %f, %f)\n", par->grad.v[0], par->grad.v[1], par->grad.v[2]);
+//    printf("    W: (%f, %f, %f)\n", par->grad.w[0], par->grad.w[1], par->grad.w[2]);
+//    printf("    P: (%f, %f, %f)\n", par->grad.p[0], par->grad.p[1], par->grad.p[2]);
+//    printf("  GEOM:\n");
+//    for (int i = 0; i < P4EST_FACES; i++) {
+//        printf("    n[%d]: (%f, %f, %f)\n", i, par->g.n[i][0], par->g.n[i][1], par->g.n[i][2]);
+//    }
+//    for (int i = 0; i < P4EST_FACES; i++) {
+//        printf("    AREA[%d]: %f\n", i, par->g.area[i]);
+//    }
+//    printf("    Vol: %f\n", par->g.volume);
+//    printf("    c: (%f, %f, %f)\n", par->g.c[0], par->g.c[1], par->g.c[2]);
+//    for (int i = 0; i < P4EST_FACES; i++) {
+//        printf("    fc[%d]: (%f, %f, %f)\n", i, par->g.fc[i][0], par->g.fc[i][1], par->g.fc[i][2]);
+//    }
+//    printf("*********************\n");
+//    fflush(stdout);
 }

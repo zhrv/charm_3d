@@ -5,7 +5,6 @@
 #include "charm_base_func.h"
 
 
-
 double charm_base_func(double* x, int k, p4est_quadrant_t* q) {
     P4EST_ASSERT(k < CHARM_BASE_FN_COUNT);
     charm_data_t *p = (charm_data_t*)q->p.user_data;
@@ -126,5 +125,94 @@ double charm_base_func_dz(double* x, int k, p4est_quadrant_t* q) {
             return (x[1]-c[1])/(p->par.g.dh[1]*p->par.g.dh[2]);
         default:
             return 0;
+    }
+}
+
+double charm_get_field_ro(p4est_quadrant_t* q, double* x)
+{
+    charm_data_t *p = (charm_data_t*)q->p.user_data;
+    double result = 0.;
+    int i;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        result += p->par.c.ro[i]*charm_base_func(x, i, q);
+    }
+    return result;
+}
+
+
+double charm_get_field_ru(p4est_quadrant_t* q, double* x)
+{
+    charm_data_t *p = (charm_data_t*)q->p.user_data;
+    double result = 0.;
+    int i;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        result += p->par.c.ru[i]*charm_base_func(x, i, q);
+    }
+    return result;
+}
+
+
+double charm_get_field_rv(p4est_quadrant_t* q, double* x)
+{
+    charm_data_t *p = (charm_data_t*)q->p.user_data;
+    double result = 0.;
+    int i;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        result += p->par.c.rv[i]*charm_base_func(x, i, q);
+    }
+    return result;
+}
+
+
+double charm_get_field_rw(p4est_quadrant_t* q, double* x)
+{
+    charm_data_t *p = (charm_data_t*)q->p.user_data;
+    double result = 0.;
+    int i;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        result += p->par.c.rw[i]*charm_base_func(x, i, q);
+    }
+    return result;
+}
+
+
+double charm_get_field_re(p4est_quadrant_t* q, double* x)
+{
+    charm_data_t *p = (charm_data_t*)q->p.user_data;
+    double result = 0.;
+    int i;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        result += p->par.c.re[i]*charm_base_func(x, i, q);
+    }
+    return result;
+}
+
+
+double charm_get_field_rc(p4est_quadrant_t* q, double* x, int k)
+{
+    charm_data_t *p = (charm_data_t*)q->p.user_data;
+    double result = 0.;
+    int i;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        result += p->par.c.rc[k][i]*charm_base_func(x, i, q);
+    }
+    return result;
+}
+
+void charm_get_fields(p4est_quadrant_t* q, double* x, charm_cons_t* c){
+    int k;
+    c->ro = charm_get_field_ro(q, x);
+    c->ru = charm_get_field_ru(q, x);
+    c->rv = charm_get_field_rv(q, x);
+    c->rw = charm_get_field_rw(q, x);
+    c->re = charm_get_field_re(q, x);
+    for (k = 0; k < CHARM_MAX_COMPONETS_COUNT; k++) {
+        c->rc[k] = charm_get_field_rc(q, x, k);
     }
 }

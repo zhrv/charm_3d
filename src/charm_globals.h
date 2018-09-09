@@ -168,6 +168,8 @@ __attribute__ ((format (printf, 1, 2)));
 #define CHARM_FASE_GP_COUNT 4
 #define CHARM_QUAD_GP_COUNT 8
 
+#define CHARM_MAX_COMPONETS_COUNT 128
+
 #define CHARM_ARR_SET_ZERO(A) {int i; for (i = 0; i < CHARM_BASE_FN_COUNT; i++) A[i] = 0.; }
 
 typedef struct charm_primitive
@@ -186,6 +188,16 @@ typedef struct charm_primitive
     double          cv;
 } charm_primitive_t;
 
+typedef struct charm_cons
+{
+    double          ro;
+    double          ru;
+    double          rv;
+    double          rw;
+    double          re;
+    double          rc[CHARM_MAX_COMPONETS_COUNT];
+} charm_cons_t;
+
 
 typedef struct charm_param
 {
@@ -196,6 +208,7 @@ typedef struct charm_param
         double          rv[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          rw[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          re[CHARM_BASE_FN_COUNT];             /**< the state variable */
+        double          rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];             /**< the state variable */
     } c;
 
     struct geom
@@ -307,6 +320,7 @@ typedef struct charm_ctx
     double              CFL;                /**< the CFL */
     double              dt;
     double              time;               /**< the max time */
+    int                 components_count;
 
     sc_array_t         *bnd;
     sc_array_t         *mat;
@@ -341,11 +355,11 @@ charm_mesh_type_t charm_mesh_get_type_by_str(char*);
 
 charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tree);
 
-void charm_mat_eos(charm_mat_t * mat, charm_param_t * p, int variant);
-void charm_param_cons_to_prim(charm_mat_t * mat, charm_param_t * p);
-void charm_param_prim_to_cons(charm_mat_t * mat, charm_param_t * p);
+void charm_mat_eos(charm_mat_t * mat, charm_primitive_t * p, int flag);
+void charm_param_cons_to_prim(charm_mat_t * mat, charm_primitive_t * p, charm_cons_t * c);
+void charm_param_prim_to_cons(charm_mat_t * mat, charm_cons_t * c, charm_primitive_t * p);
 
-void charm_prim_cpy(charm_param_t * dest, charm_param_t * src);
+void charm_prim_cpy(charm_primitive_t * dest, charm_primitive_t * src);
 
 double charm_matr3_det(double a[3][3]);
 void   charm_matr3_inv(double a[3][3], double a_inv[3][3]);

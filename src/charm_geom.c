@@ -88,7 +88,7 @@ static double charm_quad_calc_j(p4est_t* p4est, p4est_quadrant_t* q, p4est_topid
     return 0; // @todo
 }
 
-static void _charm_quad_calc_gp_at_point(double vertices[8][3], double* ref_p, double* gp, double* gj)
+static void _charm_quad_calc_gp_at_point(double vertices[8][3], double ref_p[CHARM_DIM], double gp[CHARM_DIM], double* gj)
 {
     int                 ix, iy, iz, vindex;
     double              wx[2], wy[2], wz[2];
@@ -178,7 +178,7 @@ static void _charm_quad_calc_gp_at_point(double vertices[8][3], double* ref_p, d
     P4EST_ASSERT(*gj != 0.);
 }
 
-static void charm_quad_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, double** gp, double* gw, double *gj)
+static void charm_quad_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, double gp[CHARM_QUAD_GP_COUNT][CHARM_DIM], double gw[CHARM_QUAD_GP_COUNT], double gj[CHARM_QUAD_GP_COUNT])
 {
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(q->level);
     p4est_qcoord_t qx, qy, qz;
@@ -244,7 +244,7 @@ static void charm_face_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx
             {l2, l2, 0},
             {l2, l2, l},
     };
-    p4est_qcoord_to_vertex(p4est->connectivity, treeid, q->x + fc[face][0], q->y + fc[face][1], q->z + fc[face][2], c);
+    //p4est_qcoord_to_vertex(p4est->connectivity, treeid, q->x + fc[face][0], q->y + fc[face][1], q->z + fc[face][2], c);
 }
 
 double charm_tet_calc_volume(double v[4][3]) // @todo проверить корректность
@@ -303,7 +303,7 @@ void charm_geom_quad_calc(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t t
     }
     p->par.g.volume = charm_quad_calc_volume(p4est, q, treeid);
     charm_quad_calc_center(p4est, q, treeid, p->par.g.c);
-    charm_quad_calc_gp(p4est, q, treeid, p->par.g.quad_gp, p->par.g.quad_gw);
+    charm_quad_calc_gp(p4est, q, treeid, p->par.g.quad_gp, p->par.g.quad_gw, p->par.g.quad_gj);
 
 }
 

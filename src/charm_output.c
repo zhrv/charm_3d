@@ -3,6 +3,7 @@
 //
 
 #include "charm_output.h"
+#include "charm_base_func.h"
 
 
 static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, void *user_data)
@@ -17,21 +18,35 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     double              this_u[7];
     double             *this_u_ptr;
     int                 j;
-
+    charm_cons_t        cons;
+    charm_primitive_t   prim;
 
     tree = p4est_tree_array_index (p4est->trees, which_tree);
     local_id += tree->quadrants_offset;   /* now the id is relative to the MPI process */
 
     charm_tree_attr_t * attr = (charm_tree_attr_t *)&(p4est->connectivity->tree_to_attr[which_tree*sizeof(charm_tree_attr_t)]);
-    charm_param_cons_to_prim(attr->reg->mat, &(data->par));
+    charm_get_fields(q, data->par.g.c, &cons);
+    /*
+     * @todo TODO TODO TODO
+     */
+    memset(&cons, 0, sizeof(cons));
+    cons.ro = data->par.c.ro[0];
+    cons.ru = data->par.c.ru[0];
+    cons.rv = data->par.c.rv[0];
+    cons.rw = data->par.c.rw[0];
+    cons.re = data->par.c.re[0];
+    charm_param_cons_to_prim(attr->reg->mat, &prim, &cons);
 
-    this_u[0] = data->par.p.r;
-    this_u[1] = data->par.p.p;
-    this_u[2] = data->par.p.e;
-    this_u[3] = data->par.p.e_tot;
-    this_u[4] = data->par.p.u;
-    this_u[5] = data->par.p.v;
-    this_u[6] = data->par.p.w;
+    if (prim.r != prim.r) {
+        int iiii=0;
+    }
+    this_u[0] = prim.r;
+    this_u[1] = prim.p;
+    this_u[2] = prim.e;
+    this_u[3] = prim.e_tot;
+    this_u[4] = prim.u;
+    this_u[5] = prim.v;
+    this_u[6] = prim.w;
     for (j = 0; j < 7; j++) {
         this_u_ptr = (double *) sc_array_index (u_interp[j], (size_t)local_id);
         this_u_ptr[0] = this_u[j];
