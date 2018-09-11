@@ -17,7 +17,7 @@ int charm_bnd_type_by_name(const char* name) {
 
 
 void charm_bnd_cond(p4est_t* p4est, p4est_topidx_t treeid, int8_t face,
-                    charm_primitive_t *par_in, charm_primitive_t *par_out, double n[CHARM_DIM])
+                    charm_prim_t *par_in, charm_prim_t *par_out, double n[CHARM_DIM])
 {
     charm_tree_attr_t *attr = charm_get_tree_attr(p4est, treeid);
     charm_bnd_t *bnd = attr->bnd[face];
@@ -30,7 +30,7 @@ void charm_bnd_cond(p4est_t* p4est, p4est_topidx_t treeid, int8_t face,
 }
 
 
-void charm_bnd_cond_fn_inlet(charm_primitive_t *par_in, charm_primitive_t *par_out, int8_t face, double* param, double n[CHARM_DIM])
+void charm_bnd_cond_fn_inlet(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double n[CHARM_DIM])
 {
     P4EST_ASSERT(param);
 
@@ -41,13 +41,13 @@ void charm_bnd_cond_fn_inlet(charm_primitive_t *par_in, charm_primitive_t *par_o
     par_out->p = param[4];
 }
 
-void charm_bnd_cond_fn_outlet(charm_primitive_t *par_in, charm_primitive_t *par_out, int8_t face, double* param, double n[CHARM_DIM])
+void charm_bnd_cond_fn_outlet(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double n[CHARM_DIM])
 {
     charm_prim_cpy(par_out, par_in);
 //    par_out->p.p = 46066.;
 }
 
-void charm_bnd_cond_fn_wall_slip(charm_primitive_t *par_in, charm_primitive_t *par_out, int8_t face, double* param, double n[CHARM_DIM])
+void charm_bnd_cond_fn_wall_slip(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double n[CHARM_DIM])
 {
     int i;
     double  v[3] = {par_in->u, par_in->v, par_in->w};
@@ -66,7 +66,7 @@ void charm_bnd_cond_fn_wall_slip(charm_primitive_t *par_in, charm_primitive_t *p
 
 
 // @todo
-void charm_bnd_cond_fn_wall_no_slip(charm_primitive_t *par_in, charm_primitive_t *par_out, int8_t face, double* param, double n[CHARM_DIM])
+void charm_bnd_cond_fn_wall_no_slip(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double n[CHARM_DIM])
 {
     charm_prim_cpy(par_out, par_in);
     par_out->u = 0.;

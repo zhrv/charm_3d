@@ -122,7 +122,7 @@ charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tr
 }
 
 double gR = 8.314472;
-void charm_mat_eos(charm_mat_t * mat, charm_primitive_t * p, int flag)
+void charm_mat_eos(charm_mat_t * mat, charm_prim_t * p, int flag)
 {
     double Cp = mat->cp;
     double M  = mat->m;
@@ -147,12 +147,14 @@ void charm_mat_eos(charm_mat_t * mat, charm_primitive_t * p, int flag)
             p->r = p->p*M/(p->t*gR);
             p->cz = sqrt(gam*p->p/p->r);
             break;
+        default:
+            P4EST_ASSERT(flag < 3);
     }
 
 }
 
 
-void charm_param_cons_to_prim(charm_mat_t * mat, charm_primitive_t * p, charm_cons_t * c)
+void charm_param_cons_to_prim(charm_mat_t * mat, charm_prim_t * p, charm_cons_t * c)
 {
     p->r      = c->ro;
     p->u      = c->ru/c->ro;
@@ -166,7 +168,7 @@ void charm_param_cons_to_prim(charm_mat_t * mat, charm_primitive_t * p, charm_co
 }
 
 
-void charm_param_prim_to_cons(charm_mat_t * mat, charm_cons_t * c, charm_primitive_t * p)
+void charm_param_prim_to_cons(charm_mat_t * mat, charm_cons_t * c, charm_prim_t * p)
 {
     c->ro = p->r;
     c->ru = p->r*p->u;
@@ -176,7 +178,7 @@ void charm_param_prim_to_cons(charm_mat_t * mat, charm_cons_t * c, charm_primiti
 }
 
 
-void charm_prim_cpy(charm_primitive_t * dest, charm_primitive_t * src)
+void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src)
 {
     dest->r = src->r;
     dest->p = src->p;
@@ -235,43 +237,111 @@ void charm_matr3_inv(double a[3][3], double a_inv[3][3])
     }
 }
 
-void dbg_print_param(charm_param_t * par)
+void charm_matr_inv(double** a_src, double **am, int N)
 {
-//    printf("*** charm_param_t ***\n");
-//    printf("  CONS:\n");
-//    printf("    RO: %f\n", par->c.ro);
-//    printf("    RU: %f\n", par->c.ru);
-//    printf("    RV: %f\n", par->c.rv);
-//    printf("    RW: %f\n", par->c.rw);
-//    printf("    RE: %f\n", par->c.re);
-//    printf("  PRIM:\n");
-//    printf("    R: %f\n", par->p.r);
-//    printf("    U: %f\n", par->p.u);
-//    printf("    V: %f\n", par->p.v);
-//    printf("    W: %f\n", par->p.w);
-//    printf("    P: %f\n", par->p.p);
-//    printf("    e: %f\n", par->p.e);
-//    printf("    E: %f\n", par->p.e_tot);
-//    printf("    T: %f\n", par->p.t);
-//    printf("    C: %f\n", par->p.cz);
-//    printf("  GRAD:\n");
-//    printf("    R: (%f, %f, %f)\n", par->grad.r[0], par->grad.r[1], par->grad.r[2]);
-//    printf("    U: (%f, %f, %f)\n", par->grad.u[0], par->grad.u[1], par->grad.u[2]);
-//    printf("    V: (%f, %f, %f)\n", par->grad.v[0], par->grad.v[1], par->grad.v[2]);
-//    printf("    W: (%f, %f, %f)\n", par->grad.w[0], par->grad.w[1], par->grad.w[2]);
-//    printf("    P: (%f, %f, %f)\n", par->grad.p[0], par->grad.p[1], par->grad.p[2]);
-//    printf("  GEOM:\n");
-//    for (int i = 0; i < P4EST_FACES; i++) {
-//        printf("    n[%d]: (%f, %f, %f)\n", i, par->g.n[i][0], par->g.n[i][1], par->g.n[i][2]);
-//    }
-//    for (int i = 0; i < P4EST_FACES; i++) {
-//        printf("    AREA[%d]: %f\n", i, par->g.area[i]);
-//    }
-//    printf("    Vol: %f\n", par->g.volume);
-//    printf("    c: (%f, %f, %f)\n", par->g.c[0], par->g.c[1], par->g.c[2]);
-//    for (int i = 0; i < P4EST_FACES; i++) {
-//        printf("    fc[%d]: (%f, %f, %f)\n", i, par->g.fc[i][0], par->g.fc[i][1], par->g.fc[i][2]);
-//    }
-//    printf("*********************\n");
-//    fflush(stdout);
+    int	       *mask;
+    double	    fmaxval;
+    int		    maxind;
+    int		    tmpi;
+    double	    tmp;
+    double	  **a;
+
+    mask = (int*)malloc(N*sizeof(int));//   new int[N];
+    a    = (double**)malloc(N*sizeof(double*)); //new double*[N];
+    for (int i = 0; i < N; i++)
+    {
+        a[i] = (double*)malloc(N*sizeof(double)); //new double[N];
+        for (int j = 0; j < N; j++)
+        {
+            a[i][j] = a_src[i][j];
+        }
+    }
+
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            if (i == j)
+            {
+                am[i][j] = 1.0;
+            }
+            else {
+                am[i][j] = 0.0;
+            }
+        }
+    }
+    for (int i = 0; i < N; i++)
+    {
+        mask[i] = i;
+    }
+    for (int i = 0; i < N; i++)
+    {
+        maxind = i;
+        fmaxval = fabs(a[i][i]);
+        for (int ni = i + 1; ni < N; ni++)
+        {
+            if (fabs(fmaxval) <= fabs(a[ni][i]))
+            {
+                fmaxval = fabs(a[ni][i]);
+                maxind = ni;
+            }
+        }
+        fmaxval = a[maxind][i];
+        P4EST_ASSERT(fmaxval != 0);
+        if (i != maxind)
+        {
+            for (int nj = 0; nj < N; nj++)
+            {
+                tmp = a[i][nj];
+                a[i][nj] = a[maxind][nj];
+                a[maxind][nj] = tmp;
+
+                tmp = am[i][nj];
+                am[i][nj] = am[maxind][nj];
+                am[maxind][nj] = tmp;
+            }
+            tmpi = mask[i];
+            mask[i] = mask[maxind];
+            mask[maxind] = tmpi;
+        }
+        double aii = a[i][i];
+        for (int j = 0; j < N; j++)
+        {
+            a[i][j] = a[i][j] / aii;
+            am[i][j] = am[i][j] / aii;
+        }
+        for (int ni = 0; ni < N; ni++)
+        {
+            if (ni != i)
+            {
+                double fconst = a[ni][i];
+                for (int nj = 0; nj < N; nj++)
+                {
+                    a[ni][nj] = a[ni][nj] - fconst *  a[i][nj];
+                    am[ni][nj] = am[ni][nj] - fconst * am[i][nj];
+                }
+            }
+        }
+    }
+    /**/
+    for (int i = 0; i < N; i++)
+    {
+        if (mask[i] != i)
+        {
+            for (int j = 0; j < N; j++)
+            {
+                tmp				= a[i][j];
+                a[i][j]			= a[mask[i]][j];
+                a[mask[i]][j]	= tmp;
+            }
+        }
+    }
+    /**/
+    for (int i = 0; i < N; i++)
+    {
+        free(a[i]);
+    }
+    free(a);
+    free(mask);
+
 }

@@ -3,6 +3,7 @@
 //
 
 #include "charm_geom.h"
+#include "charm_base_func.h"
 
 static double charm_face_calc_normal(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, int8_t face, double* n)
 {
@@ -232,7 +233,7 @@ static void charm_face_calc_center(p4est_t* p4est, p4est_quadrant_t* q, p4est_to
     p4est_qcoord_to_vertex(p4est->connectivity, treeid, q->x + fc[face][0], q->y + fc[face][1], q->z + fc[face][2], c);
 }
 
-static void charm_face_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, int8_t face, double** gp, double* gw)
+static void charm_face_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, int8_t face, double gp[CHARM_FASE_GP_COUNT][CHARM_DIM], double gw[CHARM_FASE_GP_COUNT])
 {
     p4est_qcoord_t l  = P4EST_QUADRANT_LEN(q->level);
     p4est_qcoord_t l2 = l / 2;
@@ -247,82 +248,38 @@ static void charm_face_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx
     //p4est_qcoord_to_vertex(p4est->connectivity, treeid, q->x + fc[face][0], q->y + fc[face][1], q->z + fc[face][2], c);
 }
 
-double charm_tet_calc_volume(double v[4][3]) // @todo проверить корректность
-{
-    int8_t i;
-    double v1[3], v2[3], v3[3], v12[3];
-    for (i = 0; i < 3; i++) {
-        v1[i] = v[1][i] - v[0][i];
-        v2[i] = v[2][i] - v[0][i];
-        v3[i] = v[3][i] - v[0][i];
-    }
-    vect_prod(v1, v2, v12);
-    return fabs(scalar_prod(v12, v3));
-}
-
-
-double charm_quad_calc_volume(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t treeid)
-{
-    const int ttv[6][4] =
-            {{ 0, 2, 4, 1 },
-             { 5, 2, 4, 1 },
-             { 5, 2, 4, 6 },
-             { 3, 2, 7, 1 },
-             { 5, 2, 7, 1 },
-             { 5, 2, 7, 6 }};
-    int8_t i, j, k;
-    p4est_qcoord_t l  = P4EST_QUADRANT_LEN(q->level);
-    double v[8][3], tet[4][3], vol;
-    for (i = 0; i < P4EST_CHILDREN; i++) {
-        p4est_qcoord_to_vertex(p4est->connectivity, treeid, q->x + l * (i % 2), q->y + l * ((i / 2) % 2), q->z + l * (i / 4), v[i]);
-    }
-    vol = 0.;
-    for (i = 0; i < 6; i++) {
-        for (j = 0; j < 4; j++) {
-            for (k = 0; k < P4EST_DIM; k++) {
-                tet[j][k] = v[ttv[i][j]][k];
-            }
-        }
-        vol += charm_tet_calc_volume(tet);
-    }
-    return vol;
-}
-
-
 void charm_geom_quad_calc(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t treeid)
 {
-    int8_t i;
+    int8_t i, j, ig;
     charm_data_t *p = (charm_data_t*)q->p.user_data;
 
     for (i = 0; i < P4EST_FACES; i++) {
         charm_face_calc_center(p4est, q, treeid, i, p->par.g.fc[i]);
         charm_face_calc_normal(p4est, q, treeid, i, p->par.g.n[i]);
         charm_face_calc_gp(p4est, q, treeid, i, p->par.g.face_gp[i], p->par.g.face_gw[i]);
-        p->par.g.area[i] = charm_face_calc_area(p4est, q, treeid, i);
+        p->par.g.area[i] = charm_face_calc_area(p4est, q, treeid, i); // @todo calculate by Gauss quadratures
 
     }
-    p->par.g.volume = charm_quad_calc_volume(p4est, q, treeid);
     charm_quad_calc_center(p4est, q, treeid, p->par.g.c);
     charm_quad_calc_gp(p4est, q, treeid, p->par.g.quad_gp, p->par.g.quad_gw, p->par.g.quad_gj);
+    p->par.g.volume = 0.;
+    for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
+        p->par.g.volume += p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
+    }
+
+    // mass matr
+    double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        for (j = 0; j < CHARM_BASE_FN_COUNT; j++) {
+            a[i][j] = 0.;
+            for (ig = 0; ig < CHARM_QUAD_GP_COUNT; ig++) {
+                a[i][j] += p->par.g.quad_gw[ig]*p->par.g.quad_gj[ig]
+                           * charm_base_func(p->par.g.quad_gp[ig], i, q)
+                           * charm_base_func(p->par.g.quad_gp[ig], j, q);
+            }
+        }
+    }
+
+    charm_matr_inv((double**)a, (double**)p->par.g.a_inv, CHARM_BASE_FN_COUNT);
 
 }
-
-
-static void charm_geom_quad_fn(p4est_iter_volume_info_t * info, void *user_data)
-{
-    p4est_quadrant_t   *q = info->quad;
-    charm_geom_quad_calc(info->p4est, q, info->treeid);
-}
-
-void charm_geom_calc(p4est_t * p4est)
-{
-    p4est_iterate (p4est,
-                   NULL,                      /* ghosts are not needed for this loop */
-                   NULL,                      /*  NULL */
-                   charm_geom_quad_fn,        /* update each cell */
-                   NULL,                      /* there is no callback for the faces between quadrants */
-                   NULL,                      /* there is no callback for the faces between quadrants */
-                   NULL);                     /* there is no callback for the corners between quadrants */
-
-}
-

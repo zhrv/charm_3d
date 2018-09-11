@@ -27,30 +27,26 @@ static double charm_error_sqr_estimate (p4est_quadrant_t * q)
 //    return diff2 * (1. / 12.) * exp(log(vol)*5./3.);
 }
 
-static int
-charm_refine_err_estimate (p4est_t * p4est, p4est_topidx_t which_tree,
-                           p4est_quadrant_t * q)
+static int charm_refine_err_estimate (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q)
 {
-    charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
-    double              global_err = ctx->max_err;
-    double              global_err2 = global_err * global_err;
-    double              h = CHARM_GET_H(q->level);
-    double              vol, err2;
-
-    vol = charm_quad_get_volume((charm_data_t *)q->p.user_data);
-
-    err2 = charm_error_sqr_estimate (q);
-    if (err2 > global_err2 * vol) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
+//    charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
+//    double              global_err = ctx->max_err;
+//    double              global_err2 = global_err * global_err;
+//    //double              h = CHARM_GET_H(q->level);
+//    double              vol, err2;
+//
+//    vol = charm_quad_get_volume((charm_data_t *)q->p.user_data);
+//
+//    err2 = charm_error_sqr_estimate (q);
+//    if (err2 > global_err2 * vol) {
+//        return 1;
+//    }
+//    else {
+//        return 0;
+//    }
 }
 
-static int
-charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which_tree,
-                                p4est_quadrant_t * q)
+static int charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q)
 {
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
 //    double              h = CHARM_GET_H(q->level);

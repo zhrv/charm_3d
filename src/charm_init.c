@@ -12,7 +12,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
 {
     charm_data_t       *data    = (charm_data_t *) q->p.user_data;
     charm_param_t      *par     = &data->par;
-    charm_primitive_t   prim;
+    charm_prim_t   prim;
     charm_cons_t        cons;
     charm_tree_attr_t  *attr;
     charm_reg_t        *reg;

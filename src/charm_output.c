@@ -19,7 +19,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     double             *this_u_ptr;
     int                 j;
     charm_cons_t        cons;
-    charm_primitive_t   prim;
+    charm_prim_t   prim;
 
     tree = p4est_tree_array_index (p4est->trees, which_tree);
     local_id += tree->quadrants_offset;   /* now the id is relative to the MPI process */

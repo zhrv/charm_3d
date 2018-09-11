@@ -152,7 +152,7 @@ __attribute__ ((format (printf, 1, 2)));
 
 #endif
 
-#define CHARM_GET_H(LEVEL) ROOT_LEN*((double) P4EST_QUADRANT_LEN ((LEVEL)) / (double) P4EST_ROOT_LEN)
+//#define CHARM_GET_H(LEVEL) ROOT_LEN*((double) P4EST_QUADRANT_LEN ((LEVEL)) / (double) P4EST_ROOT_LEN)
 
 #define FLD_COUNT 5
 
@@ -172,7 +172,7 @@ __attribute__ ((format (printf, 1, 2)));
 
 #define CHARM_ARR_SET_ZERO(A) {int i; for (i = 0; i < CHARM_BASE_FN_COUNT; i++) A[i] = 0.; }
 
-typedef struct charm_primitive
+typedef struct charm_prim
 {
     double          r;             /**< density */
     double          u;             /**< velosity */
@@ -186,7 +186,7 @@ typedef struct charm_primitive
     double          gam;
     double          cp;
     double          cv;
-} charm_primitive_t;
+} charm_prim_t;
 
 typedef struct charm_cons
 {
@@ -268,7 +268,7 @@ typedef struct charm_reg
 } charm_reg_t;
 
 
-typedef void (*charm_bnd_cond_fn_t)(charm_param_t *par_in, charm_param_t *par_out, int8_t face, double* param, double* n);
+typedef void (*charm_bnd_cond_fn_t)(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double* n);
 
 
 
@@ -355,14 +355,15 @@ charm_mesh_type_t charm_mesh_get_type_by_str(char*);
 
 charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tree);
 
-void charm_mat_eos(charm_mat_t * mat, charm_primitive_t * p, int flag);
-void charm_param_cons_to_prim(charm_mat_t * mat, charm_primitive_t * p, charm_cons_t * c);
-void charm_param_prim_to_cons(charm_mat_t * mat, charm_cons_t * c, charm_primitive_t * p);
+void charm_mat_eos(charm_mat_t * mat, charm_prim_t * p, int flag);
+void charm_param_cons_to_prim(charm_mat_t * mat, charm_prim_t * p, charm_cons_t * c);
+void charm_param_prim_to_cons(charm_mat_t * mat, charm_cons_t * c, charm_prim_t * p);
 
-void charm_prim_cpy(charm_primitive_t * dest, charm_primitive_t * src);
+void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src);
 
 double charm_matr3_det(double a[3][3]);
 void   charm_matr3_inv(double a[3][3], double a_inv[3][3]);
+void   charm_matr_inv(double **a, double **a_inv, int n);
 
 void dbg_print_param(charm_param_t *);
 
