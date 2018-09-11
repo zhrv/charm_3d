@@ -165,7 +165,7 @@ __attribute__ ((format (printf, 1, 2)));
 #define CHARM_BND_MAX 128
 
 #define CHARM_BASE_FN_COUNT 4
-#define CHARM_FASE_GP_COUNT 4
+#define CHARM_FACE_GP_COUNT 4
 #define CHARM_QUAD_GP_COUNT 8
 
 #define CHARM_MAX_COMPONETS_COUNT 128
@@ -214,9 +214,9 @@ typedef struct charm_param
     struct geom
     {
         double          n[P4EST_FACES][CHARM_DIM];
-        double          face_gp[P4EST_FACES][CHARM_FASE_GP_COUNT][CHARM_DIM];
-        double          face_gw[P4EST_FACES][CHARM_FASE_GP_COUNT];
-        double          face_gj[P4EST_FACES][CHARM_FASE_GP_COUNT];
+        double          face_gp[P4EST_FACES][CHARM_FACE_GP_COUNT][CHARM_DIM];
+        double          face_gw[P4EST_FACES][CHARM_FACE_GP_COUNT];
+        double          face_gj[P4EST_FACES][CHARM_FACE_GP_COUNT];
         double          quad_gp[CHARM_QUAD_GP_COUNT][CHARM_DIM];
         double          quad_gw[CHARM_QUAD_GP_COUNT];
         double          quad_gj[CHARM_QUAD_GP_COUNT];
