@@ -41,10 +41,10 @@ int main (int argc, char **argv)
                            charm_init_initial_condition,  /* initializes data */
                            (void *) (&ctx));            /* context */
 
-//    charm_write_solution (p4est, 0);
-    charm_calc_grad(p4est, NULL, NULL);
+    charm_write_solution (p4est, 0);
+//    charm_calc_grad(p4est, NULL, NULL);
 
-    charm_adapt_init(p4est);
+//    charm_adapt_init(p4est);
 
 
 
@@ -53,7 +53,7 @@ int main (int argc, char **argv)
 
 
     /* time step */
-    charm_timesteps (p4est, ctx.time);
+//    charm_timesteps (p4est, ctx.time);
 
     /* Destroy the p4est and the connectivity structure. */
     p4est_destroy (p4est);

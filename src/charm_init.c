@@ -12,23 +12,35 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
 {
     charm_data_t       *data    = (charm_data_t *) q->p.user_data;
     charm_param_t      *par     = &data->par;
+    charm_prim_t   prim;
+    charm_cons_t        cons;
     charm_tree_attr_t  *attr;
     charm_reg_t        *reg;
+    int                 i;
 
     charm_geom_quad_calc(p4est, q, which_tree);
 
     attr = charm_get_tree_attr(p4est, which_tree);
     reg = attr->reg;
 
-    par->p.p = reg->p;
-    par->p.t = reg->t;
-    par->p.u = reg->v[0];
-    par->p.v = reg->v[1];
-    par->p.w = reg->v[2];
-    charm_mat_eos(reg->mat, par, 2);
-    charm_mat_eos(reg->mat, par, 1);
-    par->p.e_tot = par->p.e + 0.5*(par->p.u*par->p.u+par->p.v*par->p.v+par->p.w*par->p.w);
-    charm_param_prim_to_cons(reg->mat, par);
+    prim.p = reg->p;
+    prim.t = reg->t;
+    prim.u = reg->v[0];
+    prim.v = reg->v[1];
+    prim.w = reg->v[2];
+    charm_mat_eos(reg->mat, &prim, 2);
+    charm_mat_eos(reg->mat, &prim, 1);
+    prim.e_tot = prim.e + 0.5*(prim.u*prim.u+prim.v*prim.v+prim.w*prim.w);
+    charm_param_prim_to_cons(reg->mat, &cons, &prim);
+    memset(&(par->c), 0, sizeof(par->c));
+    par->c.ro[0] = cons.ro;
+    par->c.ru[0] = cons.ru;
+    par->c.rv[0] = cons.rv;
+    par->c.rw[0] = cons.rw;
+    par->c.re[0] = cons.re;
+    for (i = 0; i < CHARM_MAX_COMPONETS_COUNT; i++) {
+        par->c.rc[i][0] = cons.rc[i];
+    }
 }
 
 
@@ -164,12 +176,15 @@ void charm_init_reg(charm_ctx_t *ctx, mxml_node_t *node)
 
 void charm_init_mesh_info(charm_ctx_t *ctx, mxml_node_t *node)
 {
-    charm_mesh_info_t *m = ctx->msh;
+    charm_mesh_info_t *m;// = ctx->msh;
     char str[128];
+
+    m = (charm_mesh_info_t*)malloc(sizeof(charm_mesh_info_t));
 
     charm_xml_node_child_param_str(node, "name", m->filename);
     charm_xml_node_child_param_str(node, "filesType", str);
     m->type = charm_mesh_get_type_by_str(str);
+    ctx->msh = m;
 }
 
 
