@@ -135,6 +135,7 @@ static void charm_quad_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx
     charm_data_t *p = (charm_data_t*)q->p.user_data;
     int i, j, iz, iy, ix;
     double v[8][3];
+    double vmin[3], vmax[3];
     double sqrt3 = 1./sqrt(3.);
     double t[8][3] = {
             {-sqrt3, -sqrt3, -sqrt3},
@@ -153,6 +154,22 @@ static void charm_quad_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx
         _charm_quad_calc_gp_at_point(v, t[i], gp[i], &gj[i]);
         gw[i] = 1.;
     }
+
+    for (j = 0; j < 3; j++) {
+        vmin[j] = v[0][j];
+        vmax[j] = v[0][j];
+    }
+    for (i = 1; i < 8; i++) {
+        for (j = 0; j < 3; j++) {
+            if (vmin[j] > v[i][j]) vmin[j] = v[i][j];
+            if (vmax[j] < v[i][j]) vmax[j] = v[i][j];
+        }
+    }
+    for (j = 0; j < 3; j++) {
+        p->par.g.dh[j] = vmax[j] - vmin[j];
+    }
+
+
 }
 
 
