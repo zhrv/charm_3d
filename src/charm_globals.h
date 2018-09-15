@@ -233,11 +233,11 @@ typedef struct charm_param
 typedef struct charm_data
 {
     charm_param_t       par;
-    double              drodt[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    double              drudt[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    double              drvdt[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    double              drwdt[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    double              dredt[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    double              int_ro[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    double              int_ru[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    double              int_rv[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    double              int_rw[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    double              int_re[CHARM_BASE_FN_COUNT];          /**< the time derivative */
 
     int                 ref_flag;
 } charm_data_t;
@@ -364,6 +364,8 @@ void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src);
 double charm_matr3_det(double a[3][3]);
 void   charm_matr3_inv(double a[3][3], double a_inv[3][3]);
 void   charm_matr_inv(double **a, double **a_inv, int n);
+void   charm_matr_vect_mult(double **a, double *b, double *res, int n);
+
 
 void dbg_print_param(charm_param_t *);
 

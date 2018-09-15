@@ -345,3 +345,15 @@ void charm_matr_inv(double** a_src, double **am, int N)
     free(mask);
 
 }
+
+
+void charm_matr_vect_mult(double **a, double *b, double *res, int n)
+{
+    int i, j;
+    for (i = 0; i < n; i++) {
+        res[i] = 0.;
+        for (j = 0; j < n; j++) {
+            res[i] += a[i][j]*b[j];
+        }
+    }
+}

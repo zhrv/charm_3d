@@ -42,6 +42,6 @@ add_executable(	charm_dg
         src/charm_geom.h
 		src/charm_xml.c
         src/charm_xml.h
-		src/charm_base_func.c src/charm_base_func.h)
+		src/charm_base_func.c src/charm_base_func.h src/charm_timestep_conv.c src/charm_timestep_conv.h src/charm_timestep_diff.c src/charm_timestep_diff.h)
 
 target_link_libraries(charm_dg p4est sc m mxml)
