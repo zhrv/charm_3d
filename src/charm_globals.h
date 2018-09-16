@@ -363,8 +363,8 @@ void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src);
 
 double charm_matr3_det(double a[3][3]);
 void   charm_matr3_inv(double a[3][3], double a_inv[3][3]);
-void   charm_matr_inv(double **a, double **a_inv, int n);
-void   charm_matr_vect_mult(double **a, double *b, double *res, int n);
+void   charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double am[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
+void   charm_matr_vect_mult(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT], double res[CHARM_BASE_FN_COUNT]);
 
 
 void dbg_print_param(charm_param_t *);

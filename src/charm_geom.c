@@ -339,7 +339,7 @@ static void _charm_face_calc_gp_at_point(double vertices[8][3], int8_t face, int
     wx[1] =  1.;
     wy[0] = 1.-ref_gp[i_gp][1];
     wy[1] = 1.+ref_gp[i_gp][1];
-    jacob[0][0] = jacob[1][0] = jacob[2][0] = 0.;
+    jacob[0][0] = jacob[1][0] = 0.;
     vindex = 0;
     for (iy = 0; iy < 2; iy++) {
         yfactor = wy[iy];
@@ -356,7 +356,7 @@ static void _charm_face_calc_gp_at_point(double vertices[8][3], int8_t face, int
     wx[1] = 1.+ref_gp[i_gp][0];
     wy[0] = -1.;
     wy[1] =  1.;
-    jacob[0][1] = jacob[1][1] = jacob[2][1] = 0.;
+    jacob[0][1] = jacob[1][1] = 0.;
     vindex = 0;
     for (iy = 0; iy < 2; iy++) {
         yfactor = wy[iy];
@@ -464,6 +464,7 @@ void charm_geom_quad_calc(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t t
         }
     }
 
-    charm_matr_inv((double**)a, (double**)p->par.g.a_inv, CHARM_BASE_FN_COUNT);
+    charm_matr_inv(a, p->par.g.a_inv);
 
+    int ttt = 0;
 }

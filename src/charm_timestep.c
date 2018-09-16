@@ -206,7 +206,6 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
     p4est_quadrant_t   *q = info->quad;
     charm_data_t       *data = (charm_data_t *) q->p.user_data;
     double              dt = *((double *) user_data);
-    double            **a = (double**)data->par.g.a_inv;
     double              rhs_ro[CHARM_BASE_FN_COUNT];
     double              rhs_ru[CHARM_BASE_FN_COUNT];
     double              rhs_rv[CHARM_BASE_FN_COUNT];
@@ -214,11 +213,11 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
     double              rhs_re[CHARM_BASE_FN_COUNT];
     int                 i;
 
-    charm_matr_vect_mult(a, data->int_ro, rhs_ro, CHARM_BASE_FN_COUNT);
-    charm_matr_vect_mult(a, data->int_ru, rhs_ru, CHARM_BASE_FN_COUNT);
-    charm_matr_vect_mult(a, data->int_rv, rhs_rv, CHARM_BASE_FN_COUNT);
-    charm_matr_vect_mult(a, data->int_rw, rhs_rw, CHARM_BASE_FN_COUNT);
-    charm_matr_vect_mult(a, data->int_re, rhs_re, CHARM_BASE_FN_COUNT);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_ro, rhs_ro);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_ru, rhs_ru);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_rv, rhs_rv);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_rw, rhs_rw);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_re, rhs_re);
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
         data->par.c.ro[i] += dt * rhs_ro[i];

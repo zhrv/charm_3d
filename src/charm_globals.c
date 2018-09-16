@@ -237,7 +237,7 @@ void charm_matr3_inv(double a[3][3], double a_inv[3][3])
     }
 }
 
-void charm_matr_inv(double** a_src, double **am, int N)
+void charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double am[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
 {
     int	       *mask;
     double	    fmaxval;
@@ -245,6 +245,7 @@ void charm_matr_inv(double** a_src, double **am, int N)
     int		    tmpi;
     double	    tmp;
     double	  **a;
+    int         N = CHARM_BASE_FN_COUNT;
 
     mask = (int*)malloc(N*sizeof(int));//   new int[N];
     a    = (double**)malloc(N*sizeof(double*)); //new double*[N];
@@ -347,12 +348,12 @@ void charm_matr_inv(double** a_src, double **am, int N)
 }
 
 
-void charm_matr_vect_mult(double **a, double *b, double *res, int n)
+void charm_matr_vect_mult(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT], double res[CHARM_BASE_FN_COUNT])
 {
     int i, j;
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
         res[i] = 0.;
-        for (j = 0; j < n; j++) {
+        for (j = 0; j < CHARM_BASE_FN_COUNT; j++) {
             res[i] += a[i][j]*b[j];
         }
     }
