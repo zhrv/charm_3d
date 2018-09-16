@@ -293,6 +293,7 @@ static void _charm_face_calc_gp_at_point(double vertices[8][3], int8_t face, int
     double              jacob[2][2], a;
     double              v[4][3];
     double              sqrt3 = 1./sqrt(3.);
+    int                 ind[2];
     const int ftv[6][4] =
             {{ 0, 2, 4, 6 },
              { 1, 3, 5, 7 },
@@ -334,6 +335,19 @@ static void _charm_face_calc_gp_at_point(double vertices[8][3], int8_t face, int
         }
     }
 
+    if (face == 0 || face == 1) {
+        ind[0] = 1;
+        ind[1] = 2;
+    }
+    else if (face == 2 || face == 3) {
+        ind[0] = 0;
+        ind[1] = 2;
+    }
+    else if (face == 4 || face == 5) {
+        ind[0] = 0;
+        ind[1] = 1;
+    }
+
     // d/dksi
     wx[0] = -1.;
     wx[1] =  1.;
@@ -345,8 +359,8 @@ static void _charm_face_calc_gp_at_point(double vertices[8][3], int8_t face, int
         yfactor = wy[iy];
         for (ix = 0; ix < 2; ix++) {
             xfactor = yfactor*wx[ix]/4.;
-            jacob[0][0] += xfactor * vertices[vindex][0];
-            jacob[1][0] += xfactor * vertices[vindex][1];
+            jacob[0][0] += xfactor * v[vindex][ind[0]];
+            jacob[1][0] += xfactor * v[vindex][ind[1]];
             vindex++;
         }
     }
@@ -362,8 +376,8 @@ static void _charm_face_calc_gp_at_point(double vertices[8][3], int8_t face, int
         yfactor = wy[iy];
         for (ix = 0; ix < 2; ix++) {
             xfactor = yfactor*wx[ix]/4.;
-            jacob[0][1] += xfactor * vertices[vindex][0];
-            jacob[1][1] += xfactor * vertices[vindex][1];
+            jacob[0][1] += xfactor * v[vindex][ind[0]];
+            jacob[1][1] += xfactor * v[vindex][ind[1]];
             vindex++;
         }
     }
