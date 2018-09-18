@@ -441,7 +441,58 @@ static void _charm_face_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topid
 
 }
 
+static void _charm_face_calc_gp_by_tri(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, int8_t face, double gp[CHARM_FACE_GP_COUNT][CHARM_DIM], double gw[CHARM_FACE_GP_COUNT], double gj[CHARM_FACE_GP_COUNT])
+{
+    double	pt[3][3];
+    double	pGP[3][3];
+    double  v[4][3];
+    double	a = 2.0/3.0;
+    double	b = 1.0/6.0;
+    int i,j,k ;
 
+
+    _char_geom_face_get_v(p4est, q, treeid, face, v);
+
+    for (i = 0; i < CHARM_FACE_GP_COUNT; i++)
+    {
+        gw[i] = 1./6.;
+    }
+
+    for ( i = 0; i < 2; i++)
+    {
+        for (j = 0; j < 3; j++)
+        {
+            for (k = 0; k < 3; k++) {
+                pt[j][k] = v[i + j][k];
+            }
+        }
+
+        double a1 = pt[0][0] - pt[2][0];	double a2 = pt[1][0] - pt[2][0];	double a3 = pt[2][0];
+        double b1 = pt[0][1] - pt[2][1];	double b2 = pt[1][1] - pt[2][1];	double b3 = pt[2][1];
+        double c1 = pt[0][2] - pt[2][2];	double c2 = pt[1][2] - pt[2][2];	double c3 = pt[2][2];
+
+        double E = a1*a1+b1*b1+c1*c1;
+        double F = a2*a2+b2*b2+c2*c2;
+        double G = a1*a2+b1*b2+c1*c2;
+
+        gj[3*i+0] = gj[3*i+1] = gj[3*i+2] = sqrt(E*F-G*G);
+
+        gp[3*i+0][0] = a * a1 + b * a2 + a3;
+        gp[3*i+0][1] = a * b1 + b * b2 + b3;
+        gp[3*i+0][2] = a * c1 + b * c2 + c3;
+
+        gp[3*i+1][0] = b * a1 + a * a2 + a3;
+        gp[3*i+1][1] = b * b1 + a * b2 + b3;
+        gp[3*i+1][2] = b * c1 + a * c2 + c3;
+
+        gp[3*i+2][0] = b * a1 + b * a2 + a3;
+        gp[3*i+2][1] = b * b1 + b * b2 + b3;
+        gp[3*i+2][2] = b * c1 + b * c2 + c3;
+    }
+
+
+
+}
 
 void charm_geom_quad_calc(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t treeid)
 {
@@ -451,8 +502,7 @@ void charm_geom_quad_calc(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t t
     for (i = 0; i < P4EST_FACES; i++) {
         _charm_face_calc_center(p4est, q, treeid, i, p->par.g.fc[i]);
         _charm_face_calc_normal(p4est, q, treeid, i, p->par.g.n[i]);
-        _charm_face_calc_gp(p4est, q, treeid, i, p->par.g.face_gp[i], p->par.g.face_gw[i], p->par.g.face_gj[i]);
-        //p->par.g.area[i] = charm_face_calc_area(p4est, q, treeid, i); // @todo calculate by Gauss quadratures
+        _charm_face_calc_gp_by_tri(p4est, q, treeid, i, p->par.g.face_gp[i], p->par.g.face_gw[i], p->par.g.face_gj[i]);
         p->par.g.area[i] = 0.;
         for (j = 0; j < CHARM_FACE_GP_COUNT; j++) {
             p->par.g.area[i] += p->par.g.face_gw[i][j]*p->par.g.face_gj[i][j];
@@ -479,6 +529,4 @@ void charm_geom_quad_calc(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t t
     }
 
     charm_matr_inv(a, p->par.g.a_inv);
-
-    int ttt = 0;
 }

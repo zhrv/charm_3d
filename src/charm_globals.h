@@ -165,7 +165,7 @@ __attribute__ ((format (printf, 1, 2)));
 #define CHARM_BND_MAX 128
 
 #define CHARM_BASE_FN_COUNT 4
-#define CHARM_FACE_GP_COUNT 4
+#define CHARM_FACE_GP_COUNT 6
 #define CHARM_QUAD_GP_COUNT 8
 
 #define CHARM_MAX_COMPONETS_COUNT 128

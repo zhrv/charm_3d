@@ -53,7 +53,7 @@ int main (int argc, char **argv)
 
 
     /* time step */
-//    charm_timesteps (p4est, ctx.time);
+    charm_timesteps (p4est, ctx.time);
 
     /* Destroy the p4est and the connectivity structure. */
     p4est_destroy (p4est);
