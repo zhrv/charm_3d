@@ -112,15 +112,22 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, p4est
         p4est_ghost_exchange_data (p4est, ghost, ghost_data);
     }
 
-    /* compute du/dt */
-    p4est_iterate (p4est,                                /* the forest */
-                   ghost,                                /* the ghost layer */
-                   (void *) ghost_data,                  /* the synchronized ghost data */
-                   charm_convect_volume_int_iter_fn,              /* callback to compute each quad's interior contribution to du/dt */
-                   charm_convect_surface_int_iter_fn,      /* callback to compute each quads' faces' contributions to du/du */
+    p4est_iterate (p4est,
+                   ghost,
+                   (void *) ghost_data,
+                   charm_convect_volume_int_iter_fn,
                    NULL,
-                   NULL);                                /* there is no callback for the
-                                                                corners between quadrants */
+                   NULL,
+                   NULL);
+
+    p4est_iterate (p4est,
+                   ghost,
+                   (void *) ghost_data,
+                   NULL,
+                   charm_convect_surface_int_iter_fn,
+                   NULL,
+                   NULL);
+
 
 //    p4est_iterate (p4est,                                /* the forest */
 //                   ghost,                                /* the ghost layer */

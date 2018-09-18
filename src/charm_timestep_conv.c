@@ -331,7 +331,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
 }
 
 void charm_convect_surface_int_iter_fn (p4est_iter_face_info_t * info, void *user_data)
-{
+{return;
     sc_array_t         *sides = &(info->sides);
 
     if (sides->elem_count != 2) {
