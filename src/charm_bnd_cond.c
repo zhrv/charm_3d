@@ -24,8 +24,8 @@ void charm_bnd_cond(p4est_t* p4est, p4est_topidx_t treeid, int8_t face,
     P4EST_ASSERT(bnd);
     //charm_param_cons_to_prim(attr->reg->mat, par_in);
     bnd->bnd_fn(par_in, par_out, face, bnd->params, n);
-    charm_mat_eos(attr->reg->mat, par_out, 2); // r=r(T,p)
-    charm_mat_eos(attr->reg->mat, par_out, 1); // e=e(r,p)
+    charm_mat_eos(par_out, 2); // r=r(T,p)
+    charm_mat_eos(par_out, 1); // e=e(r,p)
     //charm_param_prim_to_cons(attr->reg->mat, par_out);
 }
 

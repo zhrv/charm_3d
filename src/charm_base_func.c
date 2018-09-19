@@ -207,6 +207,7 @@ double charm_get_field_rc(p4est_quadrant_t* q, double* x, int k)
 
 void charm_get_fields(p4est_quadrant_t* q, double* x, charm_cons_t* c){
     int k;
+    charm_data_t *p = (charm_data_t*)q->p.user_data;
     c->ro = charm_get_field_ro(q, x);
     c->ru = charm_get_field_ru(q, x);
     c->rv = charm_get_field_rv(q, x);
@@ -215,4 +216,5 @@ void charm_get_fields(p4est_quadrant_t* q, double* x, charm_cons_t* c){
     for (k = 0; k < CHARM_MAX_COMPONETS_COUNT; k++) {
         c->rc[k] = charm_get_field_rc(q, x, k);
     }
+    c->mat = p->par.mat;
 }

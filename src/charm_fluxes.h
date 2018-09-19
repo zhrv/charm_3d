@@ -13,7 +13,7 @@
                     double RE, double PE, double UE, double VE, double WE, double gam);
 #endif
 
-void charm_calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3]);
+void charm_calc_flux(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3]);
 
 
 #endif //CHAMR_3D_CHARM_FLUXES_H

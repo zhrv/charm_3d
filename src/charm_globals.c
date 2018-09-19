@@ -122,10 +122,11 @@ charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tr
 }
 
 double gR = 8.314472;
-void charm_mat_eos(charm_mat_t * mat, charm_prim_t * p, int flag)
+void charm_mat_eos(charm_prim_t * p, int flag)
 {
-    double Cp = mat->cp;
-    double M  = mat->m;
+    P4EST_ASSERT(p->mat);
+    double Cp = p->mat->cp;
+    double M  = p->mat->m;
     double Cv = Cp-gR/M;
     double gam = Cp/Cv;
     p->gam = gam;
@@ -154,8 +155,10 @@ void charm_mat_eos(charm_mat_t * mat, charm_prim_t * p, int flag)
 }
 
 
-void charm_param_cons_to_prim(charm_mat_t * mat, charm_prim_t * p, charm_cons_t * c)
+void charm_param_cons_to_prim(charm_prim_t * p, charm_cons_t * c)
 {
+    P4EST_ASSERT(c->mat);
+    p->mat    = c->mat;
     p->r      = c->ro;
     p->u      = c->ru/c->ro;
     p->v      = c->rv/c->ro;
@@ -163,35 +166,38 @@ void charm_param_cons_to_prim(charm_mat_t * mat, charm_prim_t * p, charm_cons_t 
     p->e_tot  = c->re/c->ro;
     p->e      = p->e_tot-0.5*(p->u*p->u+p->v*p->v+p->w*p->w);
 
-    charm_mat_eos(mat, p, 0);  // {p,cz}=EOS(r,e)
-    charm_mat_eos(mat, p, 1);  // {e, t}=EOS(r,p)
+    charm_mat_eos(p, 0);  // {p,cz}=EOS(r,e)
+    charm_mat_eos(p, 1);  // {e, t}=EOS(r,p)
 }
 
 
-void charm_param_prim_to_cons(charm_mat_t * mat, charm_cons_t * c, charm_prim_t * p)
+void charm_param_prim_to_cons(charm_cons_t * c, charm_prim_t * p)
 {
-    c->ro = p->r;
-    c->ru = p->r*p->u;
-    c->rv = p->r*p->v;
-    c->rw = p->r*p->w;
-    c->re = p->r*(p->e+0.5*(p->u*p->u+p->v*p->v+p->w*p->w));
+    P4EST_ASSERT(p->mat);
+    c->mat = p->mat;
+    c->ro  = p->r;
+    c->ru  = p->r*p->u;
+    c->rv  = p->r*p->v;
+    c->rw  = p->r*p->w;
+    c->re  = p->r*(p->e+0.5*(p->u*p->u+p->v*p->v+p->w*p->w));
 }
 
 
 void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src)
 {
-    dest->r = src->r;
-    dest->p = src->p;
-    dest->u = src->u;
-    dest->v = src->v;
-    dest->w = src->w;
-    dest->t = src->t;
-    dest->cz = src->cz;
-    dest->e = src->e;
+    dest->mat   = src->mat;
+    dest->r     = src->r;
+    dest->p     = src->p;
+    dest->u     = src->u;
+    dest->v     = src->v;
+    dest->w     = src->w;
+    dest->t     = src->t;
+    dest->cz    = src->cz;
+    dest->e     = src->e;
     dest->e_tot = src->e_tot;
-    dest->cp = src->cp;
-    dest->cv = src->cv;
-    dest->gam = src->gam;
+    dest->cp    = src->cp;
+    dest->cv    = src->cv;
+    dest->gam   = src->gam;
 
 }
 

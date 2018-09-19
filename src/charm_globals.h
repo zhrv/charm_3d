@@ -172,6 +172,30 @@ __attribute__ ((format (printf, 1, 2)));
 
 #define CHARM_ARR_SET_ZERO(A) {int i; for (i = 0; i < CHARM_BASE_FN_COUNT; i++) A[i] = 0.; }
 
+typedef struct charm_mat
+{
+    char name[64];
+    int id;
+    double m;
+    double cp;
+    double ml;
+    double lambda;
+    double k;
+} charm_mat_t;
+
+
+typedef struct charm_reg
+{
+    char name[64];
+    int id;
+    int cell_type;
+    charm_mat_t *mat;
+    double v[CHARM_DIM];
+    double t;
+    double p;
+} charm_reg_t;
+
+
 typedef struct charm_prim
 {
     double          r;             /**< density */
@@ -186,6 +210,7 @@ typedef struct charm_prim
     double          gam;
     double          cp;
     double          cv;
+    charm_mat_t    *mat;
 } charm_prim_t;
 
 typedef struct charm_cons
@@ -196,6 +221,7 @@ typedef struct charm_cons
     double          rw;
     double          re;
     double          rc[CHARM_MAX_COMPONETS_COUNT];
+    charm_mat_t    *mat;
 } charm_cons_t;
 
 
@@ -227,6 +253,8 @@ typedef struct charm_param
         double          dh[CHARM_DIM];
         double          a_inv[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
     } g;
+
+    charm_mat_t * mat;
 } charm_param_t;
 
 
@@ -242,30 +270,6 @@ typedef struct charm_data
     int                 ref_flag;
 } charm_data_t;
 
-
-
-typedef struct charm_mat
-{
-    char name[64];
-    int id;
-    double m;
-    double cp;
-    double ml;
-    double lambda;
-    double k;
-} charm_mat_t;
-
-
-typedef struct charm_reg
-{
-    char name[64];
-    int id;
-    int cell_type;
-    charm_mat_t *mat;
-    double v[CHARM_DIM];
-    double t;
-    double p;
-} charm_reg_t;
 
 
 typedef void (*charm_bnd_cond_fn_t)(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double* n);
@@ -355,9 +359,9 @@ charm_mesh_type_t charm_mesh_get_type_by_str(char*);
 
 charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tree);
 
-void charm_mat_eos(charm_mat_t * mat, charm_prim_t * p, int flag);
-void charm_param_cons_to_prim(charm_mat_t * mat, charm_prim_t * p, charm_cons_t * c);
-void charm_param_prim_to_cons(charm_mat_t * mat, charm_cons_t * c, charm_prim_t * p);
+void charm_mat_eos(charm_prim_t * p, int flag);
+void charm_param_cons_to_prim(charm_prim_t * p, charm_cons_t * c);
+void charm_param_prim_to_cons(charm_cons_t * c, charm_prim_t * p);
 
 void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src);
 

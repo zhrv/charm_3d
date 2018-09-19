@@ -35,7 +35,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     cons.rv = data->par.c.rv[0];
     cons.rw = data->par.c.rw[0];
     cons.re = data->par.c.re[0];
-    charm_param_cons_to_prim(attr->reg->mat, &prim, &cons);
+    charm_param_cons_to_prim(&prim, &cons);
 
     if (prim.r != prim.r) {
         int iiii=0;
