@@ -20,14 +20,11 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
     int                 ibf, igp;
     charm_cons_t        c;
     charm_prim_t        p;
-    charm_tree_attr_t  *attr;
     double              fr, fu, fv, fw, fe;
     double              gr, gu, gv, gw, ge;
     double              hr, hu, hv, hw, he;
     double              phi_x, phi_y, phi_z;
     double             *x;
-
-    attr = charm_get_tree_attr(info->p4est, info->treeid);
 
     CHARM_ARR_SET_ZERO(data->int_ro);
     CHARM_ARR_SET_ZERO(data->int_ru);
@@ -112,6 +109,7 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
         udata[0] = (charm_data_t *) side[0]->is.full.quad->p.user_data;
     }
     face[0] = side[0]->face;
+    charm_face_get_normal(udata[0], face[0], n);
     charm_quad_get_center(udata[0], c[0]);
     charm_face_get_center(udata[0], face[0], c[1]);
 
@@ -136,15 +134,6 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
 
 
         charm_bnd_cond(p4est, side[0]->treeid, face[0], &(prim[0]), &(prim[1]), n);
-
-
-//        for (i = 0; i < 2; i++) {
-//            r_[i] = prim[i].r;
-//            u_[i] = prim[i].u;
-//            v_[i] = prim[i].v;
-//            w_[i] = prim[i].w;
-//            p_[i] = prim[i].p;
-//        }
 
         /* flux from side 0 to side 1 */
         charm_calc_flux(prim, &qr, &qu, &qv, &qw, &qe, n);
@@ -176,7 +165,6 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
     sc_array_t         *sides = &(info->sides);
     charm_cons_t        cons[2];
     charm_prim_t        prim[2];
-    //charm_tree_attr_t  *attr;
     double             *x;
     double              bfv;
 
@@ -276,7 +264,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
                 udata[i] = (charm_data_t *) side[i]->is.full.quad->p.user_data;
             }
         }
-        //facearea = charm_face_get_normal(udata[0], face[0], n);
+        charm_face_get_normal(udata[0], face[0], n);
         charm_quad_get_center(udata[0], c[0]);
         charm_face_get_center(udata[0], face[0], c[1]);
 
@@ -293,15 +281,8 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
         for (igp = 0; igp < CHARM_BASE_FN_COUNT; igp++) {
             x = udata[0]->par.g.face_gp[face[i]][igp];
             for (i = 0; i < 2; i++) {
-
-                //attr = charm_get_tree_attr(p4est, side[i]->treeid);
                 charm_get_fields(side[i]->is.full.quad, x, &(cons[i]));
                 charm_param_cons_to_prim(&(prim[i]), &(cons[i]));
-//                r_[i] = prim[i].r;
-//                u_[i] = prim[i].u;
-//                v_[i] = prim[i].v;
-//                w_[i] = prim[i].w;
-//                p_[i] = prim[i].p;
             }
 
             /* flux from side 0 to side 1 */
@@ -328,7 +309,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
 }
 
 void charm_convect_surface_int_iter_fn (p4est_iter_face_info_t * info, void *user_data)
-{return;
+{
     sc_array_t         *sides = &(info->sides);
 
     if (sides->elem_count != 2) {

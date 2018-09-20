@@ -26,15 +26,6 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
 
     charm_tree_attr_t * attr = (charm_tree_attr_t *)&(p4est->connectivity->tree_to_attr[which_tree*sizeof(charm_tree_attr_t)]);
     charm_get_fields(q, data->par.g.c, &cons);
-    /*
-     * @todo TODO TODO TODO
-     */
-    memset(&cons, 0, sizeof(cons));
-    cons.ro = data->par.c.ro[0];
-    cons.ru = data->par.c.ru[0];
-    cons.rv = data->par.c.rv[0];
-    cons.rw = data->par.c.rw[0];
-    cons.re = data->par.c.re[0];
     charm_param_cons_to_prim(&prim, &cons);
 
     if (prim.r != prim.r) {
