@@ -12,13 +12,34 @@
 #include <p8est_extended.h>
 #include <p8est_iterate.h>
 
-#define CHARM_DIM P4EST_DIM
+#define CHARM_DIM           P4EST_DIM
+#define CHARM_ALLOC         P4EST_ALLOC
+#define CHARM_FREE          P4EST_FREE
+#define CHARM_HALF          P4EST_HALF
+#define CHARM_CHILDREN      P4EST_CHILDREN
+#define CHARM_FACES         P4EST_FACES
+#define CHARM_CONNECT_FULL  P4EST_CONNECT_FULL
+#define CHARM_CONNECT_FACE  P4EST_CONNECT_FACE
+#define CHARM_REALLOC       P4EST_REALLOC
+#define CHARM_QUADRANT_LEN  P4EST_QUADRANT_LEN
+
+
 
 #ifdef CHARM_DEBUG
+
 #define CHARM_LOG_LEVEL SC_LP_ESSENTIAL
+#define DBG_CH(R) {printf("Rank: %d. File: %s. Line: %d\n", (R), __FILE__, __LINE__);fflush(stdout);}
+#define CHARM_ASSERT P4EST_ASSERT
+
 #else
+
 #define CHARM_LOG_LEVEL SC_LP_ESSENTIAL
+#define DBG_CH(R) ((void)0)
+#define CHARM_ASSERT ((void)0)
+
 #endif
+
+
 
 /* log helper macros */
 #define CHARM_GLOBAL_LOG(p,s)                           \
@@ -128,31 +149,12 @@ __attribute__ ((format (printf, 1, 2)));
 #define CHARM_NOTICE            CHARM_STATISTICS
 #define CHARM_NOTICEF           CHARM_STATISTICSF
 
-#define _SQR_(X) ((X)*(X))
-
-//#define SECOND_ORDER
-#define CHARM_STRING "charm"
+#define CHARM_STRING "charm_dg"
 
 #define CHARM_RIM_NEWTON_STEPS 5000
 #define CHARM_RIM_EPS 1.e-5
 
 #define CHARM_EPS 1.e-11
-
-#define ROOT_LEN   0.04
-
-#define CHARM_DG_FN_COUNT 4
-
-#ifdef CHARM_DEBUG
-
-#define DBG_CH(R) {printf("Rank: %d. File: %s. Line: %d\n", (R), __FILE__, __LINE__);fflush(stdout);}
-
-#else
-
-#define DBG_CH(R) ((void)0)
-
-#endif
-
-//#define CHARM_GET_H(LEVEL) ROOT_LEN*((double) P4EST_QUADRANT_LEN ((LEVEL)) / (double) P4EST_ROOT_LEN)
 
 #define FLD_COUNT 5
 
@@ -160,6 +162,8 @@ __attribute__ ((format (printf, 1, 2)));
 
 #define _MAX_(X,Y) ((X)>(Y) ? (X) : (Y))
 #define _MIN_(X,Y) ((X)<(Y) ? (X) : (Y))
+#define _SQR_(X) ((X)*(X))
+#define _MAG_(X,Y,Z) (_SQR_(X)+_SQR_(Y)+_SQR_(Z))
 
 #define CHARM_FACE_TYPE_INNER 0
 #define CHARM_BND_MAX 128
@@ -239,17 +243,17 @@ typedef struct charm_param
 
     struct geom
     {
-        double          n[P4EST_FACES][CHARM_DIM];
-        double          face_gp[P4EST_FACES][CHARM_FACE_GP_COUNT][CHARM_DIM];
-        double          face_gw[P4EST_FACES][CHARM_FACE_GP_COUNT];
-        double          face_gj[P4EST_FACES][CHARM_FACE_GP_COUNT];
+        double          n[CHARM_FACES][CHARM_DIM];
+        double          face_gp[CHARM_FACES][CHARM_FACE_GP_COUNT][CHARM_DIM];
+        double          face_gw[CHARM_FACES][CHARM_FACE_GP_COUNT];
+        double          face_gj[CHARM_FACES][CHARM_FACE_GP_COUNT];
         double          quad_gp[CHARM_QUAD_GP_COUNT][CHARM_DIM];
         double          quad_gw[CHARM_QUAD_GP_COUNT];
         double          quad_gj[CHARM_QUAD_GP_COUNT];
-        double          area[P4EST_FACES];
+        double          area[CHARM_FACES];
         double          volume;
         double          c[CHARM_DIM];
-        double          fc[P4EST_FACES][CHARM_DIM];
+        double          fc[CHARM_FACES][CHARM_DIM];
         double          dh[CHARM_DIM];
         double          a_inv[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
     } g;
@@ -335,7 +339,7 @@ typedef struct charm_ctx
 
 typedef struct charm_tree_attr
 {
-    charm_bnd_t        *bnd[P4EST_FACES];
+    charm_bnd_t        *bnd[CHARM_FACES];
     charm_reg_t        *reg;
 } charm_tree_attr_t;
 

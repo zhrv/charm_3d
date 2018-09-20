@@ -7,7 +7,7 @@
 
 #include "charm_globals.h"
 
-void charm_initial_condition (double x[], double u[FLD_COUNT], double du[FLD_COUNT][P4EST_DIM], charm_ctx_t * ctx);
+void charm_initial_condition (double x[], double u[FLD_COUNT], double du[FLD_COUNT][CHARM_DIM], charm_ctx_t * ctx);
 void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree,
                                    p4est_quadrant_t * q);
 

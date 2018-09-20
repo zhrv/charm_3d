@@ -124,7 +124,7 @@ charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tr
 double gR = 8.314472;
 void charm_mat_eos(charm_prim_t * p, int flag)
 {
-    P4EST_ASSERT(p->mat);
+    CHARM_ASSERT(p->mat);
     double Cp = p->mat->cp;
     double M  = p->mat->m;
     double Cv = Cp-gR/M;
@@ -148,8 +148,15 @@ void charm_mat_eos(charm_prim_t * p, int flag)
             p->r = p->p*M/(p->t*gR);
             p->cz = sqrt(gam*p->p/p->r);
             break;
+
+        case 3:
+            p->r = p->p*M/(p->t*gR);
+            p->cz = sqrt(gam*p->p/p->r);
+            p->e = p->p/(p->r*(gam-1));
+            break;
+
         default:
-            P4EST_ASSERT(flag < 3);
+            CHARM_ASSERT(flag < 3);
     }
 
 }
@@ -157,7 +164,7 @@ void charm_mat_eos(charm_prim_t * p, int flag)
 
 void charm_param_cons_to_prim(charm_prim_t * p, charm_cons_t * c)
 {
-    P4EST_ASSERT(c->mat);
+    CHARM_ASSERT(c->mat);
     p->mat    = c->mat;
     p->r      = c->ro;
     p->u      = c->ru/c->ro;
@@ -173,7 +180,7 @@ void charm_param_cons_to_prim(charm_prim_t * p, charm_cons_t * c)
 
 void charm_param_prim_to_cons(charm_cons_t * c, charm_prim_t * p)
 {
-    P4EST_ASSERT(p->mat);
+    CHARM_ASSERT(p->mat);
     c->mat = p->mat;
     c->ro  = p->r;
     c->ru  = p->r*p->u;
@@ -222,7 +229,7 @@ void charm_matr3_inv(double a[3][3], double a_inv[3][3])
     int i, j;
     double det_a = charm_matr3_det(a);
 
-    P4EST_ASSERT(det_a != 0.);
+    CHARM_ASSERT(det_a != 0.);
 
     a_[0][0] =  a[1][1]*a[2][2]-a[1][2]*a[2][1];
     a_[0][1] = -a[0][1]*a[2][2]+a[0][2]*a[2][1];
@@ -294,7 +301,7 @@ void charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], doub
             }
         }
         fmaxval = a[maxind][i];
-        P4EST_ASSERT(fmaxval != 0);
+        CHARM_ASSERT(fmaxval != 0);
         if (i != maxind)
         {
             for (int nj = 0; nj < N; nj++)

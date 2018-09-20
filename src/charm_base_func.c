@@ -6,7 +6,7 @@
 
 
 double charm_base_func(double* x, int k, p4est_quadrant_t* q) {
-    P4EST_ASSERT(k < CHARM_BASE_FN_COUNT);
+    CHARM_ASSERT(k < CHARM_BASE_FN_COUNT);
     charm_data_t *p = (charm_data_t*)q->p.user_data;
     double * c = p->par.g.c;
     switch (k) {
@@ -37,7 +37,7 @@ double charm_base_func(double* x, int k, p4est_quadrant_t* q) {
 
 
 double charm_base_func_dx(double* x, int k, p4est_quadrant_t* q) {
-    P4EST_ASSERT(k < CHARM_BASE_FN_COUNT);
+    CHARM_ASSERT(k < CHARM_BASE_FN_COUNT);
     charm_data_t *p = (charm_data_t*)q->p.user_data;
     double * c = p->par.g.c;
     switch (k) {
@@ -68,7 +68,7 @@ double charm_base_func_dx(double* x, int k, p4est_quadrant_t* q) {
 
 
 double charm_base_func_dy(double* x, int k, p4est_quadrant_t* q) {
-    P4EST_ASSERT(k < CHARM_BASE_FN_COUNT);
+    CHARM_ASSERT(k < CHARM_BASE_FN_COUNT);
     charm_data_t *p = (charm_data_t*)q->p.user_data;
     double * c = p->par.g.c;
     switch (k) {
@@ -99,7 +99,7 @@ double charm_base_func_dy(double* x, int k, p4est_quadrant_t* q) {
 
 
 double charm_base_func_dz(double* x, int k, p4est_quadrant_t* q) {
-    P4EST_ASSERT(k < CHARM_BASE_FN_COUNT);
+    CHARM_ASSERT(k < CHARM_BASE_FN_COUNT);
     charm_data_t *p = (charm_data_t*)q->p.user_data;
     double * c = p->par.g.c;
     switch (k) {

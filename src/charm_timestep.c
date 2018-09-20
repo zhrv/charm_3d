@@ -30,8 +30,8 @@ void charm_timesteps(p4est_t * p4est, double time)
     p4est_ghost_t      *ghost;
 
 
-    ghost = p4est_ghost_new (p4est, P4EST_CONNECT_FULL);
-    ghost_data = P4EST_ALLOC (charm_data_t, ghost->ghosts.elem_count);
+    ghost = p4est_ghost_new (p4est, CHARM_CONNECT_FULL);
+    ghost_data = CHARM_ALLOC (charm_data_t, ghost->ghosts.elem_count);
     p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 
 
@@ -45,7 +45,7 @@ void charm_timesteps(p4est_t * p4est, double time)
         }
     }
 
-    P4EST_FREE (ghost_data);
+    CHARM_FREE (ghost_data);
     p4est_ghost_destroy (ghost);
 }
 
@@ -74,7 +74,7 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, p4est
                 charm_adapt(p4est); /* adapt */
                 if (ghost) {
                     p4est_ghost_destroy(ghost);
-                    P4EST_FREE (ghost_data);
+                    CHARM_FREE (ghost_data);
                     ghost = NULL;
                     ghost_data = NULL;
                 }
@@ -93,7 +93,7 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, p4est
 
         if (ghost) {
             p4est_ghost_destroy (ghost);
-            P4EST_FREE (ghost_data);
+            CHARM_FREE (ghost_data);
             ghost = NULL;
             ghost_data = NULL;
         }
@@ -107,8 +107,8 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, p4est
 
     /* synchronize the ghost data */
     if (!ghost) {
-        ghost = p4est_ghost_new (p4est, P4EST_CONNECT_FULL);
-        ghost_data = P4EST_ALLOC (charm_data_t, ghost->ghosts.elem_count);
+        ghost = p4est_ghost_new (p4est, CHARM_CONNECT_FULL);
+        ghost_data = CHARM_ALLOC (charm_data_t, ghost->ghosts.elem_count);
         p4est_ghost_exchange_data (p4est, ghost, ghost_data);
     }
 
@@ -193,7 +193,7 @@ static double _charm_get_timestep (p4est_t * p4est)
 //    min_h = CHARM_GET_H(global_max_level);
 //
 //    vnorm = 0;
-//    for (i = 0; i < P4EST_DIM; i++) {
+//    for (i = 0; i < CHARM_DIM; i++) {
 ////        vnorm += ctx->v[i] * ctx->v[i];
 //    }
 //    vnorm = sqrt (vnorm);
@@ -227,11 +227,11 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
     charm_matr_vect_mult(data->par.g.a_inv, data->int_re, rhs_re);
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->par.c.ro[i] += dt * rhs_ro[i];
-        data->par.c.ru[i] += dt * rhs_ru[i];
-        data->par.c.rv[i] += dt * rhs_rv[i];
-        data->par.c.rw[i] += dt * rhs_rw[i];
-        data->par.c.re[i] += dt * rhs_re[i];
+        data->par.c.ro[i] -= dt * rhs_ro[i];
+        data->par.c.ru[i] -= dt * rhs_ru[i];
+        data->par.c.rv[i] -= dt * rhs_rv[i];
+        data->par.c.rw[i] -= dt * rhs_rw[i];
+        data->par.c.re[i] -= dt * rhs_re[i];
     }
 }
 

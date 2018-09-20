@@ -35,7 +35,7 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
     double RCE = RE * CE;
     double DU = UB - UE;
     if (DU < -2.0 * (CB + CE) / AGAM) {
-        P4EST_GLOBAL_ESSENTIALF ("%s\n", " RIEMANN PROBLEM SOLVER: ATTENTION!!!  VACUUM!!!");
+        CHARM_GLOBAL_ESSENTIALF ("%s\n", " RIEMANN PROBLEM SOLVER: ATTENTION!!!  VACUUM!!!");
         RF = 0.0;
         RS = 0.0;
         EF = 0.0;
@@ -213,7 +213,7 @@ void __charm_calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], d
                 nt[1][2] =  n[0]/ri;
             }
             else {
-                P4EST_ASSERT(1./sqrt(n[1]*n[1]+n[2]*n[2]) > CHARM_EPS);
+                CHARM_ASSERT(1./sqrt(n[1]*n[1]+n[2]*n[2]) > CHARM_EPS);
             }
         }
     }
