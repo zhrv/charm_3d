@@ -23,15 +23,16 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     attr = charm_get_tree_attr(p4est, which_tree);
     reg = attr->reg;
 
-    prim.p = reg->p;
-    prim.t = reg->t;
-    prim.u = reg->v[0];
-    prim.v = reg->v[1];
-    prim.w = reg->v[2];
-    charm_mat_eos(reg->mat, &prim, 2);
-    charm_mat_eos(reg->mat, &prim, 1);
+    prim.mat = reg->mat;
+    prim.p   = reg->p;
+    prim.t   = reg->t;
+    prim.u   = reg->v[0];
+    prim.v   = reg->v[1];
+    prim.w   = reg->v[2];
+    charm_mat_eos(&prim, 2);
+    charm_mat_eos(&prim, 1);
     prim.e_tot = prim.e + 0.5*(prim.u*prim.u+prim.v*prim.v+prim.w*prim.w);
-    charm_param_prim_to_cons(reg->mat, &cons, &prim);
+    charm_param_prim_to_cons(&cons, &prim);
     memset(&(par->c), 0, sizeof(par->c));
     par->c.ro[0] = cons.ro;
     par->c.ru[0] = cons.ru;
@@ -41,6 +42,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     for (i = 0; i < CHARM_MAX_COMPONETS_COUNT; i++) {
         par->c.rc[i][0] = cons.rc[i];
     }
+    par->mat = reg->mat;
 }
 
 
@@ -59,7 +61,7 @@ void charm_init_fetch_bnd(mxml_node_t* node, charm_bnd_t *bnd)
         case BOUND_INLET:
             bnd->bnd_fn = charm_bnd_cond_fn_inlet;
             n2 = charm_xml_node_get_child(node, "parameters");
-            bnd->params = P4EST_ALLOC(double, 5);
+            bnd->params = CHARM_ALLOC(double, 5);
             charm_xml_node_child_param_dbl(n2, "Vx", &(bnd->params[0]));
             charm_xml_node_child_param_dbl(n2, "Vy", &(bnd->params[1]));
             charm_xml_node_child_param_dbl(n2, "Vz", &(bnd->params[2]));
@@ -75,11 +77,11 @@ void charm_init_fetch_bnd(mxml_node_t* node, charm_bnd_t *bnd)
         case BOUND_WALL_NO_SLIP: // @todo
             bnd->bnd_fn = charm_bnd_cond_fn_wall_no_slip;
             n2 = charm_xml_node_get_child(node, "parameters");
-            bnd->params = P4EST_ALLOC(double, 1);
+            bnd->params = CHARM_ALLOC(double, 1);
             charm_xml_node_child_param_dbl(n2, "T", &(bnd->params[0]));
             break;
         default:
-            P4EST_LERRORF("Unknown boundary type %d\n", bnd->type);
+            CHARM_LERRORF("Unknown boundary type %d\n", bnd->type);
 
     }
 

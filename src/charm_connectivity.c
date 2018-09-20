@@ -75,9 +75,9 @@ unsigned charm_face_hash(const void *v)
 charm_fhash_t* charm_fhash_new(p4est_topidx_t size)
 {
     int i;
-    charm_fhash_t * fh = P4EST_ALLOC(charm_fhash_t, 1);
+    charm_fhash_t * fh = CHARM_ALLOC(charm_fhash_t, 1);
     fh->size = size;
-    fh->el = P4EST_ALLOC(charm_hash_elem_t, size);
+    fh->el = CHARM_ALLOC(charm_hash_elem_t, size);
     for (i = 0; i < size; i++) {
         fh->el[i].key = NULL;
         fh->el[i].val = sc_array_new(sizeof(charm_face_info_t));
@@ -97,7 +97,7 @@ void charm_fhash_insert(charm_fhash_t* fh, const p4est_topidx_t* key, charm_face
         }
         idx = (idx + 1) % fh->size;
     }
-    fh->el[idx].key = P4EST_ALLOC(p4est_topidx_t, 4);
+    fh->el[idx].key = CHARM_ALLOC(p4est_topidx_t, 4);
     memcpy(fh->el[idx].key, key, 4*sizeof(p4est_topidx_t));
     pval = sc_array_push(fh->el[idx].val);
     memcpy(pval, val, sizeof(charm_face_info_t));
@@ -129,7 +129,7 @@ sc_array_t* charm_fhash_lookup(charm_fhash_t* fh, p4est_topidx_t* key)
 static char        *
 charm_connectivity_getline_upper (FILE * stream)
 {
-    char               *line = P4EST_ALLOC (char, 1024), *linep = line;
+    char               *line = CHARM_ALLOC (char, 1024), *linep = line;
     size_t              lenmax = 1024, len = lenmax;
     int                 c;
 
@@ -140,7 +140,7 @@ charm_connectivity_getline_upper (FILE * stream)
         c = fgetc (stream);
         c = toupper (c);
         if (c == EOF && linep == line) {
-            P4EST_FREE (linep);
+            CHARM_FREE (linep);
             return NULL;
         }
 
@@ -150,9 +150,9 @@ charm_connectivity_getline_upper (FILE * stream)
             len = lenmax;
             lenmax *= 2;
 
-            linen = P4EST_REALLOC (linep, char, lenmax);
+            linen = CHARM_REALLOC (linep, char, lenmax);
             if (linen == NULL) {
-                P4EST_FREE (linep);
+                CHARM_FREE (linep);
                 return NULL;
             }
 
@@ -191,7 +191,7 @@ charm_bnd_t * charm_conn_bnd_find_by_id(charm_ctx_t* ctx, int id)
 
 
 
-    P4EST_ASSERT(patch_found);
+    CHARM_ASSERT(patch_found);
 
     for (i = 0; i < ctx->bnd->elem_count; i++) {
         bnd = sc_array_index(ctx->bnd, i);
@@ -222,7 +222,7 @@ charm_reg_t * charm_conn_reg_find_by_id(charm_ctx_t* ctx, int id)
 
 
 
-    P4EST_ASSERT(patch_found);
+    CHARM_ASSERT(patch_found);
 
     for (i = 0; i < ctx->reg->elem_count; i++) {
         reg = sc_array_index(ctx->reg, i);
@@ -241,7 +241,7 @@ int charm_conn_find_tree_by_face(charm_ctx_t *ctx, p4est_connectivity_t  *conn, 
     charm_tree_attr_t *attr;
 
     sc_array_t* arr = charm_fhash_lookup(fh, face_vert);
-    P4EST_ASSERT(arr != NULL);
+    CHARM_ASSERT(arr != NULL);
     for (i = 0; i < arr->elem_count; i++) {
         charm_face_info_t * fi = (charm_face_info_t *)sc_array_index(arr, i);
         attr = (charm_tree_attr_t *)&(conn->tree_to_attr[sizeof(charm_tree_attr_t)*fi->tree]);
@@ -336,8 +336,8 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
 
     char *filename;
 
-    P4EST_ASSERT(ctx->msh->type != CHARM_MESH_UNKNOWN);
-    P4EST_ASSERT(ctx->msh->filename);
+    CHARM_ASSERT(ctx->msh->type != CHARM_MESH_UNKNOWN);
+    CHARM_ASSERT(ctx->msh->filename);
 
     filename = ctx->msh->filename;
 
@@ -361,30 +361,30 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
 
         if (line[0] == '$') {
             if (strstr(line, "$PHYSICALNAMES")) {
-                P4EST_FREE(line);
+                CHARM_FREE(line);
                 line = charm_connectivity_getline_upper (fid);
                 sscanf(line, "%d", &num_patches);
                 patches = sc_array_new(sizeof(charm_patch_t));
                 for (i = 0; i < num_patches; i++) {
-                    P4EST_FREE(line);
+                    CHARM_FREE(line);
                     line = charm_connectivity_getline_upper (fid);
                     patch = sc_array_push(patches);
                     sscanf(line, "%d %d \"%[^\"]", &(patch->dim), &(patch->id), patch->name);
                 }
             }
             else if (strstr(line, "$NODES")) {
-                P4EST_FREE(line);
+                CHARM_FREE(line);
                 line = charm_connectivity_getline_upper (fid);
                 sscanf(line, "%d", &num_vertices);
-                vert = P4EST_ALLOC(double, num_vertices*3);
+                vert = CHARM_ALLOC(double, num_vertices*3);
                 for (i = 0; i < num_vertices; i++) {
-                    P4EST_FREE(line);
+                    CHARM_FREE(line);
                     line = charm_connectivity_getline_upper (fid);
                     retval = sscanf (line, "%lld %lf %lf %lf", &node, &x, &y, &z);
                     if (retval != 4) {
                         CHARM_LERROR ("Premature end of file");
-                        P4EST_FREE (line);
-                        P4EST_FREE (vert);
+                        CHARM_FREE (line);
+                        CHARM_FREE (vert);
                         return NULL;
                     }
                     vert[3 * i + 0] = x;
@@ -394,43 +394,43 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
             }
             else if(strstr(line, "$ELEMENTS")) {
                 fgetpos (fid, &fpos);
-                P4EST_FREE(line);
+                CHARM_FREE(line);
                 line = charm_connectivity_getline_upper (fid);
                 sscanf(line, "%d", &num_trees);
-                trees = P4EST_ALLOC(p4est_topidx_t, num_trees*8);
+                trees = CHARM_ALLOC(p4est_topidx_t, num_trees*8);
                 fh = charm_fhash_new(num_trees*6);
                 for (i = 0; i < num_trees; i++) {
-                    P4EST_FREE(line);
+                    CHARM_FREE(line);
                     line = charm_connectivity_getline_upper (fid);
                     retval = sscanf (line, "%lld %lld", &node, &type);
                     if (retval != 2) {
                         CHARM_LERROR ("Premature end of file");
-                        P4EST_FREE (line);
-                        P4EST_FREE (vert);
-                        P4EST_FREE (trees);
+                        CHARM_FREE (line);
+                        CHARM_FREE (vert);
+                        CHARM_FREE (trees);
                         return NULL;
                     }
 
                     if (type == 5) {
                         int tagc, tag1, tag2;
                         retval = sscanf (line, "%lld %lld %d %d %d %d %d %d %d %d %d %d %d", &node, &type, &tagc, &tag1, &tag2,
-                                         &trees[num_trees_real*P4EST_CHILDREN+0], &trees[num_trees_real*P4EST_CHILDREN+1], &trees[num_trees_real*P4EST_CHILDREN+3], &trees[num_trees_real*P4EST_CHILDREN+2],
-                                         &trees[num_trees_real*P4EST_CHILDREN+4], &trees[num_trees_real*P4EST_CHILDREN+5], &trees[num_trees_real*P4EST_CHILDREN+7], &trees[num_trees_real*P4EST_CHILDREN+6] );
+                                         &trees[num_trees_real*CHARM_CHILDREN+0], &trees[num_trees_real*CHARM_CHILDREN+1], &trees[num_trees_real*CHARM_CHILDREN+3], &trees[num_trees_real*CHARM_CHILDREN+2],
+                                         &trees[num_trees_real*CHARM_CHILDREN+4], &trees[num_trees_real*CHARM_CHILDREN+5], &trees[num_trees_real*CHARM_CHILDREN+7], &trees[num_trees_real*CHARM_CHILDREN+6] );
                         if (retval != 13) {
                             CHARM_LERROR ("Premature end of file");
-                            P4EST_FREE (line);
-                            P4EST_FREE (vert);
-                            P4EST_FREE (trees);
+                            CHARM_FREE (line);
+                            CHARM_FREE (vert);
+                            CHARM_FREE (trees);
                             return NULL;
                         }
-                        for (int j = 0; j < P4EST_CHILDREN; j++) {
-                            --trees[num_trees_real*P4EST_CHILDREN+j];
+                        for (int j = 0; j < CHARM_CHILDREN; j++) {
+                            --trees[num_trees_real*CHARM_CHILDREN+j];
                         }
-                        for (int j = 0; j < P4EST_FACES; j++) {
+                        for (int j = 0; j < CHARM_FACES; j++) {
                             fi.type = j;
                             fi.tree = num_trees_real;
-                            for (int k = 0; k < P4EST_HALF; k++) {
-                                fkey[k] = trees[num_trees_real*P4EST_CHILDREN+charm_face_corners[j][k]];
+                            for (int k = 0; k < CHARM_HALF; k++) {
+                                fkey[k] = trees[num_trees_real*CHARM_CHILDREN+charm_face_corners[j][k]];
                             }
                             charm_fhash_insert(fh, fkey, &fi);
                         }
@@ -440,27 +440,27 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
             }
         }
 
-        P4EST_FREE(line);
+        CHARM_FREE(line);
     }
 
     conn = p4est_connectivity_new(num_vertices, num_trees_real, 0, 0, 0, 0);
     memcpy(conn->vertices, vert, conn->num_vertices*3*sizeof(double));
-    memcpy(conn->tree_to_vertex, trees, conn->num_trees*P4EST_CHILDREN*sizeof(p4est_topidx_t));
+    memcpy(conn->tree_to_vertex, trees, conn->num_trees*CHARM_CHILDREN*sizeof(p4est_topidx_t));
 
-    P4EST_FREE(vert);
-    P4EST_FREE(trees);
+    CHARM_FREE(vert);
+    CHARM_FREE(trees);
 
     /*
      * Fill tree_to_tree and tree_to_face to make sure we have a valid
      * connectivity.
      */
     for (tree = 0; tree < conn->num_trees; ++tree) {
-        for (face = 0; face < P4EST_FACES; ++face) {
-            conn->tree_to_tree[P4EST_FACES * tree + face] = tree;
-            conn->tree_to_face[P4EST_FACES * tree + face] = face;
+        for (face = 0; face < CHARM_FACES; ++face) {
+            conn->tree_to_tree[CHARM_FACES * tree + face] = tree;
+            conn->tree_to_face[CHARM_FACES * tree + face] = face;
         }
     }
-    P4EST_ASSERT (p4est_connectivity_is_valid (conn));
+    CHARM_ASSERT (p4est_connectivity_is_valid (conn));
 
     /* Compute real tree_to_* fields and complete (edge and) corner fields. */
     p4est_connectivity_complete (conn);
@@ -468,7 +468,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
     p4est_connectivity_set_attr(conn, sizeof(charm_tree_attr_t));
     charm_tree_attr_t * attr;
     for (tree = 0, attr = (charm_tree_attr_t*)(conn->tree_to_attr); tree < conn->num_trees; ++tree, ++attr) {
-        for (face = 0; face < P4EST_FACES; ++face) {
+        for (face = 0; face < CHARM_FACES; ++face) {
             attr->bnd[face] = NULL;
         }
         attr->reg = NULL;
@@ -478,7 +478,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
     line = charm_connectivity_getline_upper(fid);
     int ele_count = 0;
     sscanf(line, "%d", &ele_count);
-    P4EST_FREE(line);
+    CHARM_FREE(line);
     p4est_topidx_t fv[32];
     attr = (charm_tree_attr_t*)(conn->tree_to_attr);
     for (; ele_count > 0; ele_count--) {
@@ -490,7 +490,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
             attr->reg = charm_conn_reg_find_by_id(ctx, fv[8]);
             attr++;
         }
-        P4EST_FREE(line);
+        CHARM_FREE(line);
     }
 
     sc_array_destroy(patches);
@@ -541,7 +541,7 @@ charm_connectivity_read_inp_stream (FILE * stream,
     int                 fill_trees_and_vertices = (vertices != NULL &&
                                                    tree_to_vertex != NULL);
 
-    P4EST_ASSERT ((vertices == NULL && tree_to_vertex == NULL) ||
+    CHARM_ASSERT ((vertices == NULL && tree_to_vertex == NULL) ||
                   (vertices != NULL && tree_to_vertex != NULL));
 
     for (;;) {
@@ -559,7 +559,7 @@ charm_connectivity_read_inp_stream (FILE * stream,
             if (strstr (line, "*NODE")) {
                 reading_nodes = 1;
                 ++lines_free;
-                P4EST_FREE (line);
+                CHARM_FREE (line);
                 continue;
             }
             else if (strstr (line, "*ELEMENT")) {
@@ -573,7 +573,7 @@ charm_connectivity_read_inp_stream (FILE * stream,
                         ) {
                     reading_elements = 1;
                     ++lines_free;
-                    P4EST_FREE (line);
+                    CHARM_FREE (line);
                     continue;
                 }
             }
@@ -588,7 +588,7 @@ charm_connectivity_read_inp_stream (FILE * stream,
                 retval = sscanf (line, "%lld, %lf, %lf, %lf", &node, &x, &y, &z);
                 if (retval != 4) {
                     CHARM_LERROR ("Premature end of file");
-                    P4EST_FREE (line);
+                    CHARM_FREE (line);
                     return 1;
                 }
 
@@ -597,7 +597,7 @@ charm_connectivity_read_inp_stream (FILE * stream,
                     ("Encountered vertex %lld that will not fit in vertices"
                              " array of length %lld.  Are the vertices contiguously"
                              " numbered?\n", node, (long long int) *num_vertices);
-                    P4EST_FREE (line);
+                    CHARM_FREE (line);
                     return 1;
                 }
 
@@ -611,7 +611,7 @@ charm_connectivity_read_inp_stream (FILE * stream,
         else if (reading_elements) {
             if (fill_trees_and_vertices) {
                 long long int       element_number;
-                long long int       v[P4EST_CHILDREN];
+                long long int       v[CHARM_CHILDREN];
                 int                 n;
                 int                 retval;
 
@@ -628,21 +628,21 @@ charm_connectivity_read_inp_stream (FILE * stream,
                         , &v[4], &v[5], &v[7], &v[6]
 #endif
                 );
-                if (retval != P4EST_CHILDREN + 1) {
+                if (retval != CHARM_CHILDREN + 1) {
                     CHARM_LERROR ("Premature end of file");
-                    P4EST_FREE (line);
+                    CHARM_FREE (line);
                     return 1;
                 }
 
                 if (num_elements >= *num_trees) {
                     CHARM_LERROR ("Encountered element that will not fit into"
                                           " tree_to_vertex array. More elements than expected.\n");
-                    P4EST_FREE (line);
+                    CHARM_FREE (line);
                     return 1;
                 }
 
-                for (n = 0; n < P4EST_CHILDREN; ++n)
-                    tree_to_vertex[P4EST_CHILDREN * num_elements + n] =
+                for (n = 0; n < CHARM_CHILDREN; ++n)
+                    tree_to_vertex[CHARM_CHILDREN * num_elements + n] =
                             v[n] - 1;
             }
 
@@ -650,7 +650,7 @@ charm_connectivity_read_inp_stream (FILE * stream,
         }
 
         ++lines_free;
-        P4EST_FREE (line);
+        CHARM_FREE (line);
     }
 
     *num_vertices = num_nodes;
@@ -678,8 +678,8 @@ charm_conn_reader_inp (charm_ctx_t *ctx)
 
     char *filename;
 
-    P4EST_ASSERT(ctx->msh->type != CHARM_MESH_UNKNOWN);
-    P4EST_ASSERT(ctx->msh->filename);
+    CHARM_ASSERT(ctx->msh->type != CHARM_MESH_UNKNOWN);
+    CHARM_ASSERT(ctx->msh->filename);
 
     filename = ctx->msh->filename;
 
@@ -717,12 +717,12 @@ charm_conn_reader_inp (charm_ctx_t *ctx)
      * connectivity.
      */
     for (tree = 0; tree < conn->num_trees; ++tree) {
-        for (face = 0; face < P4EST_FACES; ++face) {
-            conn->tree_to_tree[P4EST_FACES * tree + face] = tree;
-            conn->tree_to_face[P4EST_FACES * tree + face] = face;
+        for (face = 0; face < CHARM_FACES; ++face) {
+            conn->tree_to_tree[CHARM_FACES * tree + face] = tree;
+            conn->tree_to_face[CHARM_FACES * tree + face] = face;
         }
     }
-    P4EST_ASSERT (p4est_connectivity_is_valid (conn));
+    CHARM_ASSERT (p4est_connectivity_is_valid (conn));
 
     /* Compute real tree_to_* fields and complete (edge and) corner fields. */
     p4est_connectivity_complete (conn);

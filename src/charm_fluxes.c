@@ -35,7 +35,7 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
     double RCE = RE * CE;
     double DU = UB - UE;
     if (DU < -2.0 * (CB + CE) / AGAM) {
-        P4EST_GLOBAL_ESSENTIALF ("%s\n", " RIEMANN PROBLEM SOLVER: ATTENTION!!!  VACUUM!!!");
+        CHARM_GLOBAL_ESSENTIALF ("%s\n", " RIEMANN PROBLEM SOLVER: ATTENTION!!!  VACUUM!!!");
         RF = 0.0;
         RS = 0.0;
         EF = 0.0;
@@ -181,7 +181,7 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
     return;
 }
 
-void charm_calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
+void __charm_calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], double p_[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
 {
     int i,j;
     double ri, ei, pi, uu[3], uv[3];
@@ -213,7 +213,7 @@ void charm_calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], dou
                 nt[1][2] =  n[0]/ri;
             }
             else {
-                P4EST_ASSERT(1./sqrt(n[1]*n[1]+n[2]*n[2]) > CHARM_EPS);
+                CHARM_ASSERT(1./sqrt(n[1]*n[1]+n[2]*n[2]) > CHARM_EPS);
             }
         }
     }
@@ -243,5 +243,35 @@ void charm_calc_flux(double r_[2], double u_[2], double v_[2], double w_[2], dou
     *qv = (*qr)*uv[1]+pi*n[1];
     *qw = (*qr)*uv[2]+pi*n[2];
     *qe = (ri*(ei+0.5*(uv[0]*uv[0]+uv[1]*uv[1]+uv[2]*uv[2]))+pi)*uu[0];
+}
+
+void charm_calc_flux(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
+{
+    int     i;
+    double  alpha;
+    double  vn[2], ff[5][2], uu[5][2];
+    double *q[5] = {qr, qu, qv, qw, qe};
+
+    for (i = 0; i < 2; i++) {
+        vn[i] = prim[i].u*n[0]+prim[i].v*n[1]+prim[i].w*n[2];
+
+        uu[0][i] = prim[i].r;
+        uu[1][i] = prim[i].r*prim[i].u;
+        uu[2][i] = prim[i].r*prim[i].v;
+        uu[3][i] = prim[i].r*prim[i].w;
+        uu[4][i] = prim[i].r*prim[i].e_tot;
+
+        ff[0][i] = prim[i].r*vn[i];
+        ff[1][i] = prim[i].r*vn[i]*prim[i].u+prim[i].p*n[0];
+        ff[2][i] = prim[i].r*vn[i]*prim[i].v+prim[i].p*n[1];
+        ff[3][i] = prim[i].r*vn[i]*prim[i].w+prim[i].p*n[2];
+        ff[4][i] = (prim[i].r*prim[i].e_tot+prim[i].p)*vn[i];
+    }
+
+    alpha = _MAX_(fabs(vn[0])+prim[0].cz, fabs(vn[1])+prim[1].cz);
+
+    for (i = 0; i < 5; i++) {
+        *(q[i]) = 0.5*(ff[i][1]+ff[i][0]-alpha*(uu[i][1]-uu[i][0]));
+    }
 }
 

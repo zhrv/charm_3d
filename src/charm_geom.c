@@ -12,7 +12,7 @@
 
 static void _charm_quad_get_vertices(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, double v[8][CHARM_DIM])
 {
-    p4est_qcoord_t l = P4EST_QUADRANT_LEN(q->level);
+    p4est_qcoord_t l = CHARM_QUADRANT_LEN(q->level);
     p4est_qcoord_t qx, qy, qz;
     charm_data_t *p = (charm_data_t*)q->p.user_data;
     int i, iz, iy, ix;
@@ -33,7 +33,7 @@ static void _charm_quad_get_vertices(p4est_t* p4est, p4est_quadrant_t* q, p4est_
 
 static void _charm_quad_calc_center(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, double* c)
 {
-    p4est_qcoord_t l2 = P4EST_QUADRANT_LEN(q->level) / 2;
+    p4est_qcoord_t l2 = CHARM_QUADRANT_LEN(q->level) / 2;
     p4est_qcoord_to_vertex(p4est->connectivity, treeid, q->x + l2, q->y + l2, q->z + l2, c);
 }
 
@@ -125,12 +125,12 @@ static void _charm_quad_calc_gp_at_point(double vertices[8][3], double ref_p[CHA
     }
 
     *gj = charm_matr3_det(jacob);
-    P4EST_ASSERT(*gj != 0.);
+    CHARM_ASSERT(*gj != 0.);
 }
 
 static void _charm_quad_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, double gp[CHARM_QUAD_GP_COUNT][CHARM_DIM], double gw[CHARM_QUAD_GP_COUNT], double gj[CHARM_QUAD_GP_COUNT])
 {
-    p4est_qcoord_t l = P4EST_QUADRANT_LEN(q->level);
+    p4est_qcoord_t l = CHARM_QUADRANT_LEN(q->level);
     p4est_qcoord_t qx, qy, qz;
     charm_data_t *p = (charm_data_t*)q->p.user_data;
     int i, j, iz, iy, ix;
@@ -191,7 +191,7 @@ static double _charm_face_calc_normal(p4est_t* p4est, p4est_quadrant_t* q, p4est
 
     int i,k;
     double x[4][3], v[2][3], nl;
-    p4est_qcoord_t l = P4EST_QUADRANT_LEN(q->level);
+    p4est_qcoord_t l = CHARM_QUADRANT_LEN(q->level);
     p4est_qcoord_t l2 = l / 2;
     for (i = 0; i < 4; i++) {
         p4est_qcoord_to_vertex(p4est->connectivity, treeid, q->x + l * (ftv[face][i] % 2), q->y + l * ((ftv[face][i] / 2) % 2), q->z + l * (ftv[face][i] / 4), x[i]);
@@ -224,7 +224,7 @@ static double _charm_face_calc_area(p4est_t* p4est, p4est_quadrant_t* q, p4est_t
 
     int i,k;
     double x[4][3], v[2][3], n[3], s1, s2;
-    p4est_qcoord_t l = P4EST_QUADRANT_LEN(q->level);
+    p4est_qcoord_t l = CHARM_QUADRANT_LEN(q->level);
     p4est_qcoord_t l2 = l / 2;
     for (i = 0; i < 4; i++) {
         p4est_qcoord_to_vertex(p4est->connectivity, treeid, q->x + l * (ftv[face][i] % 2), q->y + l * ((ftv[face][i] / 2) % 2), q->z + l * (ftv[face][i] / 4), x[i]);
@@ -255,7 +255,7 @@ static double _charm_face_calc_area(p4est_t* p4est, p4est_quadrant_t* q, p4est_t
 
 static void _charm_face_calc_center(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, int8_t face, double* c)
 {
-    p4est_qcoord_t l  = P4EST_QUADRANT_LEN(q->level);
+    p4est_qcoord_t l  = CHARM_QUADRANT_LEN(q->level);
     p4est_qcoord_t l2 = l / 2;
     p4est_qcoord_t fc[6][3] = {
             {0, l2, l2},
@@ -277,7 +277,7 @@ static void _char_geom_face_get_v(p4est_t* p4est, p4est_quadrant_t* q, p4est_top
              { 2, 3, 6, 7 },
              { 0, 1, 2, 3 },
              { 4, 5, 6, 7 }};
-    p4est_qcoord_t l  = P4EST_QUADRANT_LEN(q->level);
+    p4est_qcoord_t l  = CHARM_QUADRANT_LEN(q->level);
     int i;
 
     for (i = 0; i < 4; i++) {
@@ -384,7 +384,7 @@ static void _charm_face_calc_gp_at_point(double vertices[8][3], int8_t face, int
 
 
     *gj = jacob[0][0]*jacob[1][1]-jacob[0][1]*jacob[1][0];
-    P4EST_ASSERT(*gj != 0.);
+    CHARM_ASSERT(*gj != 0.);
 }
 
 static void _charm_face_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, int8_t face, double gp[CHARM_FACE_GP_COUNT][CHARM_DIM], double gw[CHARM_FACE_GP_COUNT], double gj[CHARM_FACE_GP_COUNT])
@@ -499,7 +499,7 @@ void charm_geom_quad_calc(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t t
     int8_t i, j, ig;
     charm_data_t *p = (charm_data_t*)q->p.user_data;
 
-    for (i = 0; i < P4EST_FACES; i++) {
+    for (i = 0; i < CHARM_FACES; i++) {
         _charm_face_calc_center(p4est, q, treeid, i, p->par.g.fc[i]);
         _charm_face_calc_normal(p4est, q, treeid, i, p->par.g.n[i]);
         _charm_face_calc_gp_by_tri(p4est, q, treeid, i, p->par.g.face_gp[i], p->par.g.face_gw[i], p->par.g.face_gj[i]);

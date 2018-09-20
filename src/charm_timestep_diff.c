@@ -22,10 +22,10 @@ static void _charm_diffusion_flux_face_iter_bnd (p4est_iter_face_info_t * info, 
 //
 //
 //    // @todo is diff. flux a zero on boundary ?
-//    P4EST_ASSERT(info->tree_boundary);
+//    CHARM_ASSERT(info->tree_boundary);
 //
 //    side[0] = p4est_iter_fside_array_index_int(sides, 0);
-//    P4EST_ASSERT(!side[0]->is_hanging);
+//    CHARM_ASSERT(!side[0]->is_hanging);
 //    face[0] = side[0]->face;
 //    charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[0]->treeid);
 //    if (attr->bnd[face[0]]->type == BOUND_WALL_NO_SLIP) {
@@ -95,7 +95,7 @@ static void _charm_diffusion_flux_face_iter_inner (p4est_iter_face_info_t * info
 //
 //    h_side = -1;
 //    if (side[0]->is_hanging || side[1]->is_hanging) {
-//        for (j = 0; j < P4EST_HALF; j++) {
+//        for (j = 0; j < CHARM_HALF; j++) {
 //            for (i = 0; i < 2; i++) {
 //                if (side[i]->is_hanging) {
 //                    if (side[i]->is.hanging.is_ghost[j]) {
@@ -116,7 +116,7 @@ static void _charm_diffusion_flux_face_iter_inner (p4est_iter_face_info_t * info
 //                }
 //            }
 //
-//            P4EST_ASSERT(h_side != -1);
+//            CHARM_ASSERT(h_side != -1);
 //
 //            facearea = charm_face_get_area(udata[h_side], side[h_side]->face);
 //            charm_face_get_normal(udata[0], face[0], n);

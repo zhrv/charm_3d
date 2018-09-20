@@ -23,14 +23,14 @@ int main (int argc, char **argv)
     sc_init (mpicomm, 0, 0, NULL, CHARM_LOG_LEVEL);
     p4est_init (NULL, CHARM_LOG_LEVEL);
 
-    charm_package_id = sc_package_register(NULL, CHARM_LOG_LEVEL, "charm_3d", "Chemistry on AMR");
+    charm_package_id = sc_package_register(NULL, CHARM_LOG_LEVEL, CHARM_STRING, "Chemistry on AMR");
 
     CHARM_GLOBAL_ESSENTIAL("charm_3d started...\n");
 
     charm_init_context(&ctx);
 
     conn = charm_conn_create(&ctx);
-    P4EST_ASSERT(p4est_connectivity_is_valid(conn));
+    CHARM_ASSERT(p4est_connectivity_is_valid(conn));
 
     p4est = p4est_new_ext (mpicomm,              /* communicator */
                            conn,                 /* connectivity */

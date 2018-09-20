@@ -26,16 +26,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
 
     charm_tree_attr_t * attr = (charm_tree_attr_t *)&(p4est->connectivity->tree_to_attr[which_tree*sizeof(charm_tree_attr_t)]);
     charm_get_fields(q, data->par.g.c, &cons);
-    /*
-     * @todo TODO TODO TODO
-     */
-    memset(&cons, 0, sizeof(cons));
-    cons.ro = data->par.c.ro[0];
-    cons.ru = data->par.c.ru[0];
-    cons.rv = data->par.c.rv[0];
-    cons.rw = data->par.c.rw[0];
-    cons.re = data->par.c.re[0];
-    charm_param_cons_to_prim(attr->reg->mat, &prim, &cons);
+    charm_param_cons_to_prim(&prim, &cons);
 
     if (prim.r != prim.r) {
         int iiii=0;
@@ -67,7 +58,7 @@ void charm_write_solution (p4est_t * p4est, int timestep)
 
     numquads = (size_t)p4est->local_num_quadrants;
 
-    u_interp = P4EST_ALLOC(sc_array_t*, 7);
+    u_interp = CHARM_ALLOC(sc_array_t*, 7);
     for (i = 0; i < 7; i++) {
         u_interp[i] = sc_array_new_size (sizeof(double), numquads);
     }
@@ -85,7 +76,7 @@ void charm_write_solution (p4est_t * p4est, int timestep)
 
     context = p4est_vtk_write_header (context);
     SC_CHECK_ABORT (context != NULL,
-                    P4EST_STRING "_vtk: Error writing vtk header");
+                    CHARM_STRING "_vtk: Error writing vtk header");
 
     context = p4est_vtk_write_cell_dataf (context, 1, 1,      /* do write the refinement level of each quadrant */
                                           1,                  /* do write the mpi process id of each quadrant */
@@ -101,14 +92,14 @@ void charm_write_solution (p4est_t * p4est, int timestep)
                                           "W",     u_interp[6],
                                           context);           /* mark the end of the variable cell data. */
     SC_CHECK_ABORT (context != NULL,
-                    P4EST_STRING "_vtk: Error writing cell data");
+                    CHARM_STRING "_vtk: Error writing cell data");
 
     const int           retval = p4est_vtk_write_footer (context);
-    SC_CHECK_ABORT (!retval, P4EST_STRING "_vtk: Error writing footer");
+    SC_CHECK_ABORT (!retval, CHARM_STRING "_vtk: Error writing footer");
     for (i = 0; i < 5; i++) {
         sc_array_destroy(u_interp[i]);
     }
-    P4EST_FREE(u_interp);
+    CHARM_FREE(u_interp);
 
 }
 
