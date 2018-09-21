@@ -288,14 +288,14 @@ typedef enum {
     BOUND_INLET,
     BOUND_OUTLET,
     BOUND_WALL_SLIP,
-    BOUND_WALL_NO_SLIP
-} bnd_types_t;
+    BOUND_WALL_NO_SLIP,
+    BOUND_UNKNOWN
+} charm_bnd_types_t;
 
 typedef struct charm_bnd
 {
     char name[64];
-    bnd_types_t type;
-    int face_type;
+    charm_bnd_types_t type;
     double *params;
     charm_bnd_cond_fn_t bnd_fn;
 
@@ -306,6 +306,7 @@ typedef enum {
     CHARM_MESH_GMSH_MSH,
     CHARM_MESH_GMSH_INP,
     CHARM_MESH_GMSH_UNV,
+    CHARM_MESH_OPENFOAM,
     CHARM_MESH_SALOME_UNV,
     CHARM_MESH_TETGEN
 } charm_mesh_type_t;

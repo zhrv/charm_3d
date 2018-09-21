@@ -4,15 +4,15 @@
 
 #include "charm_bnd_cond.h"
 
-int charm_bnd_type_by_name(const char* name) {
+charm_bnd_types_t charm_bnd_type_by_name(const char* name) {
     int i = 0;
     while (charm_bnd_types[i] != NULL) {
         if (strcmp(charm_bnd_types[i], name) == 0) {
-            return i;
+            return (charm_bnd_types_t)i;
         }
         i++;
     }
-    return -1;
+    return BOUND_UNKNOWN;
 }
 
 
@@ -22,10 +22,9 @@ void charm_bnd_cond(p4est_t* p4est, p4est_topidx_t treeid, int8_t face,
     charm_tree_attr_t *attr = charm_get_tree_attr(p4est, treeid);
     charm_bnd_t *bnd = attr->bnd[face];
     CHARM_ASSERT(bnd);
-    //charm_param_cons_to_prim(attr->reg->mat, par_in);
     bnd->bnd_fn(par_in, par_out, face, bnd->params, n);
     par_out->mat = par_in->mat;
-    charm_mat_eos(par_out, 3); // (r, cz, e) <= (T,p)
+    charm_mat_eos(par_out, 3); // (T,p) => (r, cz, e)
     par_out->e_tot = par_out->e+0.5*_MAG_(par_out->u, par_out->v, par_out->w);
 }
 
@@ -44,7 +43,6 @@ void charm_bnd_cond_fn_inlet(charm_prim_t *par_in, charm_prim_t *par_out, int8_t
 void charm_bnd_cond_fn_outlet(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double n[CHARM_DIM])
 {
     charm_prim_cpy(par_out, par_in);
-//    par_out->p.p = 46066.;
 }
 
 void charm_bnd_cond_fn_wall_slip(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double n[CHARM_DIM])
@@ -57,6 +55,7 @@ void charm_bnd_cond_fn_wall_slip(charm_prim_t *par_in, charm_prim_t *par_out, in
     double   svn = scalar_prod( v, n );
     double   vv[3] = {n[0]*svn, n[1]*svn, n[3]*svn};
     for (i = 0; i < 3; i++) {
+        v[i] -= vv[i];
         v[i] -= vv[i];
     }
     par_out->u = v[0];

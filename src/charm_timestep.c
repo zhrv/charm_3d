@@ -50,6 +50,14 @@ void charm_timesteps(p4est_t * p4est, double time)
 }
 
 
+static void __debug_fn (p4est_iter_volume_info_t * info, void *user_data)
+{
+    p4est_quadrant_t   *q = info->quad;
+    charm_data_t       *data = (charm_data_t *) q->p.user_data;
+    int                 i;
+}
+
+
 static void _charm_timestep_single(p4est_t * p4est, int step, double time, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data)
 {
     double              t = 0.;
@@ -123,8 +131,24 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, p4est
     p4est_iterate (p4est,
                    ghost,
                    (void *) ghost_data,
+                   __debug_fn,
+                   NULL,
+                   NULL,
+                   NULL);
+
+    p4est_iterate (p4est,
+                   ghost,
+                   (void *) ghost_data,
                    NULL,
                    charm_convect_surface_int_iter_fn,
+                   NULL,
+                   NULL);
+
+    p4est_iterate (p4est,
+                   ghost,
+                   (void *) ghost_data,
+                   __debug_fn,
+                   NULL,
                    NULL,
                    NULL);
 
@@ -204,8 +228,6 @@ static double _charm_get_timestep (p4est_t * p4est)
 
     return ctx->dt;
 }
-
-
 
 
 static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)

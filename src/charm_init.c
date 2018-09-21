@@ -50,7 +50,6 @@ void charm_init_fetch_bnd(mxml_node_t* node, charm_bnd_t *bnd)
 {
     mxml_node_t * n1, *n2, *n3;
     char str[64];
-    charm_xml_node_attr_int(node, "faceType", &(bnd->face_type));
     n1 = charm_xml_node_get_child(node, "name");
     charm_xml_node_value_str(n1, bnd->name);
     n1 = charm_xml_node_get_child(node, "type");

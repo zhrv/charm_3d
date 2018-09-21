@@ -81,24 +81,6 @@ charm_mat_t * charm_mat_find_by_id(charm_ctx_t *ctx, int id)
 }
 
 
-charm_bnd_t * charm_bnd_find_by_face_type(charm_ctx_t *ctx, int type)
-{
-    int i;
-    sc_array_t *arr = ctx->bnd;
-    charm_bnd_t * bnd;
-
-
-    for (i = 0; i < arr->elem_count; i++) {
-        bnd = sc_array_index(arr, i);
-        if (bnd->face_type == type) {
-            return bnd;
-        }
-    }
-
-    return NULL;
-}
-
-
 charm_mesh_type_t charm_mesh_get_type_by_str(char *str)
 {
     if (strcmp(str, "gmsh_msh") == 0) {

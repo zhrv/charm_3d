@@ -20,6 +20,6 @@ void charm_bnd_cond(p4est_t* p4est, p4est_topidx_t treeid, int8_t face,
                     charm_prim_t *par_in, charm_prim_t *par_out, double n[CHARM_DIM]);
 
 
-int charm_bnd_type_by_name(const char* name);
+charm_bnd_types_t charm_bnd_type_by_name(const char* name);
 
 #endif //CHAMR_3D_CHARM_BND_COND_H

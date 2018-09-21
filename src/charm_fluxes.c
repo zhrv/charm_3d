@@ -271,7 +271,7 @@ void charm_calc_flux(charm_prim_t prim[2], double* qr, double* qu, double* qv, d
     alpha = _MAX_(fabs(vn[0])+prim[0].cz, fabs(vn[1])+prim[1].cz);
 
     for (i = 0; i < 5; i++) {
-        *(q[i]) = 0.5*(ff[i][1]+ff[i][0]-alpha*(uu[i][1]-uu[i][0]));
+        *(q[i]) = 0.5*( ff[i][1]+ff[i][0]-alpha*(uu[i][1]-uu[i][0]) );
     }
 }
 
