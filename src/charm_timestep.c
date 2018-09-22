@@ -249,11 +249,11 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
     charm_matr_vect_mult(data->par.g.a_inv, data->int_re, rhs_re);
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->par.c.ro[i] -= dt * rhs_ro[i];
-        data->par.c.ru[i] -= dt * rhs_ru[i];
-        data->par.c.rv[i] -= dt * rhs_rv[i];
-        data->par.c.rw[i] -= dt * rhs_rw[i];
-        data->par.c.re[i] -= dt * rhs_re[i];
+        data->par.c.ro[i] -= (dt * rhs_ro[i]);
+        data->par.c.ru[i] -= (dt * rhs_ru[i]);
+        data->par.c.rv[i] -= (dt * rhs_rv[i]);
+        data->par.c.rw[i] -= (dt * rhs_rw[i]);
+        data->par.c.re[i] -= (dt * rhs_re[i]);
     }
 }
 

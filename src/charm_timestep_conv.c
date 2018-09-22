@@ -95,13 +95,16 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
     charm_cons_t cons;
     charm_prim_t prim[2];
     double *x, gw, gj;
+    double intg[2][5];
 
-            CHARM_ASSERT(info->tree_boundary);
+
+    CHARM_ASSERT(info->tree_boundary);
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
-            CHARM_ASSERT(!side[0]->is_hanging);
+    CHARM_ASSERT(!side[0]->is_hanging);
 
     if (side[0]->is.full.is_ghost) {
+        CHARM_ASSERT(0);
         udata = &(ghost_data[side[0]->is.full.quadid]);
     } else {
         udata = (charm_data_t *) side[0]->is.full.quad->p.user_data;
@@ -121,25 +124,51 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
         }
     }
 
-    for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
-        x = udata->par.g.face_gp[face][igp];
-        gw = udata->par.g.face_gw[face][igp];
-        gj = udata->par.g.face_gj[face][igp];
-        charm_get_fields(side[0]->is.full.quad, x, &cons);
-        charm_param_cons_to_prim(&(prim[0]), &cons);
-        charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
-        charm_calc_flux(prim, &qr, &qu, &qv, &qw, &qe, n); /* flux from side 0 to side 1 */
-        for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
-            if (!side[0]->is.full.is_ghost) {
-                bfv = charm_base_func(x, ibf, side[0]->is.full.quad) * gw * gj;
-                udata->int_ro[ibf] += qr * bfv;
-                udata->int_ru[ibf] += qu * bfv;
-                udata->int_rv[ibf] += qv * bfv;
-                udata->int_rw[ibf] += qw * bfv;
-                udata->int_re[ibf] += qe * bfv;
-            }
-        }
+    for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
+        memset(intg, 0, sizeof(double)*10);
+        //for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
+            x = udata->par.g.fc[face];
+            gw = udata->par.g.area[face];
+            gj = 1.;//udata->par.g.face_gj[face][igp];
+            charm_get_fields(side[0]->is.full.quad, x, &cons);
+            charm_param_cons_to_prim(&(prim[0]), &cons);
+            charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
+            charm_calc_flux(prim, &qr, &qu, &qv, &qw, &qe, n); /* flux from side 0 to side 1 */
+            bfv = charm_base_func(x, ibf, side[0]->is.full.quad) * gw * gj;
+            intg[0][0] += qr*bfv;
+            intg[0][1] += qu*bfv;
+            intg[0][2] += qv*bfv;
+            intg[0][3] += qw*bfv;
+            intg[0][4] += qe*bfv;
+        //}
+
+        udata->int_ro[ibf] += intg[0][0];
+        udata->int_ru[ibf] += intg[0][1];
+        udata->int_rv[ibf] += intg[0][2];
+        udata->int_rw[ibf] += intg[0][3];
+        udata->int_re[ibf] += intg[0][4];
+
     }
+
+//    for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
+//        x = udata->par.g.face_gp[face][igp];
+//        gw = udata->par.g.face_gw[face][igp];
+//        gj = udata->par.g.face_gj[face][igp];
+//        charm_get_fields(side[0]->is.full.quad, x, &cons);
+//        charm_param_cons_to_prim(&(prim[0]), &cons);
+//        charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
+//        charm_calc_flux(prim, &qr, &qu, &qv, &qw, &qe, n); /* flux from side 0 to side 1 */
+//        for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
+//            if (!side[0]->is.full.is_ghost) {
+//                bfv = charm_base_func(x, ibf, side[0]->is.full.quad) * gw * gj;
+//                udata->int_ro[ibf] += qr * bfv;
+//                udata->int_ru[ibf] += qu * bfv;
+//                udata->int_rv[ibf] += qv * bfv;
+//                udata->int_rw[ibf] += qw * bfv;
+//                udata->int_re[ibf] += qe * bfv;
+//            }
+//        }
+//    }
 }
 
 
@@ -160,7 +189,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
     double                  c[2][3];
     double                  l[3];
     int8_t                  face[2];
-
+    double intg[2][5];
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     side[1] = p4est_iter_fside_array_index_int(sides, 1);
@@ -267,31 +296,65 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
             }
         }
 
-        for (igp = 0; igp < CHARM_BASE_FN_COUNT; igp++) {
-            x  = udata[0]->par.g.face_gp[face[0]][igp];
-            gw = udata[0]->par.g.face_gw[face[0]][igp];
-            gj = udata[0]->par.g.face_gj[face[0]][igp];
-            for (i = 0; i < 2; i++) {
-                charm_get_fields(side[i]->is.full.quad, x, &(cons[i]));
-                charm_param_cons_to_prim(&(prim[i]), &(cons[i]));
-            }
-
-            /* flux from side 0 to side 1 */
-            charm_calc_flux(prim, &qr, &qu, &qv, &qw, &qe, n);
-
-            for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
+        for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
+            memset(intg, 0, sizeof(double)*10);
+            //for (igp = 0; igp < CHARM_BASE_FN_COUNT; igp++) {
+                x  = udata[0]->par.g.fc[face[0]];
+                gw = udata[0]->par.g.area[face[0]];
+                gj = 1.;//udata[0]->par.g.face_gj[face[0]][igp];
+                for (i = 0; i < 2; i++) {
+                    charm_get_fields(side[i]->is.full.quad, x, &(cons[i]));
+                    charm_param_cons_to_prim(&(prim[i]), &(cons[i]));
+                }
+                charm_calc_flux(prim, &qr, &qu, &qv, &qw, &qe, n); // flux from side 0 to side 1
                 for (i = 0; i < 2; i++) {
                     if (!side[i]->is.full.is_ghost) {
-                        bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, side[i]->is.full.quad) * gw * gj;
-                        udata[i]->int_ro[ibf] += qr * bfv;
-                        udata[i]->int_ru[ibf] += qu * bfv;
-                        udata[i]->int_rv[ibf] += qv * bfv;
-                        udata[i]->int_rw[ibf] += qw * bfv;
-                        udata[i]->int_re[ibf] += qe * bfv;
+                        bfv = charm_base_func(x, ibf, side[i]->is.full.quad) * gw * gj;
+                        intg[i][0] += qr * bfv;
+                        intg[i][1] += qu * bfv;
+                        intg[i][2] += qv * bfv;
+                        intg[i][3] += qw * bfv;
+                        intg[i][4] += qe * bfv;
                     }
+                }
+            //}
+            for (i = 0; i < 2; i++) {
+                if (!side[i]->is.full.is_ghost) {
+                    udata[i]->int_ro[ibf] += (i ? -1. : 1.)*intg[i][0];
+                    udata[i]->int_ru[ibf] += (i ? -1. : 1.)*intg[i][1];
+                    udata[i]->int_rv[ibf] += (i ? -1. : 1.)*intg[i][2];
+                    udata[i]->int_rw[ibf] += (i ? -1. : 1.)*intg[i][3];
+                    udata[i]->int_re[ibf] += (i ? -1. : 1.)*intg[i][4];
                 }
             }
         }
+
+
+//        for (igp = 0; igp < CHARM_BASE_FN_COUNT; igp++) {
+//            x  = udata[0]->par.g.face_gp[face[0]][igp];
+//            gw = udata[0]->par.g.face_gw[face[0]][igp];
+//            gj = udata[0]->par.g.face_gj[face[0]][igp];
+//            for (i = 0; i < 2; i++) {
+//                charm_get_fields(side[i]->is.full.quad, x, &(cons[i]));
+//                charm_param_cons_to_prim(&(prim[i]), &(cons[i]));
+//            }
+//
+//            /* flux from side 0 to side 1 */
+//            charm_calc_flux(prim, &qr, &qu, &qv, &qw, &qe, n);
+//
+//            for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
+//                for (i = 0; i < 2; i++) {
+//                    if (!side[i]->is.full.is_ghost) {
+//                        bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, side[i]->is.full.quad) * gw * gj;
+//                        udata[i]->int_ro[ibf] += qr * bfv;
+//                        udata[i]->int_ru[ibf] += qu * bfv;
+//                        udata[i]->int_rv[ibf] += qv * bfv;
+//                        udata[i]->int_rw[ibf] += qw * bfv;
+//                        udata[i]->int_re[ibf] += qe * bfv;
+//                    }
+//                }
+//            }
+//        }
 
     }
 
