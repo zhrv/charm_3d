@@ -5,10 +5,6 @@
 #include "charm_amr.h"
 
 
-
-
-
-
 int main (int argc, char **argv)
 {
     int                   mpiret;
@@ -30,6 +26,13 @@ int main (int argc, char **argv)
     charm_init_context(&ctx);
 
     conn = charm_conn_create(&ctx);
+    if (!conn) {
+        sc_finalize ();
+
+        /* This is standard MPI programs.  Without --enable-mpi, this is a dummy. */
+        mpiret = sc_MPI_Finalize ();
+        return 1;
+    }
     CHARM_ASSERT(p4est_connectivity_is_valid(conn));
 
     p4est = p4est_new_ext (mpicomm,              /* communicator */
