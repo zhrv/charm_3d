@@ -132,9 +132,15 @@ void charm_mat_eos(charm_prim_t * p, int flag)
             break;
 
         case 3:
-            p->r = p->p*M/(p->t*gR);
+            p->r  = p->p*M/(p->t*gR);
             p->cz = sqrt(gam*p->p/p->r);
-            p->e = p->p/(p->r*(gam-1));
+            p->e  = p->p/(p->r*(gam-1));
+            break;
+
+        case 4:
+            p->p  = p->r*p->e*(gam-1);
+            p->cz = sqrt(gam*p->p/p->r);
+            p->t  = p->e/Cv;
             break;
 
         default:
@@ -155,8 +161,7 @@ void charm_param_cons_to_prim(charm_prim_t * p, charm_cons_t * c)
     p->e_tot  = c->re/c->ro;
     p->e      = p->e_tot-0.5*(p->u*p->u+p->v*p->v+p->w*p->w);
 
-    charm_mat_eos(p, 0);  // {p,cz}=EOS(r,e)
-    charm_mat_eos(p, 1);  // {e, t}=EOS(r,p)
+    charm_mat_eos(p, 4);  // {p,cz, t}=EOS(r,e)
 }
 
 

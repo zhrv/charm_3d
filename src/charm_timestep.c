@@ -9,6 +9,7 @@
 #include "charm_timestep_conv.h"
 
 static double _charm_get_timestep (p4est_t * p4est);
+static void charm_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data);
 static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data);
 static void _charm_timestep_single(p4est_t * p4est, int step, double time, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data);
 
@@ -126,32 +127,16 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, p4est
     p4est_iterate (p4est,
                    ghost,
                    (void *) ghost_data,
+                   charm_timestep_zero_quad_iter_fn,
+                   NULL,
+                   NULL,
+                   NULL);
+
+    p4est_iterate (p4est,
+                   ghost,
+                   (void *) ghost_data,
                    charm_convect_volume_int_iter_fn,
-                   NULL,
-                   NULL,
-                   NULL);
-
-    p4est_iterate (p4est,
-                   ghost,
-                   (void *) ghost_data,
-                   __debug_fn,
-                   NULL,
-                   NULL,
-                   NULL);
-
-    p4est_iterate (p4est,
-                   ghost,
-                   (void *) ghost_data,
-                   NULL,
                    charm_convect_surface_int_iter_fn,
-                   NULL,
-                   NULL);
-
-    p4est_iterate (p4est,
-                   ghost,
-                   (void *) ghost_data,
-                   __debug_fn,
-                   NULL,
                    NULL,
                    NULL);
 
@@ -257,6 +242,22 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
         data->par.c.rv[i] -= _NORM_(dt * rhs_rv[i]);
         data->par.c.rw[i] -= _NORM_(dt * rhs_rw[i]);
         data->par.c.re[i] -= _NORM_(dt * rhs_re[i]);
+    }
+}
+
+
+static void charm_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+{
+    p4est_quadrant_t   *q = info->quad;
+    charm_data_t       *data = (charm_data_t *) q->p.user_data;
+    int                 i;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        data->int_ro[i] = 0.;
+        data->int_ru[i] = 0.;
+        data->int_rv[i] = 0.;
+        data->int_rw[i] = 0.;
+        data->int_re[i] = 0.;
     }
 }
 
