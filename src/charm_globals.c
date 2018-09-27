@@ -358,3 +358,8 @@ void charm_matr_vect_mult(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], do
         }
     }
 }
+
+charm_data_t * charm_get_quad_data(p4est_quadrant_t *q)
+{
+    return (charm_data_t *) q->p.user_data;
+}

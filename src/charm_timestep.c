@@ -54,7 +54,7 @@ void charm_timesteps(p4est_t * p4est, double time)
 static void __debug_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     p4est_quadrant_t   *q = info->quad;
-    charm_data_t       *data = (charm_data_t *) q->p.user_data;
+    charm_data_t       *data = charm_get_quad_data(q);
     int                 i;
 }
 
@@ -220,8 +220,7 @@ static double _charm_get_timestep (p4est_t * p4est)
 
 static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
-    p4est_quadrant_t   *q = info->quad;
-    charm_data_t       *data = (charm_data_t *) q->p.user_data;
+    charm_data_t       *data = charm_get_quad_data(info->quad);
     double              dt = *((double *) user_data);
     double              rhs_ro[CHARM_BASE_FN_COUNT];
     double              rhs_ru[CHARM_BASE_FN_COUNT];
@@ -248,8 +247,7 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
 
 static void charm_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
-    p4est_quadrant_t   *q = info->quad;
-    charm_data_t       *data = (charm_data_t *) q->p.user_data;
+    charm_data_t       *data = charm_get_quad_data(info->quad);
     int                 i;
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {

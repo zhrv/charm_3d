@@ -365,6 +365,8 @@ charm_mesh_type_t charm_mesh_get_type_by_str(char*);
 
 charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tree);
 
+charm_data_t * charm_get_quad_data(p4est_quadrant_t *q);
+
 void charm_mat_eos(charm_prim_t * p, int flag);
 void charm_param_cons_to_prim(charm_prim_t * p, charm_cons_t * c);
 void charm_param_prim_to_cons(charm_cons_t * c, charm_prim_t * p);

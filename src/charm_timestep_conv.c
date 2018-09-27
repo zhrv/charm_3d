@@ -16,7 +16,7 @@
 void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     p4est_quadrant_t   *q = info->quad;
-    charm_data_t       *data = (charm_data_t *) q->p.user_data;
+    charm_data_t       *data = charm_get_quad_data(q);
     int                 ibf, igp;
     charm_cons_t        c;
     charm_prim_t        p;
@@ -100,7 +100,7 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
         CHARM_ASSERT(0);
         udata = &(ghost_data[side[0]->is.full.quadid]);
     } else {
-        udata = (charm_data_t *) side[0]->is.full.quad->p.user_data;
+        udata = charm_get_quad_data(side[0]->is.full.quad);//(charm_data_t *) side[0]->is.full.quad->p.user_data;
     }
     face = side[0]->face;
     charm_face_get_normal(udata, face, n);
@@ -245,7 +245,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
                 udata[i] = &(ghost_data[side[i]->is.full.quadid]);
             }
             else {
-                udata[i] = (charm_data_t *) side[i]->is.full.quad->p.user_data;
+                udata[i] = charm_get_quad_data(side[i]->is.full.quad);//(charm_data_t *) side[i]->is.full.quad->p.user_data;
             }
         }
         charm_face_get_normal(udata[0], face[0], n);

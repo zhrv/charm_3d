@@ -28,9 +28,6 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     charm_get_fields(q, data->par.g.c, &cons);
     charm_param_cons_to_prim(&prim, &cons);
 
-    if (prim.r != prim.r) {
-        int iiii=0;
-    }
     this_u[0] = prim.r;
     this_u[1] = prim.p;
     this_u[2] = prim.e;

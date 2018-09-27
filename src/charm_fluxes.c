@@ -181,7 +181,7 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
     return;
 }
 
-void charm_calc_flux(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
+void ___charm_calc_flux(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
 {
     int i,j;
     double ri, ei, pi, uu[3], uv[3];
@@ -254,7 +254,7 @@ void charm_calc_flux(charm_prim_t prim[2], double* qr, double* qu, double* qv, d
     *qe = (ri*(ei+0.5*(uv[0]*uv[0]+uv[1]*uv[1]+uv[2]*uv[2]))+pi)*uu[0];
 }
 
-void __charm_calc_flux(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
+void charm_calc_flux(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
 {
     int     i;
     double  alpha;
@@ -280,7 +280,7 @@ void __charm_calc_flux(charm_prim_t prim[2], double* qr, double* qu, double* qv,
     alpha = _MAX_(fabs(vn[0])+prim[0].cz, fabs(vn[1])+prim[1].cz);
 
     for (i = 0; i < 5; i++) {
-        *(q[i]) = ff[i][0];//0.5*( ff[i][1]+ff[i][0]-alpha*(uu[i][1]-uu[i][0]) );
+        *(q[i]) = 0.5*( ff[i][1]+ff[i][0]-alpha*(uu[i][1]-uu[i][0]) );
     }
 }
 
