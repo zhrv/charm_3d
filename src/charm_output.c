@@ -101,7 +101,7 @@ void charm_write_solution (p4est_t * p4est, int timestep)
 }
 
 
-void charm_log_statistics(p4est_t * p4est, int timestep, double time)
+void charm_log_statistics(p4est_t * p4est, int timestep, double time, double dt)
 {
-    CHARM_GLOBAL_ESSENTIALF(" STEP = %8d, TIME = %24.16e \n", timestep, time);
+    CHARM_GLOBAL_ESSENTIALF(" STEP = %8d, TIME = %16.8e , DT = %16.8e \n", timestep, time, dt);
 }

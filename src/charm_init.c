@@ -217,6 +217,7 @@ void charm_init_context(charm_ctx_t *ctx)
     charm_xml_node_child_param_int(node, "LOG_OUTPUT_STEP", &(ctx->log_period));
 
     charm_xml_node_child_param_dbl(node, "TAU", &(ctx->dt));
+    charm_xml_node_child_param_dbl(node, "CFL", &(ctx->CFL));
     charm_xml_node_child_param_dbl(node, "TMAX", &(ctx->time));
 
     charm_init_bnd(ctx, charm_xml_node_get_child(node_task, "boundaries"));
