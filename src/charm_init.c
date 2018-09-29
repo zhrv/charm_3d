@@ -23,16 +23,16 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     attr = charm_get_tree_attr(p4est, which_tree);
     reg = attr->reg;
 
-    prim.mat = reg->mat;
+    prim.mat_id = reg->mat_id;
     prim.p   = reg->p;
     prim.t   = reg->t;
     prim.u   = reg->v[0];
     prim.v   = reg->v[1];
     prim.w   = reg->v[2];
-    charm_mat_eos(&prim, 2);
-    charm_mat_eos(&prim, 1);
+    charm_mat_eos(p4est, &prim, 2);
+    charm_mat_eos(p4est, &prim, 1);
     prim.e_tot = prim.e + 0.5*(prim.u*prim.u+prim.v*prim.v+prim.w*prim.w);
-    charm_param_prim_to_cons(&cons, &prim);
+    charm_param_prim_to_cons(p4est, &cons, &prim);
     memset(&(par->c), 0, sizeof(par->c));
     par->c.ro[0] = cons.ro;
     par->c.ru[0] = cons.ru;
@@ -42,7 +42,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     for (i = 0; i < CHARM_MAX_COMPONETS_COUNT; i++) {
         par->c.rc[i][0] = cons.rc[i];
     }
-    par->mat = reg->mat;
+    par->mat_id = reg->mat_id;
 }
 
 
@@ -141,14 +141,11 @@ void charm_init_fetch_reg(charm_ctx_t* ctx, mxml_node_t* node, charm_reg_t *reg)
 {
     mxml_node_t * n1;
     int tmp;
-    charm_mat_t *mat;
     charm_xml_node_attr_int(node, "id", &(reg->id));
     n1 = charm_xml_node_get_child(node, "name");
     charm_xml_node_value_str(n1, reg->name);
     charm_xml_node_child_param_int(node, "cell_type", &(reg->cell_type));
-    charm_xml_node_child_param_int(node, "material_id", &tmp);
-    mat = charm_mat_find_by_id(ctx, tmp);
-    reg->mat = mat;
+    charm_xml_node_child_param_int(node, "material_id", &(reg->mat_id));
     n1 = charm_xml_node_get_child(node, "parameters");
     charm_xml_node_child_param_dbl(n1, "Vx", &(reg->v[0]));
     charm_xml_node_child_param_dbl(n1, "Vy", &(reg->v[1]));

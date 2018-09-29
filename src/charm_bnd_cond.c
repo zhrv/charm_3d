@@ -23,8 +23,8 @@ void charm_bnd_cond(p4est_t* p4est, p4est_topidx_t treeid, int8_t face,
     charm_bnd_t *bnd = attr->bnd[face];
     CHARM_ASSERT(bnd);
     bnd->bnd_fn(par_in, par_out, face, bnd->params, n);
-    par_out->mat = par_in->mat;
-    charm_mat_eos(par_out, 3); // (T,p) => (r, cz, e)
+    par_out->mat_id = par_in->mat_id;
+    charm_mat_eos(p4est, par_out, 3); // (T,p) => (r, cz, e)
     par_out->e_tot = par_out->e+0.5*_MAG_(par_out->u, par_out->v, par_out->w);
 }
 

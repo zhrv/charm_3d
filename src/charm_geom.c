@@ -522,8 +522,8 @@ void charm_geom_quad_calc(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t t
             a[i][j] = 0.;
             for (ig = 0; ig < CHARM_QUAD_GP_COUNT; ig++) {
                 a[i][j] += p->par.g.quad_gw[ig]*p->par.g.quad_gj[ig]
-                           * charm_base_func(p->par.g.quad_gp[ig], i, q)
-                           * charm_base_func(p->par.g.quad_gp[ig], j, q);
+                           * charm_base_func(p->par.g.quad_gp[ig], i, p)
+                           * charm_base_func(p->par.g.quad_gp[ig], j, p);
             }
         }
     }

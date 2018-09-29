@@ -167,8 +167,8 @@ static void _charm_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info
     charm_cons_t    cons;
     charm_prim_t    prim;
 
-    charm_get_fields(info->quad, data->par.g.c, &cons);
-    charm_param_cons_to_prim(&prim, &cons);
+    charm_get_fields(data, data->par.g.c, &cons);
+    charm_param_cons_to_prim(info->p4est, &prim, &cons);
 
     dt_loc = ctx->CFL * data->par.g.volume / (_MAG_(prim.u, prim.v, prim.w) + prim.cz);
 
