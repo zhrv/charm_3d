@@ -30,8 +30,8 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
         for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
             x = data->par.g.quad_gp[igp];
 
-            charm_get_fields(q, x, &c);
-            charm_param_cons_to_prim(&p, &c);
+            charm_get_fields(data, x, &c);
+            charm_param_cons_to_prim(info->p4est, &p, &c);
 
             fr = c.ru;
             fu = fr*p.u+p.p;
@@ -51,9 +51,9 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
             hw = hr*p.w+p.p;
             he = hr*p.e_tot+p.p*p.w;
 
-            phi_x = charm_base_func_dx(x, ibf, q) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
-            phi_y = charm_base_func_dy(x, ibf, q) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
-            phi_z = charm_base_func_dz(x, ibf, q) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
+            phi_x = charm_base_func_dx(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
+            phi_y = charm_base_func_dy(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
+            phi_z = charm_base_func_dz(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
 
             data->int_ro[ibf] -= (fr*phi_x+gr*phi_y+hr*phi_z);
             data->int_ru[ibf] -= (fu*phi_x+gu*phi_y+hu*phi_z);
@@ -121,13 +121,13 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
         x = udata->par.g.face_gp[face][igp];
         gw = udata->par.g.face_gw[face][igp];
         gj = udata->par.g.face_gj[face][igp];
-        charm_get_fields(side[0]->is.full.quad, x, &cons);
-        charm_param_cons_to_prim(&(prim[0]), &cons);
+        charm_get_fields(udata, x, &cons);
+        charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
         charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
         charm_calc_flux(prim, &qr, &qu, &qv, &qw, &qe, n); /* flux from side 0 to side 1 */
         for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
             if (!side[0]->is.full.is_ghost) {
-                bfv = charm_base_func(x, ibf, side[0]->is.full.quad) * gw * gj;
+                bfv = charm_base_func(x, ibf, udata) * gw * gj;
                 udata->int_ro[ibf] += qr * bfv;
                 udata->int_ru[ibf] += qu * bfv;
                 udata->int_rv[ibf] += qv * bfv;
@@ -267,14 +267,14 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
             gw = udata[0]->par.g.face_gw[face[0]][igp];
             gj = udata[0]->par.g.face_gj[face[0]][igp];
             for (i = 0; i < 2; i++) {
-                charm_get_fields(side[i]->is.full.quad, x, &(cons[i]));
-                charm_param_cons_to_prim(&(prim[i]), &(cons[i]));
+                charm_get_fields(udata[i], x, &(cons[i]));
+                charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
             }
             charm_calc_flux(prim, &qr, &qu, &qv, &qw, &qe, n);  // flux from side 0 to side 1
             for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                 for (i = 0; i < 2; i++) {
                     if (!side[i]->is.full.is_ghost) {
-                        bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, side[i]->is.full.quad) * gw * gj;
+                        bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
                         udata[i]->int_ro[ibf] += qr * bfv;
                         udata[i]->int_ru[ibf] += qu * bfv;
                         udata[i]->int_rv[ibf] += qv * bfv;

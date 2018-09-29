@@ -65,7 +65,7 @@ double charm_quad_get_volume(charm_data_t *d)
 
 charm_mat_t * charm_mat_find_by_id(charm_ctx_t *ctx, int id)
 {
-    int i;
+    size_t i;
     sc_array_t *arr = ctx->mat;
     charm_mat_t * mat;
 
@@ -104,11 +104,12 @@ charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tr
 }
 
 double gR = 8.314472;
-void charm_mat_eos(charm_prim_t * p, int flag)
+void charm_mat_eos(p4est_t * p4est, charm_prim_t * p, int flag)
 {
-    CHARM_ASSERT(p->mat);
-    double Cp = p->mat->cp;
-    double M  = p->mat->m;
+    charm_ctx_t *ctx = (charm_ctx_t *)p4est->user_pointer;
+    charm_mat_t *mat = charm_mat_find_by_id(ctx, p->mat_id);
+    double Cp = mat->cp;
+    double M  = mat->m;
     double Cv = Cp-gR/M;
     double gam = Cp/Cv;
     p->gam = gam;
@@ -150,10 +151,9 @@ void charm_mat_eos(charm_prim_t * p, int flag)
 }
 
 
-void charm_param_cons_to_prim(charm_prim_t * p, charm_cons_t * c)
+void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * c)
 {
-    CHARM_ASSERT(c->mat);
-    p->mat    = c->mat;
+    p->mat_id = c->mat_id;
     p->r      = c->ro;
     p->u      = c->ru/c->ro;
     p->v      = c->rv/c->ro;
@@ -161,14 +161,13 @@ void charm_param_cons_to_prim(charm_prim_t * p, charm_cons_t * c)
     p->e_tot  = c->re/c->ro;
     p->e      = p->e_tot-0.5*(p->u*p->u+p->v*p->v+p->w*p->w);
 
-    charm_mat_eos(p, 4);  // {p,cz, t}=EOS(r,e)
+    charm_mat_eos(p4est, p, 4);  // {p,cz, t}=EOS(r,e)
 }
 
 
-void charm_param_prim_to_cons(charm_cons_t * c, charm_prim_t * p)
+void charm_param_prim_to_cons(p4est_t * p4est, charm_cons_t * c, charm_prim_t * p)
 {
-    CHARM_ASSERT(p->mat);
-    c->mat = p->mat;
+    c->mat_id = p->mat_id;
     c->ro  = p->r;
     c->ru  = p->r*p->u;
     c->rv  = p->r*p->v;
@@ -179,19 +178,19 @@ void charm_param_prim_to_cons(charm_cons_t * c, charm_prim_t * p)
 
 void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src)
 {
-    dest->mat   = src->mat;
-    dest->r     = src->r;
-    dest->p     = src->p;
-    dest->u     = src->u;
-    dest->v     = src->v;
-    dest->w     = src->w;
-    dest->t     = src->t;
-    dest->cz    = src->cz;
-    dest->e     = src->e;
-    dest->e_tot = src->e_tot;
-    dest->cp    = src->cp;
-    dest->cv    = src->cv;
-    dest->gam   = src->gam;
+    dest->mat_id = src->mat_id;
+    dest->r      = src->r;
+    dest->p      = src->p;
+    dest->u      = src->u;
+    dest->v      = src->v;
+    dest->w      = src->w;
+    dest->t      = src->t;
+    dest->cz     = src->cz;
+    dest->e      = src->e;
+    dest->e_tot  = src->e_tot;
+    dest->cp     = src->cp;
+    dest->cv     = src->cv;
+    dest->gam    = src->gam;
 
 }
 
