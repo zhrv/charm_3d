@@ -17,6 +17,9 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     charm_tree_attr_t  *attr;
     charm_reg_t        *reg;
     int                 i;
+    double             *x;
+    double              pi  = 4.*atan(1.);
+    double              pi2 = 2.*pi;
 
     charm_geom_quad_calc(p4est, q, which_tree);
 
@@ -24,13 +27,41 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     reg = attr->reg;
 
     prim.mat_id = reg->mat_id;
-    prim.p   = reg->p;
-    prim.t   = reg->t;
-    prim.u   = reg->v[0];
-    prim.v   = reg->v[1];
-    prim.w   = reg->v[2];
-    charm_mat_eos(p4est, &prim, 2);
+
+    x = data->par.g.c;
+
+    if (x[2] < -0.008) {
+        prim.r = 12.09;
+        prim.u = 0.0;
+        prim.v = 0.0;
+        prim.w = 97.76;
+        prim.p = 2.152e+5;
+    }
+//    else if (x[2] > 0) {
+    else if (x[2] > -0.02*sin(pi*x[0]/0.04)*sin(pi*x[1]/0.04)) {
+//    else if (x[2] > -0.004*(1.0-cos(pi2*x[0]/0.001))*(1.0-cos(pi2*x[1]/0.001))) {
+        prim.r = 1.198;
+        prim.u = 0.0;
+        prim.v = 0.0;
+        prim.w = 0.0;
+        prim.p = 1.0e+5;
+    }
+    else {
+        prim.r = 6.037;
+        prim.u = 0.0;
+        prim.v = 0.0;
+        prim.w = 0.0;
+        prim.p = 1.0e+5;
+    }
     charm_mat_eos(p4est, &prim, 1);
+    charm_mat_eos(p4est, &prim, 2);
+//    prim.p   = reg->p;
+//    prim.t   = reg->t;
+//    prim.u   = reg->v[0];
+//    prim.v   = reg->v[1];
+//    prim.w   = reg->v[2];
+//    charm_mat_eos(p4est, &prim, 2);
+//    charm_mat_eos(p4est, &prim, 1);
     prim.e_tot = prim.e + 0.5*(prim.u*prim.u+prim.v*prim.v+prim.w*prim.w);
     charm_param_prim_to_cons(p4est, &cons, &prim);
     memset(&(par->c), 0, sizeof(par->c));
