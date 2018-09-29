@@ -29,6 +29,7 @@ void charm_timesteps(p4est_t * p4est, double time)
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
     charm_data_t       *ghost_data;
     p4est_ghost_t      *ghost;
+    double              calc_time;
 
 
     ghost = p4est_ghost_new (p4est, CHARM_CONNECT_FULL);
@@ -40,9 +41,11 @@ void charm_timesteps(p4est_t * p4est, double time)
 
     CHARM_GLOBAL_ESSENTIAL("Starting time steps...\n");
     for (t = 0., i = 0; t < time; t += dt, i++) {
+        calc_time = sc_MPI_Wtime();
         _charm_timestep_single(p4est, i, t, &dt, &ghost, &ghost_data);
+        calc_time = sc_MPI_Wtime() - calc_time;
         if (i % ctx->log_period == 0) {
-            charm_log_statistics(p4est, i, t, dt);
+            charm_log_statistics(p4est, i, t, dt, calc_time);
         }
     }
 
