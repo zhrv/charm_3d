@@ -35,7 +35,7 @@
 
 #define CHARM_LOG_LEVEL SC_LP_ESSENTIAL
 #define DBG_CH(R) ((void)0)
-#define CHARM_ASSERT ((void)0)
+#define CHARM_ASSERT(X) ((void)0)
 
 #endif
 
