@@ -154,7 +154,7 @@ __attribute__ ((format (printf, 1, 2)));
 #define CHARM_RIM_NEWTON_STEPS 5000
 #define CHARM_RIM_EPS 1.e-5
 
-#define CHARM_EPS 1.e-11
+#define CHARM_EPS 1.e-12
 
 #define FLD_COUNT 5
 
