@@ -10,7 +10,7 @@
  *  Cells
  */
 
-static void _charm_quad_get_vertices(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, double v[8][CHARM_DIM])
+void charm_quad_get_vertices(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, double v[8][CHARM_DIM])
 {
     p4est_qcoord_t l = CHARM_QUADRANT_LEN(q->level);
     p4est_qcoord_t qx, qy, qz;
@@ -148,7 +148,7 @@ static void _charm_quad_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topid
             { sqrt3,  sqrt3,  sqrt3}
     };
 
-    _charm_quad_get_vertices(p4est, q, treeid, v);
+    charm_quad_get_vertices(p4est, q, treeid, v);
 
     for (i = 0; i < 8; i++) {
         _charm_quad_calc_gp_at_point(v, t[i], gp[i], &gj[i]);
@@ -431,7 +431,7 @@ static void _charm_face_calc_gp(p4est_t* p4est, p4est_quadrant_t* q, p4est_topid
             }
     };
 
-    _charm_quad_get_vertices(p4est, q, treeid, v);
+    charm_quad_get_vertices(p4est, q, treeid, v);
 
     for (i = 0; i < CHARM_FACE_GP_COUNT; i++) {
         _charm_face_calc_gp_at_point(v, face, i, ref_gp[face][i], gp[i], &gj[i]);

@@ -7,6 +7,7 @@
 #include "charm_bnd_cond.h"
 #include "charm_base_func.h"
 #include "charm_timestep_conv.h"
+#include "charm_limiter.h"
 
 static double _charm_get_timestep (p4est_t * p4est);
 static void charm_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data);
@@ -152,6 +153,7 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, doubl
     /* synchronize the ghost data */
     p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 
+    charm_limiter(p4est, ghost, ghost_data);
     /* update grad */
 //    charm_calc_grad(p4est, ghost, ghost_data);
 
