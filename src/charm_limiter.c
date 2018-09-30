@@ -224,7 +224,7 @@ static void _charm_limiter_calc_iter_fn(p4est_iter_volume_info_t * info, void *u
 {
     charm_data_t *p = charm_get_quad_data(info->quad);
     double *u[5], f[5][8];
-    double u_min[5], u_max[5], psi[5];
+    double u_min[5], u_max[5], psi[5], psi_tmp;
     int i,j;
     double v[8][CHARM_DIM];
     charm_cons_t cons;
@@ -242,7 +242,7 @@ static void _charm_limiter_calc_iter_fn(p4est_iter_volume_info_t * info, void *u
     }
 
 
-    for (j = 0; j < 5; j++) {
+    for (j = 1; j < 5; j++) {
         for (i = 0; i < p->par.l.count; i++) {
             if (u_min[j] > u[j][i]) u_min[j] = u[j][i];
             if (u_max[j] < u[j][i]) u_max[j] = u[j][i];
@@ -250,6 +250,9 @@ static void _charm_limiter_calc_iter_fn(p4est_iter_volume_info_t * info, void *u
     }
 
     charm_quad_get_vertices(info->p4est, info->quad, info->treeid, v);
+    for (j = 0; j < 5; j++) {
+        psi[j] = 1.;
+    }
     for (i = 0; i < 8; i++) {
         charm_get_fields(p, v[i], &cons);
         f[0][i] = cons.ro;
@@ -258,8 +261,25 @@ static void _charm_limiter_calc_iter_fn(p4est_iter_volume_info_t * info, void *u
         f[3][i] = cons.rw;
         f[4][i] = cons.re;
         for (j = 0; j < 5; j++) {
-           // psi[j] = _MIN_(1, ()/());
+
+            if (u[j][i]-u[j][0] > 0) {
+                psi_tmp = _MIN_(1, (u_max[j]-u[j][0])/(u[j][i]-u[j][0]));
+            }
+            else if (u[j][i]-u[j][0] < 0) {
+                psi_tmp = _MIN_(1, (u_min[j]-u[j][0])/(u[j][i]-u[j][0]));
+            }
+            else {
+                psi_tmp = 1.;
+            }
+            if (psi_tmp < psi[j]) psi[j] = psi_tmp;
         }
+    }
+    for (j = 1; j < CHARM_BASE_FN_COUNT; j++) {
+        p->par.c.ro[j] *= psi[0];
+        p->par.c.ru[j] *= psi[1];
+        p->par.c.rv[j] *= psi[2];
+        p->par.c.rw[j] *= psi[3];
+        p->par.c.re[j] *= psi[4];
     }
 }
 
