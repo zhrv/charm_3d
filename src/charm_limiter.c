@@ -6,6 +6,7 @@
 #include "charm_globals.h"
 #include "charm_base_func.h"
 #include "charm_bnd_cond.h"
+#include "charm_geom.h"
 
 static void _charm_limiter_init_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
@@ -222,8 +223,44 @@ static void _charm_limiter_neigh_iter_fn(p4est_iter_face_info_t * info, void *us
 static void _charm_limiter_calc_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t *p = charm_get_quad_data(info->quad);
+    double *u[5], f[5][8];
+    double u_min[5], u_max[5], psi[5];
+    int i,j;
+    double v[8][CHARM_DIM];
+    charm_cons_t cons;
 
     CHARM_ASSERT(p->par.l.count == 7);
+
+    u[0] = p->par.l.ro;
+    u[1] = p->par.l.ru;
+    u[2] = p->par.l.rv;
+    u[3] = p->par.l.rw;
+    u[4] = p->par.l.re;
+
+    for (j = 0; j < 5; j++) {
+        u_min[j] = u_max[j] = u[j][0];
+    }
+
+
+    for (j = 0; j < 5; j++) {
+        for (i = 0; i < p->par.l.count; i++) {
+            if (u_min[j] > u[j][i]) u_min[j] = u[j][i];
+            if (u_max[j] < u[j][i]) u_max[j] = u[j][i];
+        }
+    }
+
+    charm_quad_get_vertices(info->p4est, info->quad, info->treeid, v);
+    for (i = 0; i < 8; i++) {
+        charm_get_fields(p, v[i], &cons);
+        f[0][i] = cons.ro;
+        f[1][i] = cons.ru;
+        f[2][i] = cons.rv;
+        f[3][i] = cons.rw;
+        f[4][i] = cons.re;
+        for (j = 0; j < 5; j++) {
+           // psi[j] = _MIN_(1, ()/());
+        }
+    }
 }
 
 
