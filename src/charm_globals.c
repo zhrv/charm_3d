@@ -80,6 +80,40 @@ charm_mat_t * charm_mat_find_by_id(charm_ctx_t *ctx, int id)
     return NULL;
 }
 
+int charm_mat_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index)
+{
+    size_t i;
+    sc_array_t *arr = ctx->mat;
+    charm_mat_t * mat;
+
+
+    for (i = 0; i < arr->elem_count; i++) {
+        mat = sc_array_index(arr, i);
+        if (mat->id == id) {
+            *index = i;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+charm_reg_t * charm_reg_find_by_id(charm_ctx_t *ctx, int id)
+{
+  size_t i;
+  sc_array_t *arr = ctx->reg;
+  charm_reg_t * reg;
+
+
+  for (i = 0; i < arr->elem_count; i++) {
+    reg = sc_array_index(arr, i);
+    if (reg->id == id) {
+      return reg;
+    }
+  }
+
+  return NULL;
+}
 
 charm_mesh_type_t charm_mesh_get_type_by_str(char *str)
 {
@@ -107,7 +141,8 @@ double gR = 8.314472;
 void charm_mat_eos(p4est_t * p4est, charm_prim_t * p, int flag)
 {
     charm_ctx_t *ctx = (charm_ctx_t *)p4est->user_pointer;
-    charm_mat_t *mat = charm_mat_find_by_id(ctx, p->mat_id);
+    charm_reg_t *reg = charm_reg_find_by_id(ctx, p->reg_id);
+    charm_mat_t *mat = charm_mat_find_by_id(ctx, reg->mat_id);
     double Cp = mat->cp;
     double M  = mat->m;
     double Cv = Cp-gR/M;
@@ -153,7 +188,7 @@ void charm_mat_eos(p4est_t * p4est, charm_prim_t * p, int flag)
 
 void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * c)
 {
-    p->mat_id = c->mat_id;
+    p->reg_id = c->reg_id;
     p->r      = c->ro;
     p->u      = c->ru/c->ro;
     p->v      = c->rv/c->ro;
@@ -161,24 +196,31 @@ void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * 
     p->e_tot  = c->re/c->ro;
     p->e      = p->e_tot-0.5*(p->u*p->u+p->v*p->v+p->w*p->w);
 
+    p->components_count = c->components_count;
+    for (size_t i = 0; i < c->components_count; i++) {
+        p->c[i] = c->rc[i] / c->ro;
+    }
+
     charm_mat_eos(p4est, p, 4);  // {p,cz, t}=EOS(r,e)
 }
 
 
-void charm_param_prim_to_cons(p4est_t * p4est, charm_cons_t * c, charm_prim_t * p)
-{
-    c->mat_id = p->mat_id;
-    c->ro  = p->r;
-    c->ru  = p->r*p->u;
-    c->rv  = p->r*p->v;
-    c->rw  = p->r*p->w;
-    c->re  = p->r*(p->e+0.5*(p->u*p->u+p->v*p->v+p->w*p->w));
+void charm_param_prim_to_cons(p4est_t * p4est, charm_cons_t * c, charm_prim_t * p) {
+    c->reg_id = p->reg_id;
+    c->ro = p->r;
+    c->ru = p->r * p->u;
+    c->rv = p->r * p->v;
+    c->rw = p->r * p->w;
+    c->re = p->r * (p->e + 0.5 * (p->u * p->u + p->v * p->v + p->w * p->w));
+    c->components_count = p->components_count;
+    for (size_t i = 0; i < c->components_count; i++) {
+        c->rc[i] = p->r * p->c[i];
+    }
 }
-
 
 void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src)
 {
-    dest->mat_id = src->mat_id;
+    dest->reg_id = src->reg_id;
     dest->r      = src->r;
     dest->p      = src->p;
     dest->u      = src->u;
