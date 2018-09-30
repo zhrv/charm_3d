@@ -38,7 +38,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
         prim.p = 2.152e+5;
     }
 //    else if (x[2] > 0) {
-    else if (x[2] > -0.02*sin(pi*x[0]/0.04)*sin(pi*x[1]/0.04)) {
+    else if (x[2] > -0.004*sin(pi2*x[0]/0.01)*sin(pi2*x[1]/0.01)) {
 //    else if (x[2] > -0.004*(1.0-cos(pi2*x[0]/0.001))*(1.0-cos(pi2*x[1]/0.001))) {
         prim.r = 1.198;
         prim.u = 0.0;

@@ -177,8 +177,6 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
     }
 
     *PI= AGAM*(*EI)*(*RI);
-
-    return;
 }
 
 void charm_calc_flux(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])

@@ -53,7 +53,7 @@ void charm_bnd_cond_fn_wall_slip(charm_prim_t *par_in, charm_prim_t *par_out, in
     charm_prim_cpy(par_out, par_in);
 
     double   svn = scalar_prod( v, n );
-    double   vv[3] = {n[0]*svn, n[1]*svn, n[3]*svn};
+    double   vv[3] = {n[0]*svn, n[1]*svn, n[2]*svn};
     for (i = 0; i < 3; i++) {
         v[i] -= vv[i];
         v[i] -= vv[i];

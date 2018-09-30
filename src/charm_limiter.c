@@ -241,7 +241,6 @@ static void _charm_limiter_calc_iter_fn(p4est_iter_volume_info_t * info, void *u
         u_min[j] = u_max[j] = u[j][0];
     }
 
-
     for (j = 1; j < 5; j++) {
         for (i = 0; i < p->par.l.count; i++) {
             if (u_min[j] > u[j][i]) u_min[j] = u[j][i];
