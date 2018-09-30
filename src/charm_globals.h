@@ -35,7 +35,7 @@
 
 #define CHARM_LOG_LEVEL SC_LP_ESSENTIAL
 #define DBG_CH(R) ((void)0)
-#define CHARM_ASSERT ((void)0)
+#define CHARM_ASSERT(R) ((void)0)
 
 #endif
 
@@ -260,6 +260,16 @@ typedef struct charm_param
     } g;
 
     int mat_id;
+
+    struct lim
+    {
+        int     count;
+        double  ro[CHARM_FACES+1];
+        double  ru[CHARM_FACES+1];
+        double  rv[CHARM_FACES+1];
+        double  rw[CHARM_FACES+1];
+        double  re[CHARM_FACES+1];
+    } l;
 } charm_param_t;
 
 

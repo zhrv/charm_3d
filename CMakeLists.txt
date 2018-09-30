@@ -3,7 +3,7 @@ project(charm_dg)
 
 set(CMAKE_C_COMPILER "mpicc")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -DCHARM_DEBUG") # for developing
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}") # for production
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3") # for production
 
 set(CONTRIB_DIR "${CMAKE_SOURCE_DIR}/contrib")
 
@@ -42,6 +42,6 @@ add_executable(	charm_dg
         src/charm_geom.h
 		src/charm_xml.c
         src/charm_xml.h
-		src/charm_base_func.c src/charm_base_func.h src/charm_timestep_conv.c src/charm_timestep_conv.h src/charm_timestep_diff.c src/charm_timestep_diff.h)
+		src/charm_base_func.c src/charm_base_func.h src/charm_timestep_conv.c src/charm_timestep_conv.h src/charm_timestep_diff.c src/charm_timestep_diff.h src/charm_limiter.c src/charm_limiter.h)
 
 target_link_libraries(charm_dg p4est sc m mxml)
