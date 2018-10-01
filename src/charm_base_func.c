@@ -207,3 +207,12 @@ void charm_get_fields(charm_data_t* p, double* x, charm_cons_t* c){
     }
     c->mat_id = p->par.mat_id;
 }
+
+void charm_get_fields_arr(charm_data_t* p, double* fld[5])
+{
+    fld[0] = p->par.c.ro;
+    fld[1] = p->par.c.ru;
+    fld[2] = p->par.c.rv;
+    fld[3] = p->par.c.rw;
+    fld[4] = p->par.c.re;
+}

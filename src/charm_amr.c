@@ -4,6 +4,9 @@
 
 #include "charm_amr.h"
 #include "charm_geom.h"
+#include "charm_base_func.h"
+#include "charm_bnd_cond.h"
+#include "charm_fluxes.h"
 
 
 static double charm_error_sqr_estimate (p4est_quadrant_t * q)
@@ -15,7 +18,7 @@ static double charm_error_sqr_estimate (p4est_quadrant_t * q)
     double              diff2 = 0.;
 
     for (i = 0; i < CHARM_DIM; i++) {
-        du[i] = data->par.c.ro[i+1];
+        du[i] = data->par.a.grad_u[i];
     }
 
     /* use the approximate derivative to estimate the L2 error */
@@ -91,6 +94,7 @@ static int charm_coarsen_err_estimate (p4est_t * p4est, p4est_topidx_t which_tre
     double              parentu;
     double              diff;
     int                 i;
+
 
     if (children[0]->level <= ctx->min_level) {
         return 0;
@@ -194,39 +198,52 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
                                  int num_outgoing, p4est_quadrant_t * outgoing[],
                                  int num_incoming, p4est_quadrant_t * incoming[])
 {
+    const int           N = CHARM_BASE_FN_COUNT;
     charm_data_t       *parent_data, *child_data;
-    int                 i, j;
+    int                 i, j, m, n, igp;
     double              vol, svol;
+    double              ar[N][N], cr[N], rhs_ro[N], rhs_ru[N], rhs_rv[N], rhs_rw[N], rhs_re[N];
+    double              *fld[5];
 
     if (num_outgoing > 1) {
         charm_geom_quad_calc(p4est, incoming[0], which_tree);
         /* this is coarsening */
         parent_data = (charm_data_t *) incoming[0]->p.user_data;
-        parent_data->par.mat_id = ((charm_data_t *) outgoing[i]->p.user_data)->par.mat_id;
-        for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-            parent_data->par.c.ro[i] = 0.;
-            parent_data->par.c.ru[i] = 0.;
-            parent_data->par.c.rv[i] = 0.;
-            parent_data->par.c.rw[i] = 0.;
-            parent_data->par.c.re[i] = 0.;
-        }
-        svol = 0.;
-
+        parent_data->par.mat_id = ((charm_data_t *) outgoing[0]->p.user_data)->par.mat_id;
+        charm_vect_zero(rhs_ro);
+        charm_vect_zero(rhs_ru);
+        charm_vect_zero(rhs_rv);
+        charm_vect_zero(rhs_rw);
+        charm_vect_zero(rhs_re);
         for (i = 0; i < CHARM_CHILDREN; i++) {
             child_data = (charm_data_t *) outgoing[i]->p.user_data;
-            vol  = charm_quad_get_volume(child_data);
-            svol += vol;
-            parent_data->par.c.ro[0] += child_data->par.c.ro[0] * vol;
-            parent_data->par.c.ru[0] += child_data->par.c.ru[0] * vol;
-            parent_data->par.c.rv[0] += child_data->par.c.rv[0] * vol;
-            parent_data->par.c.rw[0] += child_data->par.c.rw[0] * vol;
-            parent_data->par.c.re[0] += child_data->par.c.re[0] * vol;
+            for (m = 0; m < N; m++) {
+                for (n = 0; n < N; n++) {
+                    ar[m][n] = 0.;
+                    for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
+                        ar[m][n] += child_data->par.g.quad_gw[igp]*child_data->par.g.quad_gj[igp]
+                                            * charm_base_func(child_data->par.g.quad_gp[igp], m, parent_data)
+                                            * charm_base_func(child_data->par.g.quad_gp[igp], n, child_data);
+
+                    }
+                }
+            }
+            charm_matr_vect_mult(ar, child_data->par.c.ro, cr);
+            charm_vect_add(rhs_ro, cr);
+            charm_matr_vect_mult(ar, child_data->par.c.ru, cr);
+            charm_vect_add(rhs_ru, cr);
+            charm_matr_vect_mult(ar, child_data->par.c.rv, cr);
+            charm_vect_add(rhs_rv, cr);
+            charm_matr_vect_mult(ar, child_data->par.c.rw, cr);
+            charm_vect_add(rhs_rw, cr);
+            charm_matr_vect_mult(ar, child_data->par.c.re, cr);
+            charm_vect_add(rhs_re, cr);
         }
-        parent_data->par.c.ro[0] /= svol;
-        parent_data->par.c.ru[0] /= svol;
-        parent_data->par.c.rv[0] /= svol;
-        parent_data->par.c.rw[0] /= svol;
-        parent_data->par.c.re[0] /= svol;
+        charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_ro, parent_data->par.c.ro);
+        charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_ru, parent_data->par.c.ru);
+        charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_rv, parent_data->par.c.rv);
+        charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_rw, parent_data->par.c.rw);
+        charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_re, parent_data->par.c.re);
     }
     else {
         /* this is refinement */
@@ -236,19 +253,28 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
             charm_geom_quad_calc(p4est, incoming[i], which_tree);
             child_data = (charm_data_t *) incoming[i]->p.user_data;
             child_data->par.mat_id  = parent_data->par.mat_id;
-            child_data->par.c.ro[0] = parent_data->par.c.ro[0];
-            child_data->par.c.ru[0] = parent_data->par.c.ru[0];
-            child_data->par.c.rv[0] = parent_data->par.c.rv[0];
-            child_data->par.c.rw[0] = parent_data->par.c.rw[0];
-            child_data->par.c.re[0] = parent_data->par.c.re[0];
-            for (j = 1; j < CHARM_BASE_FN_COUNT; j++) {
-                child_data->par.c.ro[j] = 0.;
-                child_data->par.c.ru[j] = 0.;
-                child_data->par.c.rv[j] = 0.;
-                child_data->par.c.rw[j] = 0.;
-                child_data->par.c.re[j] = 0.;
+            for (m = 0; m < N; m++) {
+                for (n = 0; n < N; n++) {
+                    ar[m][n] = 0.;
+                    for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
+                        ar[m][n] += child_data->par.g.quad_gw[igp]*child_data->par.g.quad_gj[igp]
+                                    * charm_base_func(child_data->par.g.quad_gp[igp], m, child_data)
+                                    * charm_base_func(child_data->par.g.quad_gp[igp], n, parent_data);
 
+                    }
+                }
             }
+            charm_matr_vect_mult(ar, parent_data->par.c.ro, rhs_ro);
+            charm_matr_vect_mult(ar, parent_data->par.c.ru, rhs_ru);
+            charm_matr_vect_mult(ar, parent_data->par.c.rv, rhs_rv);
+            charm_matr_vect_mult(ar, parent_data->par.c.rw, rhs_rw);
+            charm_matr_vect_mult(ar, parent_data->par.c.re, rhs_re);
+
+            charm_matr_vect_mult(child_data->par.g.a_inv, rhs_ro, child_data->par.c.ro);
+            charm_matr_vect_mult(child_data->par.g.a_inv, rhs_ru, child_data->par.c.ru);
+            charm_matr_vect_mult(child_data->par.g.a_inv, rhs_rv, child_data->par.c.rv);
+            charm_matr_vect_mult(child_data->par.g.a_inv, rhs_rw, child_data->par.c.rw);
+            charm_matr_vect_mult(child_data->par.g.a_inv, rhs_re, child_data->par.c.re);
         }
     }
 }
@@ -293,11 +319,257 @@ void charm_adapt_init(p4est_t *p4est)
 
 }
 
-void charm_adapt(p4est_t *p4est)
+
+static void _charm_amr_par_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+{
+    charm_data_t       *data = charm_get_quad_data(info->quad);
+    int                 i;
+
+    for (i = 0; i < CHARM_DIM; i++) {
+        data->par.a.grad_u[i] = 0.;
+    }
+}
+
+
+
+static void _charm_amr_par_calc_face_iter_bnd (p4est_iter_face_info_t * info, void *user_data)
+{
+    int i, ibf, igp;
+    p4est_t *p4est = info->p4est;
+    charm_data_t *ghost_data = (charm_data_t *) user_data;
+    charm_data_t *udata;
+    double n[3];
+    double qr, qu, qv, qw, qe;
+    double bfv;
+    p4est_iter_face_side_t *side[2];
+    sc_array_t *sides = &(info->sides);
+
+
+    int8_t face;
+    double c[2][3], l[3];
+    double r_[2], p_[2], u_[2], v_[2], w_[2], e_[2];
+    charm_cons_t cons;
+    charm_prim_t prim[2];
+    double *x, gw, gj;
+    double intg[2][5];
+
+
+    CHARM_ASSERT(info->tree_boundary);
+
+    side[0] = p4est_iter_fside_array_index_int(sides, 0);
+    CHARM_ASSERT(!side[0]->is_hanging);
+
+    if (side[0]->is.full.is_ghost) {
+        CHARM_ASSERT(0);
+        udata = &(ghost_data[side[0]->is.full.quadid]);
+    } else {
+        udata = charm_get_quad_data(side[0]->is.full.quad);//(charm_data_t *) side[0]->is.full.quad->p.user_data;
+    }
+    face = side[0]->face;
+    charm_face_get_normal(udata, face, n);
+    charm_quad_get_center(udata, c[0]);
+    charm_face_get_center(udata, face, c[1]);
+
+    for (i = 0; i < 3; i++) {
+        l[i] = c[1][i] - c[0][i];
+    }
+
+    if (scalar_prod(n, l) < 0) {
+        for (i = 0; i < 3; i++) {
+            n[i] *= -1.0;
+        }
+    }
+
+    for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
+        x = udata->par.g.face_gp[face][igp];
+        gw = udata->par.g.face_gw[face][igp];
+        gj = udata->par.g.face_gj[face][igp];
+        charm_get_fields(udata, x, &cons);
+        charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
+        charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
+        qr = 0.5*(prim[0].r+prim[1].r);
+        bfv = gw * gj;
+        for (ibf = 0; ibf < CHARM_DIM; ibf++) {
+            udata->par.a.grad_u[ibf] += qr * bfv * n[ibf];
+        }
+    }
+}
+
+
+static void _charm_amr_par_calc_face_iter_inner (p4est_iter_face_info_t * info, void *user_data)
+{
+    int                     i, j, h_side, igp, ibf;
+    p4est_t                *p4est = info->p4est;
+    charm_data_t           *ghost_data = (charm_data_t *) user_data;
+    charm_data_t           *udata[2];
+    double                  n[3];
+    double                  qr, qu, qv, qw, qe;
+    p4est_iter_face_side_t *side[2];
+    sc_array_t             *sides = &(info->sides);
+    charm_cons_t            cons[2];
+    charm_prim_t            prim[2];
+    double                 *x, gw, gj;
+    double                  bfv;
+    double                  c[2][3];
+    double                  l[3];
+    int8_t                  face[2];
+
+    side[0] = p4est_iter_fside_array_index_int(sides, 0);
+    side[1] = p4est_iter_fside_array_index_int(sides, 1);
+    face[0] = side[0]->face;
+    face[1] = side[1]->face;
+
+    h_side = -1;
+    if (side[0]->is_hanging || side[1]->is_hanging) { // @todo
+        for (j = 0; j < CHARM_HALF; j++) {
+            for (i = 0; i < 2; i++) {
+                if (side[i]->is_hanging) {
+                    if (side[i]->is.hanging.is_ghost[j]) {
+                        udata[i] = &(ghost_data[side[i]->is.hanging.quadid[j]]);
+                    }
+                    else {
+                        udata[i] = (charm_data_t *) side[i]->is.hanging.quad[j]->p.user_data;
+                    }
+                    h_side = i;
+                }
+                else {
+                    if (side[i]->is.full.is_ghost) {
+                        udata[i] = &ghost_data[side[i]->is.full.quadid];
+                    }
+                    else {
+                        udata[i] = (charm_data_t *) side[i]->is.full.quad->p.user_data;
+                    }
+                }
+            }
+
+            CHARM_ASSERT(h_side != -1);
+
+            charm_face_get_normal(udata[0], face[0], n);
+            charm_quad_get_center(udata[0], c[0]);
+            charm_face_get_center(udata[0], face[0], c[1]);
+
+            for (i = 0; i < 3; i++) {
+                l[i] = c[1][i]-c[0][i];
+            }
+
+            if (scalar_prod(n, l) < 0) {
+                for (i = 0; i < 3; i++) {
+                    n[i] *= -1.0;
+                }
+            }
+
+            for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
+                x  = udata[h_side]->par.g.face_gp[face[h_side]][igp];
+                gw = udata[h_side]->par.g.face_gw[face[h_side]][igp];
+                gj = udata[h_side]->par.g.face_gj[face[h_side]][igp];
+                for (i = 0; i < 2; i++) {
+                    charm_get_fields(udata[i], x, &(cons[i]));
+                    charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
+                }
+                for (ibf = 0; ibf < CHARM_DIM; ibf++) {
+                    for (i = 0; i < 2; i++) {
+                        if (!side[i]->is.full.is_ghost) {
+                            udata[i]->par.a.grad_u[ibf] += (i ? -1. : 1.) * gw * gj * 0.5*(prim[0].r+prim[1].r) * n[ibf];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else {
+
+        for (i = 0; i < 2; i++) {
+            if (side[i]->is.full.is_ghost) {
+                udata[i] = &(ghost_data[side[i]->is.full.quadid]);
+            }
+            else {
+                udata[i] = charm_get_quad_data(side[i]->is.full.quad);
+            }
+        }
+        charm_face_get_normal(udata[0], face[0], n);
+        charm_quad_get_center(udata[0], c[0]);
+        charm_face_get_center(udata[0], face[0], c[1]);
+
+        for (i = 0; i < 3; i++) {
+            l[i] = c[1][i]-c[0][i];
+        }
+
+        if (scalar_prod(n, l) < 0) {
+            for (i = 0; i < 3; i++) {
+                n[i] *= -1.0;
+            }
+        }
+
+        for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
+            x  = udata[0]->par.g.face_gp[face[0]][igp];
+            gw = udata[0]->par.g.face_gw[face[0]][igp];
+            gj = udata[0]->par.g.face_gj[face[0]][igp];
+            for (i = 0; i < 2; i++) {
+                charm_get_fields(udata[i], x, &(cons[i]));
+                charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
+            }
+            qr = 0.5*(prim[0].r+prim[1].r);
+            for (ibf = 0; ibf < CHARM_DIM; ibf++) {
+                for (i = 0; i < 2; i++) {
+                    if (!side[i]->is.full.is_ghost) {
+                        bfv = (i ? -1. : 1.) * gw * gj;
+                        udata[i]->par.a.grad_u[ibf] += qr * bfv *n[ibf];
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+static void _charm_amr_par_calc_face_iter_fn (p4est_iter_face_info_t * info, void *user_data)
+{
+    sc_array_t         *sides = &(info->sides);
+
+    if (sides->elem_count != 2) {
+        _charm_amr_par_calc_face_iter_bnd(info, user_data);
+    }
+    else {
+        _charm_amr_par_calc_face_iter_inner(info, user_data);
+    }
+}
+
+static void _charm_amr_par_calc_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+{
+    charm_data_t       *data = charm_get_quad_data(info->quad);
+    int                 i;
+    double              vol = charm_quad_get_volume(data);
+
+    for (i = 0; i < CHARM_DIM; i++) {
+        data->par.a.grad_u[i] /= vol;
+    }
+}
+
+void charm_adapt(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data)
 {
     int             recursive       = 0;
     int             callbackorphans = 0;
     charm_ctx_t      *ctx             = (charm_ctx_t *) p4est->user_pointer;
+
+    p4est_iterate (p4est,
+                   ghost,
+                   (void *) ghost_data,
+                   _charm_amr_par_zero_quad_iter_fn,
+                   NULL, NULL, NULL);
+
+    p4est_iterate (p4est,
+                   ghost,
+                   (void *) ghost_data,
+                   NULL,
+                   _charm_amr_par_calc_face_iter_fn,
+                   NULL, NULL);
+
+    p4est_iterate (p4est,
+                   ghost,
+                   (void *) ghost_data,
+                   _charm_amr_par_calc_quad_iter_fn,
+                   NULL,
+                   NULL, NULL);
 
     p4est_refine_ext (p4est, recursive, ctx->max_level,
                       charm_refine_err_estimate, NULL,

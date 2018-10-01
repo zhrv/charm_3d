@@ -75,7 +75,7 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, doubl
     if (refine_period) {
         if (!(step % refine_period)) {
             if (step) {
-                charm_adapt(p4est); /* adapt */
+                charm_adapt(p4est, ghost, ghost_data); /* adapt */
                 if (ghost) {
                     p4est_ghost_destroy(ghost);
                     CHARM_FREE (ghost_data);
