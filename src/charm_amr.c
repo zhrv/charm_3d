@@ -202,6 +202,7 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
         charm_geom_quad_calc(p4est, incoming[0], which_tree);
         /* this is coarsening */
         parent_data = (charm_data_t *) incoming[0]->p.user_data;
+        parent_data->par.mat_id = ((charm_data_t *) outgoing[i]->p.user_data)->par.mat_id;
         for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
             parent_data->par.c.ro[i] = 0.;
             parent_data->par.c.ru[i] = 0.;
@@ -234,6 +235,7 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
         for (i = 0; i < CHARM_CHILDREN; i++) {
             charm_geom_quad_calc(p4est, incoming[i], which_tree);
             child_data = (charm_data_t *) incoming[i]->p.user_data;
+            child_data->par.mat_id  = parent_data->par.mat_id;
             child_data->par.c.ro[0] = parent_data->par.c.ro[0];
             child_data->par.c.ru[0] = parent_data->par.c.ru[0];
             child_data->par.c.rv[0] = parent_data->par.c.rv[0];
