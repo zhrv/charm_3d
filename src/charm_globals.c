@@ -202,6 +202,10 @@ void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * 
     }
 
     charm_mat_eos(p4est, p, 4);  // {p,cz, t}=EOS(r,e)
+
+    if (p->p < 0.) {
+        int iii=0;
+    }
 }
 
 
@@ -399,6 +403,51 @@ void charm_matr_vect_mult(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], do
         }
     }
 }
+
+
+void charm_matr_add(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
+{
+    int i, j;
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        for (j = 0; j < CHARM_BASE_FN_COUNT; j++) {
+            a[i][j] += b[i][j];
+        }
+    }
+
+}
+
+
+void charm_matr_zero(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
+{
+    int i, j;
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        for (j = 0; j < CHARM_BASE_FN_COUNT; j++) {
+            a[i][j] = 0.;
+        }
+    }
+
+}
+
+
+void charm_vect_add(double a[CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT])
+{
+    int i, j;
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        a[i] += b[i];
+    }
+
+}
+
+
+void charm_vect_zero(double a[CHARM_BASE_FN_COUNT])
+{
+    int i;
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        a[i] = 0.;
+    }
+
+}
+
 
 charm_data_t * charm_get_quad_data(p4est_quadrant_t *q)
 {

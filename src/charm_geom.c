@@ -516,17 +516,16 @@ void charm_geom_quad_calc(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t t
     }
 
     // mass matr
-    double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
         for (j = 0; j < CHARM_BASE_FN_COUNT; j++) {
-            a[i][j] = 0.;
+            p->par.g.a[i][j] = 0.;
             for (ig = 0; ig < CHARM_QUAD_GP_COUNT; ig++) {
-                a[i][j] += p->par.g.quad_gw[ig]*p->par.g.quad_gj[ig]
-                           * charm_base_func(p->par.g.quad_gp[ig], i, p)
-                           * charm_base_func(p->par.g.quad_gp[ig], j, p);
+                p->par.g.a[i][j] += p->par.g.quad_gw[ig]*p->par.g.quad_gj[ig]
+                                    * charm_base_func(p->par.g.quad_gp[ig], i, p)
+                                    * charm_base_func(p->par.g.quad_gp[ig], j, p);
             }
         }
     }
 
-    charm_matr_inv(a, p->par.g.a_inv);
+    charm_matr_inv(p->par.g.a, p->par.g.a_inv);
 }

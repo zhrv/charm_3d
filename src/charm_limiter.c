@@ -84,96 +84,98 @@ static void _charm_limiter_neigh_iter_bnd(p4est_iter_face_info_t * info, void *u
 
 static void _charm_limiter_neigh_iter_inner(p4est_iter_face_info_t * info, void *user_data)
 {
-    int                     i, j, k,  h_side;
+    int                     i, j, k,  h_side, f_side;
     p4est_t                *p4est = info->p4est;
     charm_data_t           *ghost_data = (charm_data_t *) user_data;
     charm_data_t           *udata[2];
     p4est_iter_face_side_t *side[2];
     sc_array_t             *sides = &(info->sides);
-    charm_cons_t            cons[2];
+    charm_cons_t            cons[2], cons_j;
     double                  c[3];
     int8_t                  face[2];
+    double                  vol, svol;
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     side[1] = p4est_iter_fside_array_index_int(sides, 1);
     face[0] = side[0]->face;
     face[1] = side[1]->face;
 
-    h_side = -1;
     if (side[0]->is_hanging || side[1]->is_hanging) { // @todo
-                CHARM_ASSERT(0);
-//        for (j = 0; j < CHARM_HALF; j++) {
-//            for (i = 0; i < 2; i++) {
-//                if (side[i]->is_hanging) {
-//                    if (side[i]->is.hanging.is_ghost[j]) {
-//                        udata[i] = &(ghost_data[side[i]->is.hanging.quadid[j]]);
-//                    }
-//                    else {
-//                        udata[i] = (charm_data_t *) side[i]->is.hanging.quad[j]->p.user_data;
-//                    }
-//                    h_side = i;
-//                }
-//                else {
-//                    if (side[i]->is.full.is_ghost) {
-//                        udata[i] = &ghost_data[side[i]->is.full.quadid];
-//                    }
-//                    else {
-//                        udata[i] = (charm_data_t *) side[i]->is.full.quad->p.user_data;
-//                    }
-//                }
-//            }
-//
-//            CHARM_ASSERT(h_side != -1);
-//
-//            facearea = charm_face_get_area(udata[h_side], side[h_side]->face);
-//            charm_face_get_normal(udata[0], face[0], n);
-//            charm_quad_get_center(udata[0], c[0]);
-//            charm_face_get_center(udata[0], face[0], c[1]);
-//
-//            for (i = 0; i < 3; i++) {
-//                l[i] = c[1][i]-c[0][i];
-//            }
-//
-//            if (scalar_prod(n, l) < 0) {
-//                for (i = 0; i < 3; i++) {
-//                    n[i] *= -1.0;
-//                }
-//            }
-//
-//            for (i = 0; i < 2; i++) {
-////                charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[i]->treeid);
-////                charm_param_cons_to_prim(attr->reg->mat, &(cons[i]), &());
-////                r_[i] = udata[i]->par.p.r;
-////                u_[i] = udata[i]->par.p.u;
-////                v_[i] = udata[i]->par.p.v;
-////                w_[i] = udata[i]->par.p.w;
-////                p_[i] = udata[i]->par.p.p;
-//            }
-//
-//            /* flux from side 0 to side 1 */
-//            charm_calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n);
-//
-//            for (i = 0; i < 2; i++) {
-//                if (side[i]->is_hanging) {
-//                    if (side[i]->is.hanging.is_ghost[j]) {
-//                        continue;
-//                    }
-//
-//                }
-//                else {
-//                    if (side[i]->is.full.is_ghost) {
-//                        continue;
-//                    }
-//                }
-////                udata[i]->drodt += qr * facearea * (i ? 1. : -1.);
-////                udata[i]->drudt += qu * facearea * (i ? 1. : -1.);
-////                udata[i]->drvdt += qv * facearea * (i ? 1. : -1.);
-////                udata[i]->drwdt += qw * facearea * (i ? 1. : -1.);
-////                udata[i]->dredt += qe * facearea * (i ? 1. : -1.);
-//
-//            }
-//
-//        }
+        if (side[0]->is_hanging) {
+            h_side = 0;
+            f_side = 1;
+        }
+        else {
+            h_side = 1;
+            f_side = 0;
+        }
+
+        for (i = 0; i < 2; i++) {
+            if (side[i]->is_hanging) {
+                svol = 0.;
+                cons[i].ro = 0.;
+                cons[i].ru = 0.;
+                cons[i].rv = 0.;
+                cons[i].rw = 0.;
+                cons[i].re = 0.;
+                for (j = 0; j < CHARM_HALF; j++) {
+                    if (side[i]->is.hanging.is_ghost[j]) {
+                        udata[i] = &(ghost_data[side[i]->is.hanging.quadid[j]]);
+                    }
+                    else {
+                        udata[i] = (charm_data_t *) side[i]->is.hanging.quad[j]->p.user_data;
+                    }
+                    vol = charm_quad_get_volume(udata[i]);
+                    svol += vol;
+                    charm_quad_get_center(udata[i], c);
+                    charm_get_fields(udata[i], c, &cons_j);
+                    cons[i].ro += cons_j.ro*vol;
+                    cons[i].ru += cons_j.ru*vol;
+                    cons[i].rv += cons_j.rv*vol;
+                    cons[i].rw += cons_j.rw*vol;
+                    cons[i].re += cons_j.re*vol;
+                }
+                cons[i].ro /= svol;
+                cons[i].ru /= svol;
+                cons[i].rv /= svol;
+                cons[i].rw /= svol;
+                cons[i].re /= svol;
+            }
+            else {
+                if (side[i]->is.full.is_ghost) {
+                    udata[i] = &ghost_data[side[i]->is.full.quadid];
+                }
+                else {
+                    udata[i] = (charm_data_t *) side[i]->is.full.quad->p.user_data;
+                }
+                charm_quad_get_center(udata[i], c);
+                charm_get_fields(udata[i], c, &(cons[i]));
+            }
+        }
+
+
+        if (!side[f_side]->is.full.is_ghost) {
+            udata[f_side] = (charm_data_t *) side[f_side]->is.full.quad->p.user_data;
+            j = udata[f_side]->par.l.count;
+            udata[f_side]->par.l.ro[j] = cons[h_side].ro;
+            udata[f_side]->par.l.ru[j] = cons[h_side].ru;
+            udata[f_side]->par.l.rv[j] = cons[h_side].rv;
+            udata[f_side]->par.l.rw[j] = cons[h_side].rw;
+            udata[f_side]->par.l.re[j] = cons[h_side].re;
+            udata[f_side]->par.l.count++;
+        }
+        for (j = 0; j < CHARM_HALF; j++) {
+            if (!side[h_side]->is.hanging.is_ghost[j]) {
+                udata[h_side] = (charm_data_t *) side[h_side]->is.hanging.quad[j]->p.user_data;
+                k = udata[h_side]->par.l.count;
+                udata[h_side]->par.l.ro[k] = cons[f_side].ro;
+                udata[h_side]->par.l.ru[k] = cons[f_side].ru;
+                udata[h_side]->par.l.rv[k] = cons[f_side].rv;
+                udata[h_side]->par.l.rw[k] = cons[f_side].rw;
+                udata[h_side]->par.l.re[k] = cons[f_side].re;
+                udata[h_side]->par.l.count++;
+            }
+        }
     }
     else {
 
@@ -239,11 +241,7 @@ static void _charm_limiter_calc_iter_fn(p4est_iter_volume_info_t * info, void *u
 
     for (j = 0; j < 5; j++) {
         u_min[j] = u_max[j] = u[j][0];
-    }
-
-
-    for (j = 1; j < 5; j++) {
-        for (i = 0; i < p->par.l.count; i++) {
+        for (i = 1; i < p->par.l.count; i++) {
             if (u_min[j] > u[j][i]) u_min[j] = u[j][i];
             if (u_max[j] < u[j][i]) u_max[j] = u[j][i];
         }
@@ -261,15 +259,13 @@ static void _charm_limiter_calc_iter_fn(p4est_iter_volume_info_t * info, void *u
         f[3][i] = cons.rw;
         f[4][i] = cons.re;
         for (j = 0; j < 5; j++) {
-
-            if (u[j][i]-u[j][0] > 0) {
-                psi_tmp = _MIN_(1, (u_max[j]-u[j][0])/(u[j][i]-u[j][0]));
-            }
-            else if (u[j][i]-u[j][0] < 0) {
-                psi_tmp = _MIN_(1, (u_min[j]-u[j][0])/(u[j][i]-u[j][0]));
-            }
-            else {
-                psi_tmp = 1.;
+            psi_tmp = 1.;
+            if (fabs(f[j][i]-u[j][0]) > CHARM_EPS) {
+                if (f[j][i] - u[j][0] > 0) {
+                    psi_tmp = _MIN_(1, (u_max[j] - u[j][0]) / (f[j][i] - u[j][0]));
+                } else if (f[j][i] - u[j][0] < 0) {
+                    psi_tmp = _MIN_(1, (u_min[j] - u[j][0]) / (f[j][i] - u[j][0]));
+                }
             }
             if (psi_tmp < psi[j]) psi[j] = psi_tmp;
         }
