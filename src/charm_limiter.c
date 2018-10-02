@@ -100,8 +100,6 @@ static void _charm_limiter_neigh_iter_inner(p4est_iter_face_info_t * info, void 
     face[0] = side[0]->face;
     face[1] = side[1]->face;
 
-    h_side = -1;
-    f_side = -1;
     if (side[0]->is_hanging || side[1]->is_hanging) { // @todo
         if (side[0]->is_hanging) {
             h_side = 0;
@@ -155,7 +153,7 @@ static void _charm_limiter_neigh_iter_inner(p4est_iter_face_info_t * info, void 
             }
         }
 
-        CHARM_ASSERT(h_side != -1);
+
         if (!side[f_side]->is.full.is_ghost) {
             udata[f_side] = (charm_data_t *) side[f_side]->is.full.quad->p.user_data;
             j = udata[f_side]->par.l.count;
@@ -178,23 +176,6 @@ static void _charm_limiter_neigh_iter_inner(p4est_iter_face_info_t * info, void 
                 udata[h_side]->par.l.count++;
             }
         }
-
-//        for (i = 0; i < 2; i++) {
-//
-//            charm_get_fields(udata[i], c, &(cons[i]));
-//            k = (i+1) % 2;
-//            if (!side[k]->is.full.is_ghost) {
-//                j = udata[k]->par.l.count;
-//                udata[k]->par.l.ro[j] = cons[i].ro;
-//                udata[k]->par.l.ru[j] = cons[i].ru;
-//                udata[k]->par.l.rv[j] = cons[i].rv;
-//                udata[k]->par.l.rw[j] = cons[i].rw;
-//                udata[k]->par.l.re[j] = cons[i].re;
-//                udata[k]->par.l.count++;
-//            }
-//
-//        }
-
     }
     else {
 
@@ -260,10 +241,7 @@ static void _charm_limiter_calc_iter_fn(p4est_iter_volume_info_t * info, void *u
 
     for (j = 0; j < 5; j++) {
         u_min[j] = u_max[j] = u[j][0];
-    }
-
-    for (j = 1; j < 5; j++) {
-        for (i = 0; i < p->par.l.count; i++) {
+        for (i = 1; i < p->par.l.count; i++) {
             if (u_min[j] > u[j][i]) u_min[j] = u[j][i];
             if (u_max[j] < u[j][i]) u_max[j] = u[j][i];
         }
@@ -282,11 +260,11 @@ static void _charm_limiter_calc_iter_fn(p4est_iter_volume_info_t * info, void *u
         f[4][i] = cons.re;
         for (j = 0; j < 5; j++) {
             psi_tmp = 1.;
-            if (fabs(u[j][i]-u[j][0]) > CHARM_EPS) {
-                if (u[j][i] - u[j][0] > 0) {
-                    psi_tmp = _MIN_(1, (u_max[j] - u[j][0]) / (u[j][i] - u[j][0]));
-                } else if (u[j][i] - u[j][0] < 0) {
-                    psi_tmp = _MIN_(1, (u_min[j] - u[j][0]) / (u[j][i] - u[j][0]));
+            if (fabs(f[j][i]-u[j][0]) > CHARM_EPS) {
+                if (f[j][i] - u[j][0] > 0) {
+                    psi_tmp = _MIN_(1, (u_max[j] - u[j][0]) / (f[j][i] - u[j][0]));
+                } else if (f[j][i] - u[j][0] < 0) {
+                    psi_tmp = _MIN_(1, (u_min[j] - u[j][0]) / (f[j][i] - u[j][0]));
                 }
             }
             if (psi_tmp < psi[j]) psi[j] = psi_tmp;

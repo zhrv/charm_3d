@@ -18,7 +18,7 @@ static double charm_error_sqr_estimate (p4est_quadrant_t * q)
     double              diff2 = 0.;
 
     for (i = 0; i < CHARM_DIM; i++) {
-        du[i] = data->par.a.grad_u[i];
+        du[i] = data->par.c.ro[i+1];//data->par.a.grad_u[i];
     }
 
     /* use the approximate derivative to estimate the L2 error */
