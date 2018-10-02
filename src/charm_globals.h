@@ -154,7 +154,7 @@ __attribute__ ((format (printf, 1, 2)));
 #define CHARM_RIM_NEWTON_STEPS 5000
 #define CHARM_RIM_EPS 1.e-5
 
-#define CHARM_EPS 1.e-11
+#define CHARM_EPS 1.e-12
 
 #define FLD_COUNT 5
 
@@ -256,6 +256,7 @@ typedef struct charm_param
         double          c[CHARM_DIM];
         double          fc[CHARM_FACES][CHARM_DIM];
         double          dh[CHARM_DIM];
+        double          a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
         double          a_inv[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
     } g;
 
@@ -270,6 +271,10 @@ typedef struct charm_param
         double  rw[CHARM_FACES+1];
         double  re[CHARM_FACES+1];
     } l;
+
+    struct amr {
+        double grad_u[CHARM_DIM];
+    } a;
 } charm_param_t;
 
 
@@ -387,9 +392,14 @@ double charm_matr3_det(double a[3][3]);
 void   charm_matr3_inv(double a[3][3], double a_inv[3][3]);
 void   charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double am[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
 void   charm_matr_vect_mult(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT], double res[CHARM_BASE_FN_COUNT]);
+void   charm_matr_add(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
+void   charm_vect_add(double a[CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT]);
+void   charm_matr_zero(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
+void   charm_vect_zero(double a[CHARM_BASE_FN_COUNT]);
 
 
-void dbg_print_param(charm_param_t *);
+
+        void dbg_print_param(charm_param_t *);
 
 
 extern int charm_package_id;

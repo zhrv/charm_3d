@@ -47,7 +47,7 @@ int main (int argc, char **argv)
     charm_write_solution (p4est, 0);
 //    charm_calc_grad(p4est, NULL, NULL);
 
-//    charm_adapt_init(p4est);
+    charm_adapt_init(p4est);
 
 
 

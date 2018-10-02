@@ -75,7 +75,7 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, doubl
     if (refine_period) {
         if (!(step % refine_period)) {
             if (step) {
-                charm_adapt(p4est); /* adapt */
+                charm_adapt(p4est, ghost, ghost_data); /* adapt */
                 if (ghost) {
                     p4est_ghost_destroy(ghost);
                     CHARM_FREE (ghost_data);
@@ -175,7 +175,7 @@ static void _charm_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info
     charm_get_fields(data, data->par.g.c, &cons);
     charm_param_cons_to_prim(info->p4est, &prim, &cons);
 
-    dt_loc = ctx->CFL * data->par.g.volume / (_MAG_(prim.u, prim.v, prim.w) + prim.cz);
+    dt_loc = ctx->CFL * data->par.g.volume / (sqrt(_MAG_(prim.u, prim.v, prim.w)) + prim.cz);
 
     *dt = SC_MIN(*dt, dt_loc);
 }
@@ -194,6 +194,7 @@ static double _charm_get_timestep (p4est_t * p4est)
     double              loc_dt, glob_dt;
     int                 mpiret, i;
 
+    return ctx->dt;
     loc_dt = ctx->dt;
     p4est_iterate (p4est, NULL,
                    (void *) &loc_dt,
