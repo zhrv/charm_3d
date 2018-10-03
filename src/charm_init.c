@@ -6,6 +6,7 @@
 #include "charm_geom.h"
 #include "charm_xml.h"
 #include "charm_bnd_cond.h"
+#include "charm_fluxes.h"
 
 
 void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q)
@@ -191,6 +192,7 @@ void charm_init_context(charm_ctx_t *ctx)
 
     FILE *fp;
     mxml_node_t *tree;
+    char str[64];
 
     fp = fopen("task.xml", "r");
     tree = mxmlLoadFile(NULL, fp,
@@ -204,6 +206,18 @@ void charm_init_context(charm_ctx_t *ctx)
 
     node_task = charm_xml_node_get_child(tree, "task");
     node = charm_xml_node_get_child(node_task, "control");
+
+    charm_xml_node_child_param_str(node, "FLUX_TYPE", str);
+    if (strcmp(str, "LF") == 0) {
+        ctx->flux_fn = charm_calc_flux_lf;
+    }
+    else if (strcmp(str, "GODUNOV") == 0) {
+        ctx->flux_fn = charm_calc_flux_godunov;
+    }
+    else {
+        CHARM_LERRORF("Unknown flux type '%s'. Use: LF, GODUNOV.", str);
+        charm_abort(1);
+    }
 
     charm_xml_node_child_param_dbl(node, "MAX_ERROR", &(ctx->max_err));
     charm_xml_node_child_param_int(node, "REFINE_PERIOD", &(ctx->refine_period));

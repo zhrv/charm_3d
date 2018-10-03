@@ -3,13 +3,17 @@
 //
 
 #include "charm_xml.h"
+#include "charm_globals.h"
 
 
 mxml_node_t* charm_xml_node_get_child(mxml_node_t * n, char* name)
 {
-    return mxmlFindElement(n, n, name,
-                           NULL, NULL,
-                           MXML_DESCEND);
+    mxml_node_t *node = mxmlFindElement(n, n, name, NULL, NULL, MXML_DESCEND);
+    if (node == NULL) {
+        CHARM_GLOBAL_LERRORF("Undefined parameter '%s'\n", name);
+        charm_abort(1);
+    }
+    return node;
 }
 
 mxml_node_t* charm_xml_node_get_next_child(mxml_node_t * current, mxml_node_t * n, char* name)
