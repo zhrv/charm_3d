@@ -179,7 +179,7 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
     *PI= AGAM*(*EI)*(*RI);
 }
 
-void charm_calc_flux(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
+void charm_calc_flux_godunov(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
 {
     int i,j;
     double ri, ei, pi, uu[3], uv[3];
@@ -252,7 +252,7 @@ void charm_calc_flux(charm_prim_t prim[2], double* qr, double* qu, double* qv, d
     *qe = (ri*(ei+0.5*(uv[0]*uv[0]+uv[1]*uv[1]+uv[2]*uv[2]))+pi)*uu[0];
 }
 
-void __charm_calc_flux(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
+void charm_calc_flux_lf(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3])
 {
     int     i;
     double  alpha;

@@ -73,6 +73,7 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
 static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, void *user_data) {
     int i, ibf, igp;
     p4est_t *p4est = info->p4est;
+    charm_ctx_t * ctx = charm_get_ctx(p4est);
     charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
     double n[3];
@@ -124,7 +125,7 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
         charm_get_fields(udata, x, &cons);
         charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
         charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
-        charm_calc_flux(prim, &qr, &qu, &qv, &qw, &qe, n); /* flux from side 0 to side 1 */
+        ctx->flux_fn(prim, &qr, &qu, &qv, &qw, &qe, n); /* flux from side 0 to side 1 */
         for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
             if (!side[0]->is.full.is_ghost) {
                 bfv = charm_base_func(x, ibf, udata) * gw * gj;
@@ -143,6 +144,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
 {
     int                     i, j, h_side, igp, ibf;
     p4est_t                *p4est = info->p4est;
+    charm_ctx_t            *ctx = charm_get_ctx(p4est);
     charm_data_t           *ghost_data = (charm_data_t *) user_data;
     charm_data_t           *udata[2];
     double                  n[3];
@@ -210,7 +212,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
                     charm_get_fields(udata[i], x, &(cons[i]));
                     charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
                 }
-                charm_calc_flux(prim, &qr, &qu, &qv, &qw, &qe, n);  // flux from side 0 to side 1
+                ctx->flux_fn(prim, &qr, &qu, &qv, &qw, &qe, n);  // flux from side 0 to side 1
                 for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                     for (i = 0; i < 2; i++) {
                         if (!side[i]->is.full.is_ghost) {
@@ -224,39 +226,6 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
                     }
                 }
             }
-//            for (i = 0; i < 2; i++) {
-////                charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[i]->treeid);
-////                charm_param_cons_to_prim(attr->reg->mat, &(cons[i]), &());
-////                r_[i] = udata[i]->par.p.r;
-////                u_[i] = udata[i]->par.p.u;
-////                v_[i] = udata[i]->par.p.v;
-////                w_[i] = udata[i]->par.p.w;
-////                p_[i] = udata[i]->par.p.p;
-//            }
-//
-//            /* flux from side 0 to side 1 */
-//            charm_calc_flux(r_, u_, v_, w_, p_, &qr, &qu, &qv, &qw, &qe, n);
-//
-//            for (i = 0; i < 2; i++) {
-//                if (side[i]->is_hanging) {
-//                    if (side[i]->is.hanging.is_ghost[j]) {
-//                        continue;
-//                    }
-//
-//                }
-//                else {
-//                    if (side[i]->is.full.is_ghost) {
-//                        continue;
-//                    }
-//                }
-////                udata[i]->drodt += qr * facearea * (i ? 1. : -1.);
-////                udata[i]->drudt += qu * facearea * (i ? 1. : -1.);
-////                udata[i]->drvdt += qv * facearea * (i ? 1. : -1.);
-////                udata[i]->drwdt += qw * facearea * (i ? 1. : -1.);
-////                udata[i]->dredt += qe * facearea * (i ? 1. : -1.);
-//
-//            }
-
         }
     }
     else {
@@ -291,7 +260,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
                 charm_get_fields(udata[i], x, &(cons[i]));
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
             }
-            charm_calc_flux(prim, &qr, &qu, &qv, &qw, &qe, n);  // flux from side 0 to side 1
+            ctx->flux_fn(prim, &qr, &qu, &qv, &qw, &qe, n);  // flux from side 0 to side 1
             for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                 for (i = 0; i < 2; i++) {
                     if (!side[i]->is.full.is_ghost) {

@@ -294,7 +294,7 @@ typedef struct charm_data
 
 typedef void (*charm_bnd_cond_fn_t)(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double* n);
 
-
+typedef void (*charm_flux_fn_t)(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3]);
 
 #ifndef GLOBALS_H_FILE
 extern const char *charm_bnd_types[];
@@ -352,6 +352,7 @@ typedef struct charm_ctx
     sc_array_t         *reg;
 
     charm_mesh_info_t  *msh;
+    charm_flux_fn_t     flux_fn;
 } charm_ctx_t;
 
 typedef struct charm_tree_attr
@@ -397,7 +398,8 @@ void   charm_vect_add(double a[CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUN
 void   charm_matr_zero(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
 void   charm_vect_zero(double a[CHARM_BASE_FN_COUNT]);
 
-
+charm_ctx_t* charm_get_ctx(p4est_t* p4est);
+void charm_abort(int err_code);
 
         void dbg_print_param(charm_param_t *);
 

@@ -94,15 +94,17 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, doubl
     }
 
     /* repartition */
-    if (step && !(step % repartition_period)) {
+    if (repartition_period) {
+        if (step && !(step % repartition_period)) {
 
-        p4est_partition (p4est, allowcoarsening, NULL);
+            p4est_partition(p4est, allowcoarsening, NULL);
 
-        if (ghost) {
-            p4est_ghost_destroy (ghost);
-            CHARM_FREE (ghost_data);
-            ghost = NULL;
-            ghost_data = NULL;
+            if (ghost) {
+                p4est_ghost_destroy(ghost);
+                CHARM_FREE (ghost_data);
+                ghost = NULL;
+                ghost_data = NULL;
+            }
         }
     }
 

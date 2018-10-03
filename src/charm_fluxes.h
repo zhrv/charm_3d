@@ -14,6 +14,8 @@
 #endif
 
 void charm_calc_flux(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3]);
+void charm_calc_flux_godunov(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3]);
+void charm_calc_flux_lf(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3]);
 
 
 #endif //CHAMR_3D_CHARM_FLUXES_H

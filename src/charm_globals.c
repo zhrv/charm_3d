@@ -411,3 +411,18 @@ charm_data_t * charm_get_quad_data(p4est_quadrant_t *q)
 {
     return (charm_data_t *) q->p.user_data;
 }
+
+
+void charm_abort(int err_code)
+{
+    int mpiret;
+
+    sc_finalize ();
+    MPI_Finalize ();
+    exit(1);
+}
+
+charm_ctx_t* charm_get_ctx(p4est_t* p4est)
+{
+    return (charm_ctx_t*)(p4est->user_pointer);
+}
