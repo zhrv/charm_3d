@@ -401,7 +401,7 @@ void   charm_vect_zero(double a[CHARM_BASE_FN_COUNT]);
 charm_ctx_t* charm_get_ctx(p4est_t* p4est);
 void charm_abort(int err_code);
 
-        void dbg_print_param(charm_param_t *);
+void dbg_print_param(charm_param_t *);
 
 
 extern int charm_package_id;
