@@ -188,7 +188,6 @@ typedef struct charm_mat
     double k;
 } charm_mat_t;
 
-
 typedef struct charm_reg
 {
     char name[64];
@@ -198,6 +197,7 @@ typedef struct charm_reg
     double v[CHARM_DIM];
     double t;
     double p;
+    double concentrations[CHARM_MAX_COMPONETS_COUNT];
 } charm_reg_t;
 
 
@@ -215,7 +215,9 @@ typedef struct charm_prim
     double          gam;
     double          cp;
     double          cv;
-    int             mat_id;
+    int             reg_id;
+    double          c[CHARM_MAX_COMPONETS_COUNT]; // concentrations
+    size_t          components_count;
 } charm_prim_t;
 
 typedef struct charm_cons
@@ -226,7 +228,8 @@ typedef struct charm_cons
     double          rw;
     double          re;
     double          rc[CHARM_MAX_COMPONETS_COUNT];
-    int             mat_id;
+    int             reg_id;
+    size_t          components_count;
 } charm_cons_t;
 
 
@@ -240,6 +243,7 @@ typedef struct charm_param
         double          rw[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          re[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];             /**< the state variable */
+        size_t          components_count;
     } c;
 
     struct geom
@@ -260,7 +264,7 @@ typedef struct charm_param
         double          a_inv[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
     } g;
 
-    int mat_id;
+    int reg_id;
 
     struct lim
     {
@@ -286,6 +290,7 @@ typedef struct charm_data
     double              int_rv[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     double              int_rw[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     double              int_re[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    double              int_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];              /**< the time derivative */
 
     int                 ref_flag;
 } charm_data_t;
@@ -345,7 +350,7 @@ typedef struct charm_ctx
     double              CFL;                /**< the CFL */
     double              dt;
     double              time;               /**< the max time */
-    int                 components_count;
+    size_t              components_count;
 
     sc_array_t         *bnd;
     sc_array_t         *mat;
@@ -375,6 +380,8 @@ double charm_quad_get_volume(charm_data_t *d);
 
 
 charm_mat_t * charm_mat_find_by_id(charm_ctx_t *ctx, int id);
+int charm_mat_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index);
+charm_reg_t * charm_reg_find_by_id(charm_ctx_t *ctx, int id);
 charm_bnd_t * charm_bnd_find_by_face_type(charm_ctx_t *ctx, int type);
 
 charm_mesh_type_t charm_mesh_get_type_by_str(char*);
