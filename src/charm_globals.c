@@ -140,49 +140,49 @@ charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tr
 double gR = 8.314472;
 void charm_mat_eos(p4est_t * p4est, charm_prim_t * p, int flag)
 {
-    charm_ctx_t *ctx = (charm_ctx_t *)p4est->user_pointer;
-    charm_reg_t *reg = charm_reg_find_by_id(ctx, p->reg_id);
-    charm_mat_t *mat = charm_mat_find_by_id(ctx, reg->mat_id);
-    double Cp = mat->cp;
-    double M  = mat->m;
-    double Cv = Cp-gR/M;
-    double gam = Cp/Cv;
-    p->gam = gam;
-    p->cp = Cp;
-    p->cv = Cv;
-    switch (flag)
-    {
-        case 0:		// p=p(r,e)
-            p->p = p->r*p->e*(gam-1);
-            p->cz = sqrt(gam*p->p/p->r);
-            break;
-
-        case 1:		// e=e(r,p)
-            p->e = p->p/(p->r*(gam-1));
-            p->t = p->e/Cv;
-            break;
-
-        case 2:		// r=r(T,p)
-            p->r = p->p*M/(p->t*gR);
-            p->cz = sqrt(gam*p->p/p->r);
-            break;
-
-        case 3:
-            p->r  = p->p*M/(p->t*gR);
-            p->cz = sqrt(gam*p->p/p->r);
-            p->e  = p->p/(p->r*(gam-1));
-            break;
-
-        case 4:
-            p->p  = p->r*p->e*(gam-1);
-            p->cz = sqrt(gam*p->p/p->r);
-            p->t  = p->e/Cv;
-            break;
-
-        default:
-            CHARM_ASSERT(flag < 3);
-    }
-
+//    charm_ctx_t *ctx = (charm_ctx_t *)p4est->user_pointer;
+//    charm_reg_t *reg = charm_reg_find_by_id(ctx, p->reg_id);
+//    charm_mat_t *mat = charm_mat_find_by_id(ctx, reg->mat_id);
+//    double Cp = mat->cp;
+//    double M  = mat->m;
+//    double Cv = Cp-gR/M;
+//    double gam = Cp/Cv;
+//    p->gam = gam;
+//    p->cp = Cp;
+//    p->cv = Cv;
+//    switch (flag)
+//    {
+//        case 0:		// p=p(r,e)
+//            p->p = p->r*p->e*(gam-1);
+//            p->cz = sqrt(gam*p->p/p->r);
+//            break;
+//
+//        case 1:		// e=e(r,p)
+//            p->e = p->p/(p->r*(gam-1));
+//            p->t = p->e/Cv;
+//            break;
+//
+//        case 2:		// r=r(T,p)
+//            p->r = p->p*M/(p->t*gR);
+//            p->cz = sqrt(gam*p->p/p->r);
+//            break;
+//
+//        case 3:
+//            p->r  = p->p*M/(p->t*gR);
+//            p->cz = sqrt(gam*p->p/p->r);
+//            p->e  = p->p/(p->r*(gam-1));
+//            break;
+//
+//        case 4:
+//            p->p  = p->r*p->e*(gam-1);
+//            p->cz = sqrt(gam*p->p/p->r);
+//            p->t  = p->e/Cv;
+//            break;
+//
+//        default:
+//            CHARM_ASSERT(flag < 3);
+//    }
+//
 }
 
 

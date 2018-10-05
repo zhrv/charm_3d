@@ -34,7 +34,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     prim.w   = reg->v[2];
     prim.components_count = ctx->components_count;
     for (i = 0; i < prim.components_count; i++) {
-        prim.c[i] = reg->concentrations[i];
+        prim.c[i] = reg->c[i];
     }
     charm_mat_eos(p4est, &prim, 2);
     charm_mat_eos(p4est, &prim, 1);
@@ -113,18 +113,21 @@ void charm_init_bnd(charm_ctx_t *ctx, mxml_node_t *node)
 }
 
 
-void charm_init_fetch_mat(mxml_node_t* node, charm_mat_t *mat)
+void charm_init_fetch_mat(charm_ctx_t *ctx, mxml_node_t* node, charm_mat_t *mat)
 {
-    mxml_node_t * n1;
+    mxml_node_t *n1, *node1;
+    int *id;
     charm_xml_node_attr_int(node, "id", &(mat->id));
     n1 = charm_xml_node_get_child(node, "name");
     charm_xml_node_value_str(n1, mat->name);
-    n1 = charm_xml_node_get_child(node, "parameters");
-    charm_xml_node_child_param_dbl(n1, "M", &(mat->m));
-    charm_xml_node_child_param_dbl(n1, "Cp", &(mat->cp));
-    charm_xml_node_child_param_dbl(n1, "ML", &(mat->ml));
-    charm_xml_node_child_param_dbl(n1, "Lambda", &(mat->lambda));
-    charm_xml_node_child_param_dbl(n1, "K", &(mat->k));
+    mat->comp_ids = sc_array_new(sizeof(int));
+    n1 = charm_xml_node_get_child(node, "components");
+    for (node1 = charm_xml_node_get_child(n1, "component");
+         node1 != NULL;
+         node1 = charm_xml_node_get_next_child(node1, n1, "component")) {
+        id = (int *) sc_array_push(mat->comp_ids);
+        charm_xml_node_attr_int(node1, "id", id);
+    }
 }
 
 
@@ -140,19 +143,19 @@ void charm_init_mat(charm_ctx_t *ctx, mxml_node_t *node)
          node1 != NULL;
          node1 = charm_xml_node_get_next_child(node1, node, "material")) {
         mat = (charm_mat_t *) sc_array_push(ctx->mat);
-        charm_init_fetch_mat(node1, mat);
+        charm_init_fetch_mat(ctx, node1, mat);
     }
 
     ctx->components_count = ctx->mat->elem_count;
 }
 
-void charm_init_comps(charm_ctx_t* ctx, mxml_node_t* node, charm_reg_t *reg) {
+void _____charm_init_comps(charm_ctx_t* ctx, mxml_node_t* node, charm_reg_t *reg) {
     mxml_node_t *comp_node;
     size_t mat_index;
     int mat_id;
 
     for(int i = 0; i < ctx->components_count; ++i) {
-        reg->concentrations[i] = 0.;
+        reg->c[i] = 0.;
     }
 
     for (comp_node = charm_xml_node_get_child(node, "component");
@@ -160,12 +163,42 @@ void charm_init_comps(charm_ctx_t* ctx, mxml_node_t* node, charm_reg_t *reg) {
          comp_node = charm_xml_node_get_next_child(comp_node, node, "component")) {
         charm_xml_node_attr_int(comp_node, "material_id", &mat_id);
         if(charm_mat_index_find_by_id(ctx, mat_id, &mat_index)) {
-            charm_xml_node_attr_dbl(comp_node, "concentration", &(reg->concentrations[mat_index]));
+            charm_xml_node_attr_dbl(comp_node, "concentration", &(reg->c[mat_index]));
         }
     }
 }
 
-void charm_init_fetch_reg(charm_ctx_t* ctx, mxml_node_t* node, charm_reg_t *reg)
+void charm_init_fetch_comp(mxml_node_t* node, charm_comp_t *comp)
+{
+    mxml_node_t * n1;
+    charm_xml_node_attr_int(node, "id", &(comp->id));
+    n1 = charm_xml_node_get_child(node, "name");
+    charm_xml_node_value_str(n1, comp->name);
+    //n1 = charm_xml_node_get_child(node, "parameters");
+    charm_xml_node_child_param_dbl(node, "M", &(comp->m));
+    charm_xml_node_child_param_dbl(node, "Cp", &(comp->cp));
+    charm_xml_node_child_param_dbl(node, "ML", &(comp->ml));
+    charm_xml_node_child_param_dbl(node, "Lambda", &(comp->lambda));
+    charm_xml_node_child_param_dbl(node, "K", &(comp->k));
+}
+
+
+static void charm_init_comps(charm_ctx_t* ctx, mxml_node_t* node) {
+    mxml_node_t *comp_node;
+    size_t mat_index;
+    charm_comp_t *comp;
+
+    ctx->comp = sc_array_new(sizeof(charm_comp_t));
+
+    for (comp_node = charm_xml_node_get_child(node, "component");
+         comp_node != NULL;
+         comp_node = charm_xml_node_get_next_child(comp_node, node, "component")) {
+        comp = (charm_comp_t *) sc_array_push(ctx->comp);
+        charm_init_fetch_comp(comp_node, comp);
+    }
+}
+
+void charm_init_fetch_reg(mxml_node_t* node, charm_reg_t *reg)
 {
     mxml_node_t * n1;
     int tmp;
@@ -174,13 +207,16 @@ void charm_init_fetch_reg(charm_ctx_t* ctx, mxml_node_t* node, charm_reg_t *reg)
     charm_xml_node_value_str(n1, reg->name);
     charm_xml_node_child_param_int(node, "cell_type", &(reg->cell_type));
     charm_xml_node_child_param_int(node, "material_id", &(reg->mat_id));
-    charm_init_comps(ctx, charm_xml_node_get_child(node, "components"), reg);
+
     n1 = charm_xml_node_get_child(node, "parameters");
     charm_xml_node_child_param_dbl(n1, "Vx", &(reg->v[0]));
     charm_xml_node_child_param_dbl(n1, "Vy", &(reg->v[1]));
     charm_xml_node_child_param_dbl(n1, "Vz", &(reg->v[2]));
     charm_xml_node_child_param_dbl(n1, "T", &(reg->t));
     charm_xml_node_child_param_dbl(n1, "P", &(reg->p));
+
+    n1 = charm_xml_node_get_child(node, "parameters");
+
 }
 
 
@@ -196,7 +232,7 @@ void charm_init_reg(charm_ctx_t *ctx, mxml_node_t *node)
          node1 != NULL;
          node1 = charm_xml_node_get_next_child(node1, node, "region")) {
         reg = (charm_reg_t *) sc_array_push(ctx->reg);
-        charm_init_fetch_reg(ctx, node1, reg);
+        charm_init_fetch_reg(node1, reg);
     }
 }
 
@@ -260,6 +296,8 @@ void charm_init_context(charm_ctx_t *ctx)
     charm_xml_node_child_param_dbl(node, "TMAX", &(ctx->time));
 
     charm_init_bnd(ctx, charm_xml_node_get_child(node_task, "boundaries"));
+
+    charm_init_comps(ctx, charm_xml_node_get_child(node_task, "components"));
 
     charm_init_mat(ctx, charm_xml_node_get_child(node_task, "materials"));
 

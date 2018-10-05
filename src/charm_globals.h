@@ -177,7 +177,7 @@ __attribute__ ((format (printf, 1, 2)));
 
 #define CHARM_ARR_SET_ZERO(A) {int i; for (i = 0; i < CHARM_BASE_FN_COUNT; i++) A[i] = 0.; }
 
-typedef struct charm_mat
+typedef struct charm_comp
 {
     char name[64];
     int id;
@@ -186,6 +186,13 @@ typedef struct charm_mat
     double ml;
     double lambda;
     double k;
+} charm_comp_t;
+
+typedef struct charm_mat
+{
+    int id;
+    char name[64];
+    sc_array_t *comp_ids;
 } charm_mat_t;
 
 typedef struct charm_reg
@@ -197,7 +204,7 @@ typedef struct charm_reg
     double v[CHARM_DIM];
     double t;
     double p;
-    double concentrations[CHARM_MAX_COMPONETS_COUNT];
+    double c[CHARM_MAX_COMPONETS_COUNT];
 } charm_reg_t;
 
 
@@ -229,7 +236,6 @@ typedef struct charm_cons
     double          re;
     double          rc[CHARM_MAX_COMPONETS_COUNT];
     int             reg_id;
-    size_t          components_count;
 } charm_cons_t;
 
 
@@ -243,7 +249,6 @@ typedef struct charm_param
         double          rw[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          re[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];             /**< the state variable */
-        size_t          components_count;
     } c;
 
     struct geom
@@ -350,11 +355,11 @@ typedef struct charm_ctx
     double              CFL;                /**< the CFL */
     double              dt;
     double              time;               /**< the max time */
-    size_t              components_count;
 
     sc_array_t         *bnd;
-    sc_array_t         *mat;
-    sc_array_t         *reg;
+    sc_array_t         *mat;  /**< materials */
+    sc_array_t         *reg;  /**< regions */
+    sc_array_t         *comp; /**< components */
 
     charm_mesh_info_t  *msh;
     charm_flux_fn_t     flux_fn;
@@ -389,6 +394,10 @@ charm_mesh_type_t charm_mesh_get_type_by_str(char*);
 charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tree);
 
 charm_data_t * charm_get_quad_data(p4est_quadrant_t *q);
+
+charm_comp_t * charm_get_comp_by_name(charm_ctx_t *ctx, char *name);
+charm_comp_t * charm_get_comp_by_id(charm_ctx_t *ctx, int id);
+int            charm_get_comp_index_by_id(charm_ctx_t *ctx, int id);
 
 void charm_mat_eos(p4est_t * p4est, charm_prim_t * p, int flag);
 void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * c);
