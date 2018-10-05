@@ -8,6 +8,7 @@
 #include "charm_bnd_cond.h"
 #include "charm_fluxes.h"
 #include "charm_globals.h"
+#include "charm_eos.h"
 
 
 void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q)
@@ -20,24 +21,27 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     charm_tree_attr_t  *attr;
     charm_reg_t        *reg;
     int                 i;
+    size_t              c_count = charm_get_comp_count(p4est);
+    charm_mat_t        *mat;
 
     charm_geom_quad_calc(p4est, q, which_tree);
 
     attr = charm_get_tree_attr(p4est, which_tree);
     reg = attr->reg;
 
-    prim.reg_id = reg->id;
+    prim.mat_id = reg->mat_id;
     prim.p   = reg->p;
     prim.t   = reg->t;
     prim.u   = reg->v[0];
     prim.v   = reg->v[1];
     prim.w   = reg->v[2];
-    prim.components_count = ctx->components_count;
-    for (i = 0; i < prim.components_count; i++) {
+    for (i = 0; i < c_count; i++) {
         prim.c[i] = reg->c[i];
     }
-    charm_mat_eos(p4est, &prim, 2);
-    charm_mat_eos(p4est, &prim, 1);
+    mat = charm_mat_find_by_id(ctx, reg->mat_id);
+
+    mat->eos_fn(p4est, &prim, 2);
+    mat->eos_fn(p4est, &prim, 1);
     prim.e_tot = prim.e + 0.5*(prim.u*prim.u+prim.v*prim.v+prim.w*prim.w);
     charm_param_prim_to_cons(p4est, &cons, &prim);
     memset(&(par->c), 0, sizeof(par->c));
@@ -46,11 +50,10 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     par->c.rv[0] = cons.rv;
     par->c.rw[0] = cons.rw;
     par->c.re[0] = cons.re;
-    par->c.components_count = cons.components_count;
-    for (i = 0; i < ctx->components_count; i++) {
+    for (i = 0; i < c_count; i++) {
         par->c.rc[i][0] = cons.rc[i];
     }
-    par->reg_id = reg->id;
+    par->mat_id = reg->mat_id;
 }
 
 
@@ -96,7 +99,7 @@ void charm_init_fetch_bnd(mxml_node_t* node, charm_bnd_t *bnd)
 }
 
 
-void charm_init_bnd(charm_ctx_t *ctx, mxml_node_t *node)
+static void charm_init_bnd(charm_ctx_t *ctx, mxml_node_t *node)
 {
     charm_bnd_t *bnd;
     mxml_node_t *node1;
@@ -113,73 +116,41 @@ void charm_init_bnd(charm_ctx_t *ctx, mxml_node_t *node)
 }
 
 
-void charm_init_fetch_mat(charm_ctx_t *ctx, mxml_node_t* node, charm_mat_t *mat)
-{
-    mxml_node_t *n1, *node1;
-    int *id;
-    charm_xml_node_attr_int(node, "id", &(mat->id));
-    n1 = charm_xml_node_get_child(node, "name");
-    charm_xml_node_value_str(n1, mat->name);
-    mat->comp_ids = sc_array_new(sizeof(int));
-    n1 = charm_xml_node_get_child(node, "components");
-    for (node1 = charm_xml_node_get_child(n1, "component");
-         node1 != NULL;
-         node1 = charm_xml_node_get_next_child(node1, n1, "component")) {
-        id = (int *) sc_array_push(mat->comp_ids);
-        charm_xml_node_attr_int(node1, "id", id);
-    }
-}
-
-
-void charm_init_mat(charm_ctx_t *ctx, mxml_node_t *node)
-{
-    charm_mat_t *mat;
-    mxml_node_t *node1;
-    int i;
-
-    ctx->mat = sc_array_new(sizeof(charm_mat_t));
-
-    for (node1 = charm_xml_node_get_child(node, "material");
-         node1 != NULL;
-         node1 = charm_xml_node_get_next_child(node1, node, "material")) {
-        mat = (charm_mat_t *) sc_array_push(ctx->mat);
-        charm_init_fetch_mat(ctx, node1, mat);
-    }
-
-    ctx->components_count = ctx->mat->elem_count;
-}
-
-void _____charm_init_comps(charm_ctx_t* ctx, mxml_node_t* node, charm_reg_t *reg) {
-    mxml_node_t *comp_node;
-    size_t mat_index;
-    int mat_id;
-
-    for(int i = 0; i < ctx->components_count; ++i) {
-        reg->c[i] = 0.;
-    }
-
-    for (comp_node = charm_xml_node_get_child(node, "component");
-         comp_node != NULL;
-         comp_node = charm_xml_node_get_next_child(comp_node, node, "component")) {
-        charm_xml_node_attr_int(comp_node, "material_id", &mat_id);
-        if(charm_mat_index_find_by_id(ctx, mat_id, &mat_index)) {
-            charm_xml_node_attr_dbl(comp_node, "concentration", &(reg->c[mat_index]));
-        }
-    }
-}
-
-void charm_init_fetch_comp(mxml_node_t* node, charm_comp_t *comp)
+static void charm_init_fetch_comp(mxml_node_t* node, charm_comp_t *comp)
 {
     mxml_node_t * n1;
+    char str[32];
+    double *tmp;
+
+
     charm_xml_node_attr_int(node, "id", &(comp->id));
+    charm_xml_node_attr_str(node, "cp_type", str);
+    if (strcmp(str, "CONST") == 0) {
+        comp->cp_type = COMP_CONST;
+    }
+    else if (strcmp(str, "POLYNOM") == 0) {
+        comp->cp_type = COMP_POLYNOM;
+    }
+    else {
+        CHARM_LERRORF("Unknown Cp type '%s'. Use: CONST, POLYNOM.", str);
+        charm_abort(1);
+    }
     n1 = charm_xml_node_get_child(node, "name");
     charm_xml_node_value_str(n1, comp->name);
     //n1 = charm_xml_node_get_child(node, "parameters");
     charm_xml_node_child_param_dbl(node, "M", &(comp->m));
-    charm_xml_node_child_param_dbl(node, "Cp", &(comp->cp));
     charm_xml_node_child_param_dbl(node, "ML", &(comp->ml));
     charm_xml_node_child_param_dbl(node, "Lambda", &(comp->lambda));
     charm_xml_node_child_param_dbl(node, "K", &(comp->k));
+    comp->cp = sc_array_new(sizeof(double));
+    if (comp->cp_type == COMP_CONST) {
+        tmp = sc_array_push(comp->cp);
+        charm_xml_node_child_param_dbl(node, "Cp", tmp);
+    }
+    else {
+        CHARM_LERROR("Cp type 'POLYNOM' is not released.\n");
+        charm_abort(1);
+    }
 }
 
 
@@ -198,14 +169,79 @@ static void charm_init_comps(charm_ctx_t* ctx, mxml_node_t* node) {
     }
 }
 
-void charm_init_fetch_reg(mxml_node_t* node, charm_reg_t *reg)
+
+static void charm_init_fetch_mat(charm_ctx_t *ctx, mxml_node_t* node, charm_mat_t *mat)
 {
-    mxml_node_t * n1;
-    int tmp;
+    mxml_node_t *n1, *node1;
+    int id;
+    size_t *idx, idx_tmp;
+    char str[32];
+    charm_xml_node_attr_int(node, "id", &(mat->id));
+    charm_xml_node_child_param_str(node, "eof_type", str);
+    if (strcmp(str, "IDEAL") == 0) {
+        mat->eos_fn = charm_mat_eos_ideal;
+        if (ctx->comp->elem_count > 1) {
+            CHARM_GLOBAL_ESSENTIAL("WARNING! There is more than one component in 'task.xml'. First component's parameters is used for EOS. \n");
+        }
+    }
+    else if (strcmp(str, "MIX") == 0) {
+        mat->eos_fn = charm_mat_eos_mix;
+    }
+    else if (strcmp(str, "TABLE") == 0) {
+        mat->eos_fn = charm_mat_eos_table;
+    }
+    else {
+        CHARM_LERRORF("Unknown flux type '%s'. Use: LF, GODUNOV.", str);
+        charm_abort(1);
+    }
+    n1 = charm_xml_node_get_child(node, "name");
+    charm_xml_node_value_str(n1, mat->name);
+//    mat->comp_idx = sc_array_new(sizeof(size_t));
+//    n1 = charm_xml_node_get_child(node, "components");
+//    for (node1 = charm_xml_node_get_child(n1, "component");
+//         node1 != NULL;
+//         node1 = charm_xml_node_get_next_child(node1, n1, "component")) {
+//
+//        charm_xml_node_attr_int(node1, "id", &id);
+//        if (charm_comp_index_find_by_id(ctx, id, &idx_tmp)) {
+//            idx = (size_t *) sc_array_push(mat->comp_idx);
+//            *idx = idx_tmp;
+//        }
+//        else {
+//            CHARM_LERRORF("Unknown component id %d for material '%s' in file 'task.xml'\n", id, mat->name);
+//            charm_abort(1);
+//        }
+//    }
+}
+
+
+static void charm_init_mat(charm_ctx_t *ctx, mxml_node_t *node)
+{
+    charm_mat_t *mat;
+    mxml_node_t *node1;
+    int i;
+
+    ctx->mat = sc_array_new(sizeof(charm_mat_t));
+
+    for (node1 = charm_xml_node_get_child(node, "material");
+         node1 != NULL;
+         node1 = charm_xml_node_get_next_child(node1, node, "material")) {
+        mat = (charm_mat_t *) sc_array_push(ctx->mat);
+        charm_init_fetch_mat(ctx, node1, mat);
+    }
+}
+
+static void charm_init_fetch_reg(charm_ctx_t *ctx, mxml_node_t* node, charm_reg_t *reg)
+{
+    mxml_node_t * n1, *n2;
+    int tmp, id, i;
+    size_t idx;
+    double c;
+
     charm_xml_node_attr_int(node, "id", &(reg->id));
     n1 = charm_xml_node_get_child(node, "name");
     charm_xml_node_value_str(n1, reg->name);
-    charm_xml_node_child_param_int(node, "cell_type", &(reg->cell_type));
+    //charm_xml_node_child_param_int(node, "cell_type", &(reg->cell_type));
     charm_xml_node_child_param_int(node, "material_id", &(reg->mat_id));
 
     n1 = charm_xml_node_get_child(node, "parameters");
@@ -215,12 +251,34 @@ void charm_init_fetch_reg(mxml_node_t* node, charm_reg_t *reg)
     charm_xml_node_child_param_dbl(n1, "T", &(reg->t));
     charm_xml_node_child_param_dbl(n1, "P", &(reg->p));
 
-    n1 = charm_xml_node_get_child(node, "parameters");
+    memset(reg->c, 0, CHARM_MAX_COMPONETS_COUNT*sizeof(double));
+    n1 = charm_xml_node_get_child(node, "components");
+    for (n2 = charm_xml_node_get_child(n1, "component");
+         n2 != NULL;
+         n2 = charm_xml_node_get_next_child(n2, n1, "component")) {
+        charm_xml_node_attr_int(n2, "id", &id);
+        charm_xml_node_attr_dbl(n2, "concentration", &c);
+        if (charm_comp_index_find_by_id(ctx, id, &idx)) {
+            reg->c[idx] = c;
+        }
+        else {
+            CHARM_LERRORF("Unknown component id %d for region '%s' in file 'task.xml'\n", id, reg->name);
+            charm_abort(1);
+        }
+    }
 
+    c = 0;
+    for (i = 0; i < CHARM_MAX_COMPONETS_COUNT; i++) {
+        c += reg->c[i];
+    }
+    if (fabs(c)-1. > CHARM_EPS) {
+        CHARM_LERRORF("Sum of concentrations for region '%s' is not equal to 1 in file 'task.xml'\n", reg->name);
+        charm_abort(1);
+    }
 }
 
 
-void charm_init_reg(charm_ctx_t *ctx, mxml_node_t *node)
+static void charm_init_reg(charm_ctx_t *ctx, mxml_node_t *node)
 {
     charm_reg_t *reg;
     mxml_node_t *node1;
@@ -232,12 +290,12 @@ void charm_init_reg(charm_ctx_t *ctx, mxml_node_t *node)
          node1 != NULL;
          node1 = charm_xml_node_get_next_child(node1, node, "region")) {
         reg = (charm_reg_t *) sc_array_push(ctx->reg);
-        charm_init_fetch_reg(node1, reg);
+        charm_init_fetch_reg(ctx, node1, reg);
     }
 }
 
 
-void charm_init_mesh_info(charm_ctx_t *ctx, mxml_node_t *node)
+static void charm_init_mesh_info(charm_ctx_t *ctx, mxml_node_t *node)
 {
     charm_mesh_info_t *m;// = ctx->msh;
     char str[128];
@@ -295,15 +353,11 @@ void charm_init_context(charm_ctx_t *ctx)
     charm_xml_node_child_param_dbl(node, "CFL", &(ctx->CFL));
     charm_xml_node_child_param_dbl(node, "TMAX", &(ctx->time));
 
-    charm_init_bnd(ctx, charm_xml_node_get_child(node_task, "boundaries"));
-
-    charm_init_comps(ctx, charm_xml_node_get_child(node_task, "components"));
-
-    charm_init_mat(ctx, charm_xml_node_get_child(node_task, "materials"));
-
-    charm_init_reg(ctx, charm_xml_node_get_child(node_task, "regions"));
-
-    charm_init_mesh_info(ctx, charm_xml_node_get_child(node_task, "mesh"));
+    charm_init_bnd(       ctx, charm_xml_node_get_child(node_task, "boundaries"));
+    charm_init_comps(     ctx, charm_xml_node_get_child(node_task, "components"));
+    charm_init_mat(       ctx, charm_xml_node_get_child(node_task, "materials"));
+    charm_init_reg(       ctx, charm_xml_node_get_child(node_task, "regions"));
+    charm_init_mesh_info( ctx, charm_xml_node_get_child(node_task, "mesh"));
 }
 
 

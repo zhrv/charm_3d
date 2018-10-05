@@ -26,6 +26,7 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
     double              hr, hu, hv, hw, he;
     double              phi_x, phi_y, phi_z;
     double             *x;
+    size_t              c_count = charm_get_comp_count(info->p4est);
 
     for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
         for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
@@ -57,7 +58,7 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
             phi_z = charm_base_func_dz(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
 
             data->int_ro[ibf] -= (fr*phi_x+gr*phi_y+hr*phi_z);
-            for(size_t cj = 0; cj < data->par.c.components_count; ++cj) {
+            for(size_t cj = 0; cj < c_count; ++cj) {
                 data->int_rc[cj][ibf] -= (fr*phi_x+gr*phi_y+hr*phi_z)*p.c[cj];
             }
 
@@ -86,6 +87,7 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
     double bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
+    size_t              c_count = charm_get_comp_count(info->p4est);
 
 
     int8_t face;
@@ -135,7 +137,7 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
             if (!side[0]->is.full.is_ghost) {
                 bfv = charm_base_func(x, ibf, udata) * gw * gj;
                 udata->int_ro[ibf] += qr * bfv;
-                for (int j = 0; j < udata->par.c.components_count; j++) {
+                for (int j = 0; j < c_count; j++) {
                     udata->int_rc[j][ibf] += qr * bfv * prim[0].c[j];
                 }
 
@@ -167,6 +169,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
     double                  c[2][3];
     double                  l[3];
     int8_t                  face[2];
+    size_t                  c_count = charm_get_comp_count(info->p4est);
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     side[1] = p4est_iter_fside_array_index_int(sides, 1);
@@ -275,7 +278,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
                     if (!side[i]->is.full.is_ghost) {
                         bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
                         udata[i]->int_ro[ibf] += qr * bfv;
-                        for (int j = 0; j < udata[i]->par.c.components_count; j++) {
+                        for (int j = 0; j < c_count; j++) {
                             udata[i]->int_rc[j][ibf] += qr * bfv * prim[i].c[j];
                         }
                         udata[i]->int_ru[ibf] += qu * bfv;
