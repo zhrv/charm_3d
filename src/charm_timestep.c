@@ -215,7 +215,7 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
     double              dt = *((double *) user_data);
-    double              rhs_ro[CHARM_BASE_FN_COUNT];
+//    double              rhs_ro[CHARM_BASE_FN_COUNT];
     double              rhs_ru[CHARM_BASE_FN_COUNT];
     double              rhs_rv[CHARM_BASE_FN_COUNT];
     double              rhs_rw[CHARM_BASE_FN_COUNT];
@@ -224,7 +224,7 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
     size_t              c_count = ctx->comp->elem_count;
     int                 i;
 
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_ro, rhs_ro);
+//    charm_matr_vect_mult(data->par.g.a_inv, data->int_ro, rhs_ro);
     charm_matr_vect_mult(data->par.g.a_inv, data->int_ru, rhs_ru);
     charm_matr_vect_mult(data->par.g.a_inv, data->int_rv, rhs_rv);
     charm_matr_vect_mult(data->par.g.a_inv, data->int_rw, rhs_rw);
@@ -235,7 +235,7 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
     }
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->par.c.ro[i] -= _NORM_(dt * rhs_ro[i]);
+//        data->par.c.ro[i] -= _NORM_(dt * rhs_ro[i]);
         data->par.c.ru[i] -= _NORM_(dt * rhs_ru[i]);
         data->par.c.rv[i] -= _NORM_(dt * rhs_rv[i]);
         data->par.c.rw[i] -= _NORM_(dt * rhs_rw[i]);
@@ -253,7 +253,7 @@ static void charm_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, v
     int                 i;
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->int_ro[i] = 0.;
+//        data->int_ro[i] = 0.;
         data->int_ru[i] = 0.;
         data->int_rv[i] = 0.;
         data->int_rw[i] = 0.;

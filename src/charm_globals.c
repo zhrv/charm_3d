@@ -177,17 +177,21 @@ void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * 
     charm_ctx_t * ctx       = charm_get_ctx(p4est);
     size_t        c_count   = ctx->comp->elem_count;
     charm_mat_t * mat       = charm_mat_find_by_id(ctx, c->mat_id);
+    size_t i;
 
     p->mat_id = c->mat_id;
-    p->r      = c->ro;
-    p->u      = c->ru/c->ro;
-    p->v      = c->rv/c->ro;
-    p->w      = c->rw/c->ro;
-    p->e_tot  = c->re/c->ro;
+    p->r      = 0.;
+    for (i = 0; i < c_count; i++) {
+        p->r += c->rc[i];
+    }
+    p->u      = c->ru/p->r;
+    p->v      = c->rv/p->r;
+    p->w      = c->rw/p->r;
+    p->e_tot  = c->re/p->r;
     p->e      = p->e_tot-0.5*(p->u*p->u+p->v*p->v+p->w*p->w);
 
-    for (size_t i = 0; i < c_count; i++) {
-        p->c[i] = c->rc[i] / c->ro;
+    for (i = 0; i < c_count; i++) {
+        p->c[i] = c->rc[i] / p->r;
     }
 
     mat->eos_fn(p4est, p, 4);  // {p,cz, t}=EOS(r,e)
@@ -198,7 +202,7 @@ void charm_param_prim_to_cons(p4est_t * p4est, charm_cons_t * c, charm_prim_t * 
 {
     size_t c_count = charm_get_comp_count(p4est);
     c->mat_id = p->mat_id;
-    c->ro = p->r;
+//    c->ro = p->r;
     c->ru = p->r * p->u;
     c->rv = p->r * p->v;
     c->rw = p->r * p->w;

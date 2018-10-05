@@ -18,7 +18,7 @@ static double charm_error_sqr_estimate (p4est_quadrant_t * q)
     double              diff2 = 0.;
 
     for (i = 0; i < CHARM_DIM; i++) {
-        du[i] = data->par.c.ro[i+1];//data->par.a.grad_u[i];
+//        du[i] = data->par.c.ro[i+1];//data->par.a.grad_u[i];
     }
 
     /* use the approximate derivative to estimate the L2 error */
@@ -90,6 +90,8 @@ static int charm_coarsen_err_estimate (p4est_t * p4est, p4est_topidx_t which_tre
     double              global_err = ctx->max_err;
     double              global_err2 = global_err * global_err;
     charm_data_t       *data;
+    charm_cons_t        cons;
+    charm_prim_t        prim;
     double              vol, err2, childerr2;
     double              parentu;
     double              diff;
@@ -108,19 +110,23 @@ static int charm_coarsen_err_estimate (p4est_t * p4est, p4est_topidx_t which_tre
     parentu = 0.;
     for (i = 0; i < CHARM_CHILDREN; i++) {
         data = (charm_data_t *) children[i]->p.user_data;
-        parentu += data->par.c.ro[0] / CHARM_CHILDREN;
+        charm_get_fields(data, data->par.g.c, &cons);
+        charm_param_cons_to_prim(p4est, &prim, &cons);
+        parentu += prim.r / CHARM_CHILDREN;
     }
 
     err2 = 0.;
     for (i = 0; i < CHARM_CHILDREN; i++) {
         data = (charm_data_t *) children[i]->p.user_data;
         childerr2 = charm_error_sqr_estimate (children[i]);
+        charm_get_fields(data, data->par.g.c, &cons);
+        charm_param_cons_to_prim(p4est, &prim, &cons);
 
         if (childerr2 > global_err2 * vol) {
             return 0;
         }
         err2 += childerr2;
-        diff = (parentu - data->par.c.ro[0]) * (parentu - data->par.c.ro[0]);
+        diff = (parentu - prim.r) * (parentu - prim.r);
         err2 += diff * vol;
     }
     if (err2 < global_err2 * (vol * CHARM_CHILDREN)) {
@@ -228,8 +234,8 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
                     }
                 }
             }
-            charm_matr_vect_mult(ar, child_data->par.c.ro, cr);
-            charm_vect_add(rhs_ro, cr);
+//            charm_matr_vect_mult(ar, child_data->par.c.ro, cr);
+//            charm_vect_add(rhs_ro, cr);
             charm_matr_vect_mult(ar, child_data->par.c.ru, cr);
             charm_vect_add(rhs_ru, cr);
             charm_matr_vect_mult(ar, child_data->par.c.rv, cr);
@@ -239,7 +245,7 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
             charm_matr_vect_mult(ar, child_data->par.c.re, cr);
             charm_vect_add(rhs_re, cr);
         }
-        charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_ro, parent_data->par.c.ro);
+//        charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_ro, parent_data->par.c.ro);
         charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_ru, parent_data->par.c.ru);
         charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_rv, parent_data->par.c.rv);
         charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_rw, parent_data->par.c.rw);
@@ -264,13 +270,13 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
                     }
                 }
             }
-            charm_matr_vect_mult(ar, parent_data->par.c.ro, rhs_ro);
+//            charm_matr_vect_mult(ar, parent_data->par.c.ro, rhs_ro);
             charm_matr_vect_mult(ar, parent_data->par.c.ru, rhs_ru);
             charm_matr_vect_mult(ar, parent_data->par.c.rv, rhs_rv);
             charm_matr_vect_mult(ar, parent_data->par.c.rw, rhs_rw);
             charm_matr_vect_mult(ar, parent_data->par.c.re, rhs_re);
 
-            charm_matr_vect_mult(child_data->par.g.a_inv, rhs_ro, child_data->par.c.ro);
+//            charm_matr_vect_mult(child_data->par.g.a_inv, rhs_ro, child_data->par.c.ro);
             charm_matr_vect_mult(child_data->par.g.a_inv, rhs_ru, child_data->par.c.ru);
             charm_matr_vect_mult(child_data->par.g.a_inv, rhs_rv, child_data->par.c.rv);
             charm_matr_vect_mult(child_data->par.g.a_inv, rhs_rw, child_data->par.c.rw);

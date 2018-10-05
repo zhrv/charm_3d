@@ -124,16 +124,16 @@ double charm_base_func_dz(double* x, int k, charm_data_t *p) {
     }
 }
 
-double charm_get_field_ro(charm_data_t* p, double* x)
-{
-    double result = 0.;
-    int i;
-
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        result += p->par.c.ro[i]*charm_base_func(x, i, p);
-    }
-    return result;
-}
+//double charm_get_field_ro(charm_data_t* p, double* x)
+//{
+//    double result = 0.;
+//    int i;
+//
+//    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+//        result += p->par.c.ro[i]*charm_base_func(x, i, p);
+//    }
+//    return result;
+//}
 
 
 double charm_get_field_ru(charm_data_t* p, double* x)
@@ -198,7 +198,7 @@ double charm_get_field_rc(charm_data_t* p, double* x, int k)
 void charm_get_fields(charm_data_t* p, double* x, charm_cons_t* c){
     int k;
     size_t c_count = CHARM_MAX_COMPONETS_COUNT; // @todo fix by real components count
-    c->ro = charm_get_field_ro(p, x);
+//    c->ro = charm_get_field_ro(p, x);
     c->ru = charm_get_field_ru(p, x);
     c->rv = charm_get_field_rv(p, x);
     c->rw = charm_get_field_rw(p, x);
@@ -211,29 +211,29 @@ void charm_get_fields(charm_data_t* p, double* x, charm_cons_t* c){
 }
 
 
-void charm_get_fields_arr(charm_data_t* p, double* fld[5])
-{
-    fld[0] = p->par.c.ro;
-    fld[1] = p->par.c.ru;
-    fld[2] = p->par.c.rv;
-    fld[3] = p->par.c.rw;
-    fld[4] = p->par.c.re;
-}
+//void charm_get_fields_arr(charm_data_t* p, double* fld[5])
+//{
+////    fld[0] = p->par.c.ro;
+//    fld[1] = p->par.c.ru;
+//    fld[2] = p->par.c.rv;
+//    fld[3] = p->par.c.rw;
+//    fld[4] = p->par.c.re;
+//}
 
 
-double charm_get_avg_ro(charm_data_t* p)
-{
-    double result = 0.;
-    int i;
-    double vol = charm_quad_get_volume(p);
-    double *x;
-
-    for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
-        x = p->par.g.quad_gp[i];
-        result += charm_get_field_ro(p, x)*p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
-    }
-    return result/vol;
-}
+//double charm_get_avg_ro(charm_data_t* p)
+//{
+//    double result = 0.;
+//    int i;
+//    double vol = charm_quad_get_volume(p);
+//    double *x;
+//
+//    for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
+//        x = p->par.g.quad_gp[i];
+//        result += charm_get_field_ro(p, x)*p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
+//    }
+//    return result/vol;
+//}
 
 
 double charm_get_avg_ru(charm_data_t* p)

@@ -198,7 +198,7 @@ typedef struct charm_prim
 
 typedef struct charm_cons
 {
-    double          ro;
+//    double          ro;
     double          ru;
     double          rv;
     double          rw;
@@ -251,7 +251,7 @@ typedef struct charm_param
 {
     struct
     {
-        double          ro[CHARM_BASE_FN_COUNT];             /**< the state variable */
+//        double          ro[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          ru[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          rv[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          rw[CHARM_BASE_FN_COUNT];             /**< the state variable */
@@ -298,7 +298,7 @@ typedef struct charm_param
 typedef struct charm_data
 {
     charm_param_t       par;
-    double              int_ro[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+//    double              int_ro[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     double              int_ru[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     double              int_rv[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     double              int_rw[CHARM_BASE_FN_COUNT];          /**< the time derivative */
