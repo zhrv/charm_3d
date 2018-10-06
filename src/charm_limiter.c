@@ -281,7 +281,7 @@ static void _charm_limiter_calc_iter_fn(p4est_iter_volume_info_t * info, void *u
 
 
 void charm_limiter(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data)
-{
+{return;
     p4est_iterate (p4est, ghost, (void *) ghost_data,
                    _charm_limiter_init_iter_fn,
                    NULL, NULL, NULL);

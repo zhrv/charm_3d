@@ -311,7 +311,7 @@ typedef struct charm_data
 
 typedef void (*charm_bnd_cond_fn_t)(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double* n);
 
-typedef void (*charm_flux_fn_t)(charm_prim_t prim[2], double* qr, double* qu, double* qv, double* qw, double* qe, double n[3]);
+typedef void (*charm_flux_fn_t)(p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[], double n[3]);
 
 #ifndef GLOBALS_H_FILE
 extern const char *charm_bnd_types[];

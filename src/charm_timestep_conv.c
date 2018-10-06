@@ -21,12 +21,16 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
     int                 ibf, igp;
     charm_cons_t        c;
     charm_prim_t        p;
-    double              fr, fu, fv, fw, fe;
-    double              gr, gu, gv, gw, ge;
-    double              hr, hu, hv, hw, he;
+    double              fu, fv, fw, fe, *fc;
+    double              gu, gv, gw, ge, *gc;
+    double              hu, hv, hw, he, *hc;
     double              phi_x, phi_y, phi_z;
     double             *x;
     size_t              c_count = charm_get_comp_count(info->p4est);
+
+    fc = CHARM_ALLOC(double, c_count);
+    gc = CHARM_ALLOC(double, c_count);
+    hc = CHARM_ALLOC(double, c_count);
 
     for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
         for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
@@ -35,31 +39,33 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
             charm_get_fields(data, x, &c);
             charm_param_cons_to_prim(info->p4est, &p, &c);
 
-            fr = c.ru;
-            fu = fr*p.u+p.p;
-            fv = fr*p.v;
-            fw = fr*p.w;
-            fe = fr*p.e_tot+p.p*p.u;
+            fu = c.ru*p.u+p.p;
+            fv = c.ru*p.v;
+            fw = c.ru*p.w;
+            fe = c.ru*p.e_tot+p.p*p.u;
 
-            gr = c.rv;
-            gu = gr*p.u;
-            gv = gr*p.v+p.p;
-            gw = gr*p.w;
-            ge = gr*p.e_tot+p.p*p.v;
+            gu = c.rv*p.u;
+            gv = c.rv*p.v+p.p;
+            gw = c.rv*p.w;
+            ge = c.rv*p.e_tot+p.p*p.v;
 
-            hr = c.rw;
-            hu = hr*p.u;
-            hv = hr*p.v;
-            hw = hr*p.w+p.p;
-            he = hr*p.e_tot+p.p*p.w;
+            hu = c.rw*p.u;
+            hv = c.rw*p.v;
+            hw = c.rw*p.w+p.p;
+            he = c.rw*p.e_tot+p.p*p.w;
+
+            for(size_t cj = 0; cj < c_count; ++cj) {
+                fc[cj] = c.ru*p.c[cj];
+                gc[cj] = c.rv*p.c[cj];
+                hc[cj] = c.rw*p.c[cj];
+            }
 
             phi_x = charm_base_func_dx(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
             phi_y = charm_base_func_dy(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
             phi_z = charm_base_func_dz(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
 
-//            data->int_ro[ibf] -= (fr*phi_x+gr*phi_y+hr*phi_z);
             for(size_t cj = 0; cj < c_count; ++cj) {
-                data->int_rc[cj][ibf] -= (fr*phi_x+gr*phi_y+hr*phi_z)*p.c[cj];
+                data->int_rc[cj][ibf] -= (fc[cj]*phi_x+gc[cj]*phi_y+hc[cj]*phi_z)*p.c[cj];
             }
 
             data->int_ru[ibf] -= (fu*phi_x+gu*phi_y+hu*phi_z);
@@ -68,6 +74,9 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
             data->int_re[ibf] -= (fe*phi_x+ge*phi_y+he*phi_z);
         }
     }
+    CHARM_FREE(fc);
+    CHARM_FREE(gc);
+    CHARM_FREE(hc);
 }
 
 
@@ -83,7 +92,7 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
     charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
     double n[3];
-    double qr, qu, qv, qw, qe;
+    double qu, qv, qw, qe, *qc;
     double bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
@@ -100,6 +109,8 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
 
 
     CHARM_ASSERT(info->tree_boundary);
+
+    qc = CHARM_ALLOC(double, c_count);
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     CHARM_ASSERT(!side[0]->is_hanging);
@@ -132,13 +143,12 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
         charm_get_fields(udata, x, &cons);
         charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
         charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
-        ctx->flux_fn(prim, &qr, &qu, &qv, &qw, &qe, n); /* flux from side 0 to side 1 */
+        ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qe, qc, n); /* flux from side 0 to side 1 */
         for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
             if (!side[0]->is.full.is_ghost) {
                 bfv = charm_base_func(x, ibf, udata) * gw * gj;
-//                udata->int_ro[ibf] += qr * bfv;
                 for (int j = 0; j < c_count; j++) {
-                    udata->int_rc[j][ibf] += qr * bfv * prim[0].c[j];
+                    udata->int_rc[j][ibf] += qc[j] * bfv;
                 }
 
                 udata->int_ru[ibf] += qu * bfv;
@@ -148,6 +158,7 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
             }
         }
     }
+    CHARM_FREE(qc);
 }
 
 
@@ -159,7 +170,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
     charm_data_t           *ghost_data = (charm_data_t *) user_data;
     charm_data_t           *udata[2];
     double                  n[3];
-    double                  qr, qu, qv, qw, qe;
+    double                  qu, qv, qw, qe, *qc;
     p4est_iter_face_side_t *side[2];
     sc_array_t             *sides = &(info->sides);
     charm_cons_t            cons[2];
@@ -170,6 +181,9 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
     double                  l[3];
     int8_t                  face[2];
     size_t                  c_count = charm_get_comp_count(info->p4est);
+
+
+    qc = CHARM_ALLOC(double, c_count);
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     side[1] = p4est_iter_fside_array_index_int(sides, 1);
@@ -224,12 +238,15 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
                     charm_get_fields(udata[i], x, &(cons[i]));
                     charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
                 }
-                ctx->flux_fn(prim, &qr, &qu, &qv, &qw, &qe, n);  // flux from side 0 to side 1
+                ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qe, qc, n);  // flux from side 0 to side 1
                 for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                     for (i = 0; i < 2; i++) {
                         if (!side[i]->is.full.is_ghost) {
                             bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
 //                            udata[i]->int_ro[ibf] += qr * bfv;
+                            for (int j = 0; j < c_count; j++) {
+                                udata[i]->int_rc[j][ibf] += qc[j] * bfv;
+                            }
                             udata[i]->int_ru[ibf] += qu * bfv;
                             udata[i]->int_rv[ibf] += qv * bfv;
                             udata[i]->int_rw[ibf] += qw * bfv;
@@ -272,14 +289,14 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
                 charm_get_fields(udata[i], x, &(cons[i]));
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
             }
-            ctx->flux_fn(prim, &qr, &qu, &qv, &qw, &qe, n);  // flux from side 0 to side 1
+            ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qe, qc, n);  // flux from side 0 to side 1
             for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                 for (i = 0; i < 2; i++) {
                     if (!side[i]->is.full.is_ghost) {
                         bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
 //                        udata[i]->int_ro[ibf] += qr * bfv;
                         for (int j = 0; j < c_count; j++) {
-                            udata[i]->int_rc[j][ibf] += qr * bfv * prim[i].c[j];
+                            udata[i]->int_rc[j][ibf] += qc[j] * bfv;
                         }
                         udata[i]->int_ru[ibf] += qu * bfv;
                         udata[i]->int_rv[ibf] += qv * bfv;
@@ -290,6 +307,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
             }
         }
     }
+    CHARM_FREE(qc);
 }
 
 void charm_convect_surface_int_iter_fn (p4est_iter_face_info_t * info, void *user_data)

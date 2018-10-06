@@ -202,7 +202,6 @@ void charm_param_prim_to_cons(p4est_t * p4est, charm_cons_t * c, charm_prim_t * 
 {
     size_t c_count = charm_get_comp_count(p4est);
     c->mat_id = p->mat_id;
-//    c->ro = p->r;
     c->ru = p->r * p->u;
     c->rv = p->r * p->v;
     c->rw = p->r * p->w;
