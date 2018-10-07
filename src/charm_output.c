@@ -10,6 +10,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
 {
     sc_array_t         **u_interp = (sc_array_t **) user_data;      /* we passed the array of values to fill as the user_data in the call to p4est_iterate */
     p4est_t            *p4est = info->p4est;
+    charm_ctx_t        *ctx = charm_get_ctx(p4est);
     p4est_quadrant_t   *q = info->quad;
     p4est_topidx_t      which_tree = info->treeid;
     p4est_locidx_t      local_id = info->quadid;  /* this is the index of q *within its tree's numbering*.  We want to convert it its index for all the quadrants on this process, which we do below */
@@ -19,7 +20,8 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     double             *this_u_ptr;
     int                 j;
     charm_cons_t        cons;
-    charm_prim_t   prim;
+    charm_prim_t        prim;
+    size_t              c_count = charm_get_comp_count(p4est);
 
     tree = p4est_tree_array_index (p4est->trees, which_tree);
     local_id += tree->quadrants_offset;   /* now the id is relative to the MPI process */
@@ -35,9 +37,10 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     this_u[4] = prim.u;
     this_u[5] = prim.v;
     this_u[6] = prim.w;
-    this_u[7] = prim.c[0];
-    this_u[8] = prim.c[1];
-    for (j = 0; j < 9; j++) {
+    for (j = 0; j < c_count; j++) {
+        this_u[7+j] = prim.c[j];
+    }
+    for (j = 0; j < 7 + c_count; j++) {
         this_u_ptr = (double *) sc_array_index (u_interp[j], (size_t)local_id);
         this_u_ptr[0] = this_u[j];
     }
@@ -55,7 +58,7 @@ void charm_write_solution (p4est_t * p4est, int timestep)
     int                 num_cell_scalars;
     int                 num_cell_vectors;
     charm_ctx_t        *ctx;
-    const char*         names7[] = {"R", "P", "E", "E_TOT", "U", "V", "W"};
+    char*         names7[] = {"R", "P", "E", "E_TOT", "U", "V", "W"};
     charm_comp_t       *comp;
 
     ctx = charm_get_ctx(p4est);
@@ -70,13 +73,13 @@ void charm_write_solution (p4est_t * p4est, int timestep)
         u_interp[i] = sc_array_new_size (sizeof(double), numquads);
     }
 
-    const char** names = CHARM_ALLOC (const char *, num_cell_scalars + num_cell_vectors);
+    char** names = CHARM_ALLOC (char *, num_cell_scalars + num_cell_vectors);
     for (i = 0; i < 7; i++) {
         names[i] = names7[i];
     }
     for (i = 0; i < ctx->comp->elem_count; i++) {
         comp = charm_get_comp(p4est, i);
-        names[i+7] = CHARM_ALLOC (const char, 128);
+        names[i+7] = CHARM_ALLOC (char, 128);
         strcpy(names[i+7], "C_");
         strcat(names[i+7], comp->name);
     }
@@ -100,7 +103,7 @@ void charm_write_solution (p4est_t * p4est, int timestep)
                                           0,                  /* do not wrap the mpi rank (if this were > 0, the modulus of the rank relative to this number would be written instead of the rank) */
                                           num_cell_scalars,                  /* there is no custom cell scalar data. */
                                           num_cell_vectors,
-                                          names,
+                                         (const char**)names,
                                           u_interp);           /* mark the end of the variable cell data. */
 //    context = charm_vtk_write_cell_dataf (context, 1, 1,      /* do write the refinement level of each quadrant */
 //                                          1,                  /* do write the mpi process id of each quadrant */

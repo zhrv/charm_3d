@@ -195,6 +195,9 @@ void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * 
     }
 
     mat->eos_fn(p4est, p, 4);  // {p,cz, t}=EOS(r,e)
+    if (p->p < CHARM_EPS) {
+        int iiii=0;
+    }
 }
 
 

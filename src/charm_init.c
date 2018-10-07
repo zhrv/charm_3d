@@ -9,6 +9,7 @@
 #include "charm_fluxes.h"
 #include "charm_globals.h"
 #include "charm_eos.h"
+#include "charm_limiter.h"
 
 
 void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q)
@@ -337,7 +338,19 @@ void charm_init_context(charm_ctx_t *ctx)
         ctx->flux_fn = charm_calc_flux_godunov;
     }
     else {
-        CHARM_LERRORF("Unknown flux type '%s'. Use: LF, GODUNOV.", str);
+        CHARM_LERRORF("Unknown flux type '%s'. Use: LF, GODUNOV.\n", str);
+        charm_abort(1);
+    }
+
+    charm_xml_node_child_param_str(node, "LIMITER", str);
+    if (strcmp(str, "NONE") == 0) {
+        ctx->lim_fn = NULL;
+    }
+    else if (strcmp(str, "BJ") == 0) {
+        ctx->lim_fn = charm_limiter_bj;
+    }
+    else {
+        CHARM_LERRORF("Unknown limiter type '%s'. Use: NONE, BJ.\n", str);
         charm_abort(1);
     }
 

@@ -35,6 +35,8 @@ void charm_bnd_cond_fn_inlet(charm_prim_t *par_in, charm_prim_t *par_out, int8_t
 {
     CHARM_ASSERT(param);
 
+    charm_prim_cpy(par_out, par_in); //@todo
+
     par_out->u = param[0];
     par_out->v = param[1];
     par_out->w = param[2];

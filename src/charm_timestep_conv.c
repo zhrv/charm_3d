@@ -65,7 +65,7 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
             phi_z = charm_base_func_dz(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
 
             for(size_t cj = 0; cj < c_count; ++cj) {
-                data->int_rc[cj][ibf] -= (fc[cj]*phi_x+gc[cj]*phi_y+hc[cj]*phi_z)*p.c[cj];
+                data->int_rc[cj][ibf] -= (fc[cj]*phi_x+gc[cj]*phi_y+hc[cj]*phi_z);
             }
 
             data->int_ru[ibf] -= (fu*phi_x+gu*phi_y+hu*phi_z);
@@ -215,7 +215,6 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
 
             CHARM_ASSERT(h_side != -1);
 
-            //facearea = charm_face_get_area(udata[h_side], side[h_side]->face);
             charm_face_get_normal(udata[0], face[0], n);
             charm_quad_get_center(udata[0], c[0]);
             charm_face_get_center(udata[0], face[0], c[1]);
@@ -243,8 +242,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
                     for (i = 0; i < 2; i++) {
                         if (!side[i]->is.full.is_ghost) {
                             bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
-//                            udata[i]->int_ro[ibf] += qr * bfv;
-                            for (int j = 0; j < c_count; j++) {
+                            for (j = 0; j < c_count; j++) {
                                 udata[i]->int_rc[j][ibf] += qc[j] * bfv;
                             }
                             udata[i]->int_ru[ibf] += qu * bfv;
@@ -294,8 +292,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
                 for (i = 0; i < 2; i++) {
                     if (!side[i]->is.full.is_ghost) {
                         bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
-//                        udata[i]->int_ro[ibf] += qr * bfv;
-                        for (int j = 0; j < c_count; j++) {
+                        for (j = 0; j < c_count; j++) {
                             udata[i]->int_rc[j][ibf] += qc[j] * bfv;
                         }
                         udata[i]->int_ru[ibf] += qu * bfv;

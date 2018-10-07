@@ -297,7 +297,6 @@ typedef struct charm_param
 typedef struct charm_data
 {
     charm_param_t       par;
-//    double              int_ro[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     double              int_ru[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     double              int_rv[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     double              int_rw[CHARM_BASE_FN_COUNT];          /**< the time derivative */
@@ -307,11 +306,9 @@ typedef struct charm_data
     int                 ref_flag;
 } charm_data_t;
 
-
-
-typedef void (*charm_bnd_cond_fn_t)(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double* n);
-
-typedef void (*charm_flux_fn_t)(p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[], double n[3]);
+typedef void (*charm_limiter_fn_t)  (p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data);
+typedef void (*charm_bnd_cond_fn_t) (charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double* n);
+typedef void (*charm_flux_fn_t)     (p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[], double n[3]);
 
 #ifndef GLOBALS_H_FILE
 extern const char *charm_bnd_types[];
@@ -370,6 +367,7 @@ typedef struct charm_ctx
 
     charm_mesh_info_t  *msh;
     charm_flux_fn_t     flux_fn;
+    charm_limiter_fn_t  lim_fn;
 } charm_ctx_t;
 
 typedef struct charm_tree_attr

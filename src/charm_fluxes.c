@@ -272,8 +272,8 @@ void charm_calc_flux_lf(p4est_t *p4est, charm_prim_t prim[2], double* qu, double
     }
     q[0] = qu;
     q[1] = qv;
-    q[2] = qv;
-    q[3] = qv;
+    q[2] = qw;
+    q[3] = qe;
     for (i = 4; i < f_count; i++) {
         q[i] = &(qc[i-4]);
     }
