@@ -27,11 +27,7 @@ int main (int argc, char **argv)
 
     conn = charm_conn_create(&ctx);
     if (!conn) {
-        sc_finalize ();
-
-        /* This is standard MPI programs.  Without --enable-mpi, this is a dummy. */
-        mpiret = sc_MPI_Finalize ();
-        return 1;
+        charm_abort(1);
     }
     CHARM_ASSERT(p4est_connectivity_is_valid(conn));
 
