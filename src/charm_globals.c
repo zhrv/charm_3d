@@ -80,6 +80,75 @@ charm_mat_t * charm_mat_find_by_id(charm_ctx_t *ctx, int id)
     return NULL;
 }
 
+int charm_mat_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index)
+{
+    size_t i;
+    sc_array_t *arr = ctx->mat;
+    charm_mat_t * mat;
+
+
+    for (i = 0; i < arr->elem_count; i++) {
+        mat = sc_array_index(arr, i);
+        if (mat->id == id) {
+            *index = i;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+charm_comp_t * charm_comp_find_by_id(charm_ctx_t *ctx, int id)
+{
+    size_t i;
+    sc_array_t *arr = ctx->comp;
+    charm_comp_t * comp;
+
+
+    for (i = 0; i < arr->elem_count; i++) {
+        comp = sc_array_index(arr, i);
+        if (comp->id == id) {
+            return comp;
+        }
+    }
+
+    return NULL;
+}
+
+int charm_comp_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index)
+{
+    size_t i;
+    sc_array_t *arr = ctx->comp;
+    charm_comp_t * comp;
+
+
+    for (i = 0; i < arr->elem_count; i++) {
+        comp = sc_array_index(arr, i);
+        if (comp->id == id) {
+            *index = i;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+charm_reg_t * charm_reg_find_by_id(charm_ctx_t *ctx, int id)
+{
+  size_t i;
+  sc_array_t *arr = ctx->reg;
+  charm_reg_t * reg;
+
+
+  for (i = 0; i < arr->elem_count; i++) {
+    reg = sc_array_index(arr, i);
+    if (reg->id == id) {
+      return reg;
+    }
+  }
+
+  return NULL;
+}
 
 charm_mesh_type_t charm_mesh_get_type_by_str(char *str)
 {
@@ -103,82 +172,47 @@ charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tr
     return (charm_tree_attr_t *)&(conn->tree_to_attr[sizeof(charm_tree_attr_t)*which_tree]);
 }
 
-double gR = 8.314472;
-void charm_mat_eos(p4est_t * p4est, charm_prim_t * p, int flag)
-{
-    charm_ctx_t *ctx = (charm_ctx_t *)p4est->user_pointer;
-    charm_mat_t *mat = charm_mat_find_by_id(ctx, p->mat_id);
-    double Cp = mat->cp;
-    double M  = mat->m;
-    double Cv = Cp-gR/M;
-    double gam = Cp/Cv;
-    p->gam = gam;
-    p->cp = Cp;
-    p->cv = Cv;
-    switch (flag)
-    {
-        case 0:		// p=p(r,e)
-            p->p = p->r*p->e*(gam-1);
-            p->cz = sqrt(gam*p->p/p->r);
-            break;
-
-        case 1:		// e=e(r,p)
-            p->e = p->p/(p->r*(gam-1));
-            p->t = p->e/Cv;
-            break;
-
-        case 2:		// r=r(T,p)
-            p->r = p->p*M/(p->t*gR);
-            p->cz = sqrt(gam*p->p/p->r);
-            break;
-
-        case 3:
-            p->r  = p->p*M/(p->t*gR);
-            p->cz = sqrt(gam*p->p/p->r);
-            p->e  = p->p/(p->r*(gam-1));
-            break;
-
-        case 4:
-            p->p  = p->r*p->e*(gam-1);
-            p->cz = sqrt(gam*p->p/p->r);
-            p->t  = p->e/Cv;
-            break;
-
-        default:
-            CHARM_ASSERT(flag < 3);
-    }
-
-}
-
-
 void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * c)
 {
+    charm_ctx_t * ctx       = charm_get_ctx(p4est);
+    size_t        c_count   = ctx->comp->elem_count;
+    charm_mat_t * mat       = charm_mat_find_by_id(ctx, c->mat_id);
+    size_t i;
+
     p->mat_id = c->mat_id;
-    p->r      = c->ro;
-    p->u      = c->ru/c->ro;
-    p->v      = c->rv/c->ro;
-    p->w      = c->rw/c->ro;
-    p->e_tot  = c->re/c->ro;
+    p->r      = 0.;
+    for (i = 0; i < c_count; i++) {
+        p->r += c->rc[i];
+    }
+    p->u      = c->ru/p->r;
+    p->v      = c->rv/p->r;
+    p->w      = c->rw/p->r;
+    p->e_tot  = c->re/p->r;
     p->e      = p->e_tot-0.5*(p->u*p->u+p->v*p->v+p->w*p->w);
 
-    charm_mat_eos(p4est, p, 4);  // {p,cz, t}=EOS(r,e)
+    for (i = 0; i < c_count; i++) {
+        p->c[i] = c->rc[i] / p->r;
+    }
 
-    if (p->p < 0.) {
-        int iii=0;
+    mat->eos_fn(p4est, p, 4);  // {p,cz, t}=EOS(r,e)
+    if (p->p < CHARM_EPS) {
+        int iiii=0;
     }
 }
 
 
 void charm_param_prim_to_cons(p4est_t * p4est, charm_cons_t * c, charm_prim_t * p)
 {
+    size_t c_count = charm_get_comp_count(p4est);
     c->mat_id = p->mat_id;
-    c->ro  = p->r;
-    c->ru  = p->r*p->u;
-    c->rv  = p->r*p->v;
-    c->rw  = p->r*p->w;
-    c->re  = p->r*(p->e+0.5*(p->u*p->u+p->v*p->v+p->w*p->w));
+    c->ru = p->r * p->u;
+    c->rv = p->r * p->v;
+    c->rw = p->r * p->w;
+    c->re = p->r * (p->e + 0.5 * (p->u * p->u + p->v * p->v + p->w * p->w));
+    for (size_t i = 0; i < c_count; i++) {
+        c->rc[i] = p->r * p->c[i];
+    }
 }
-
 
 void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src)
 {
@@ -195,7 +229,7 @@ void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src)
     dest->cp     = src->cp;
     dest->cv     = src->cv;
     dest->gam    = src->gam;
-
+    memcpy(dest->c, src->c, CHARM_MAX_COMPONETS_COUNT*sizeof(double));
 }
 
 
@@ -422,7 +456,23 @@ void charm_abort(int err_code)
     exit(1);
 }
 
+
 charm_ctx_t* charm_get_ctx(p4est_t* p4est)
 {
     return (charm_ctx_t*)(p4est->user_pointer);
+}
+
+
+charm_comp_t * charm_get_comp(p4est_t * p4est, int i)
+{
+    charm_ctx_t * ctx = charm_get_ctx(p4est);
+    charm_comp_t * comp = sc_array_index(ctx->comp, i);
+    return comp;
+}
+
+
+size_t charm_get_comp_count(p4est_t* p4est)
+{
+    charm_ctx_t * ctx       = charm_get_ctx(p4est);
+    return ctx->comp->elem_count;
 }
