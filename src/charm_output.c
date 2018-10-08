@@ -67,7 +67,7 @@ void charm_write_solution (p4est_t * p4est, int timestep)
     numquads = (size_t)p4est->local_num_quadrants;
 
     num_cell_vectors = 0;
-    num_cell_scalars = 7+ctx->comp->elem_count;
+    num_cell_scalars = 7 + (int)ctx->comp->elem_count;
     u_interp = CHARM_ALLOC(sc_array_t*, num_cell_scalars + num_cell_vectors);
     for (i = 0; i < num_cell_scalars + num_cell_vectors; i++) {
         u_interp[i] = sc_array_new_size (sizeof(double), numquads);
@@ -105,21 +105,6 @@ void charm_write_solution (p4est_t * p4est, int timestep)
                                           num_cell_vectors,
                                          (const char**)names,
                                           u_interp);           /* mark the end of the variable cell data. */
-//    context = charm_vtk_write_cell_dataf (context, 1, 1,      /* do write the refinement level of each quadrant */
-//                                          1,                  /* do write the mpi process id of each quadrant */
-//                                          0,                  /* do not wrap the mpi rank (if this were > 0, the modulus of the rank relative to this number would be written instead of the rank) */
-//                                          7+2,                  /* there is no custom cell scalar data. */
-//                                          0,                  /* there is no custom cell vector data. */
-//                                          "R",     u_interp[0],
-//                                          "P",     u_interp[1],
-//                                          "E",     u_interp[2],
-//                                          "E_TOT", u_interp[3],
-//                                          "U",     u_interp[4],
-//                                          "V",     u_interp[5],
-//                                          "W",     u_interp[6],
-//                                          "C_1",   u_interp[7],
-//                                          "C_2",   u_interp[8],
-//                                          context);           /* mark the end of the variable cell data. */
     SC_CHECK_ABORT (context != NULL,
                     CHARM_STRING "_vtk: Error writing cell data");
 

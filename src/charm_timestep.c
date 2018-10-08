@@ -238,7 +238,7 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
         data->par.c.rw[i] -= _NORM_(dt * rhs_rw[i]);
         data->par.c.re[i] -= _NORM_(dt * rhs_re[i]);
         for (int j = 0; j < c_count; j++) {
-            data->int_rc[j][i] -= _NORM_(dt * rhs_rc[j][i]);;
+            data->par.c.rc[j][i] -= _NORM_(dt * rhs_rc[j][i]);;
         }
     }
 }

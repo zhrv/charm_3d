@@ -24,7 +24,7 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
     double              fu, fv, fw, fe, *fc;
     double              gu, gv, gw, ge, *gc;
     double              hu, hv, hw, he, *hc;
-    double              phi_x, phi_y, phi_z;
+    double              phi_x, phi_y, phi_z, phi;
     double             *x;
     size_t              c_count = charm_get_comp_count(info->p4est);
 
@@ -64,13 +64,15 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
             phi_y = charm_base_func_dy(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
             phi_z = charm_base_func_dz(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
 
+            phi = charm_base_func(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
+
             for(size_t cj = 0; cj < c_count; ++cj) {
                 data->int_rc[cj][ibf] -= (fc[cj]*phi_x+gc[cj]*phi_y+hc[cj]*phi_z);
             }
 
-            data->int_ru[ibf] -= (fu*phi_x+gu*phi_y+hu*phi_z);
-            data->int_rv[ibf] -= (fv*phi_x+gv*phi_y+hv*phi_z);
-            data->int_rw[ibf] -= (fw*phi_x+gw*phi_y+hw*phi_z);
+            data->int_ru[ibf] -= ((fu*phi_x+gu*phi_y+hu*phi_z) + p.r*data->par.grav[0]*phi);
+            data->int_rv[ibf] -= ((fv*phi_x+gv*phi_y+hv*phi_z) + p.r*data->par.grav[1]*phi);
+            data->int_rw[ibf] -= ((fw*phi_x+gw*phi_y+hw*phi_z) + p.r*data->par.grav[2]*phi);
             data->int_re[ibf] -= (fe*phi_x+ge*phi_y+he*phi_z);
         }
     }
@@ -119,7 +121,7 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
         CHARM_ASSERT(0);
         udata = &(ghost_data[side[0]->is.full.quadid]);
     } else {
-        udata = charm_get_quad_data(side[0]->is.full.quad);//(charm_data_t *) side[0]->is.full.quad->p.user_data;
+        udata = charm_get_quad_data(side[0]->is.full.quad);
     }
     face = side[0]->face;
     charm_face_get_normal(udata, face, n);

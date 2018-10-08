@@ -188,16 +188,15 @@ void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * 
     p->v      = c->rv/p->r;
     p->w      = c->rw/p->r;
     p->e_tot  = c->re/p->r;
-    p->e      = p->e_tot-0.5*(p->u*p->u+p->v*p->v+p->w*p->w);
+    p->e      = p->e_tot-0.5*_MAG_(p->u, p->v, p->w);
 
     for (i = 0; i < c_count; i++) {
         p->c[i] = c->rc[i] / p->r;
+        if (p->c[i] < 0.) p->c[i] = 0.; // @todo
+        if (p->c[i] > 1.) p->c[i] = 1.;
     }
 
     mat->eos_fn(p4est, p, 4);  // {p,cz, t}=EOS(r,e)
-    if (p->p < CHARM_EPS) {
-        int iiii=0;
-    }
 }
 
 
@@ -208,7 +207,7 @@ void charm_param_prim_to_cons(p4est_t * p4est, charm_cons_t * c, charm_prim_t * 
     c->ru = p->r * p->u;
     c->rv = p->r * p->v;
     c->rw = p->r * p->w;
-    c->re = p->r * (p->e + 0.5 * (p->u * p->u + p->v * p->v + p->w * p->w));
+    c->re = p->r * (p->e + 0.5 * _MAG_(p->u, p->v, p->w));
     for (size_t i = 0; i < c_count; i++) {
         c->rc[i] = p->r * p->c[i];
     }
