@@ -11,7 +11,7 @@
 #include "charm_eos.h"
 #include "charm_limiter.h"
 
-
+#define POGGI
 void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q)
 {
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
@@ -32,7 +32,19 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
 
     attr = charm_get_tree_attr(p4est, which_tree);
     reg = attr->reg;
+#ifdef POGGI
+    x = data->par.g.c;
 
+    if (x[2] < -0.008) {
+        reg = charm_reg_find_by_id(ctx, 0);
+    }
+    else if (x[2] > -0.004*sin(pi2*x[0]/0.01)*sin(pi2*x[1]/0.01)) {
+        reg = charm_reg_find_by_id(ctx, 2);
+    }
+    else {
+        reg = charm_reg_find_by_id(ctx, 1);
+    }
+#endif
     prim.mat_id = reg->mat_id;
     prim.p   = reg->p;
     prim.t   = reg->t;
@@ -44,35 +56,6 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     }
     mat = charm_mat_find_by_id(ctx, reg->mat_id);
 
-    x = data->par.g.c;
-
-    if (x[2] < -0.008) {
-        prim.r = 12.09;
-        prim.u = 0.0;
-        prim.v = 0.0;
-        prim.w = 97.76;
-        prim.p = 2.152e+5;
-        prim.c[0] = 0.;
-        prim.c[1] = 1.;
-    }
-    else if (x[2] > -0.004*sin(pi2*x[0]/0.01)*sin(pi2*x[1]/0.01)) {
-        prim.r = 1.198;
-        prim.u = 0.0;
-        prim.v = 0.0;
-        prim.w = 0.0;
-        prim.p = 1.0e+5;
-        prim.c[0] = 0.;
-        prim.c[1] = 1.;
-    }
-    else {
-        prim.r = 6.037;
-        prim.u = 0.0;
-        prim.v = 0.0;
-        prim.w = 0.0;
-        prim.p = 1.0e+5;
-        prim.c[0] = 1.;
-        prim.c[1] = 0.;
-    }
     mat->eos_fn(p4est, &prim, 2);
     mat->eos_fn(p4est, &prim, 1);
     prim.e_tot = prim.e + 0.5*(prim.u*prim.u+prim.v*prim.v+prim.w*prim.w);

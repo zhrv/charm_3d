@@ -211,6 +211,35 @@ void charm_get_fields(charm_data_t* p, double* x, charm_cons_t* c){
 }
 
 
+void charm_get_fields_avg(charm_data_t* p, charm_cons_t* c)
+{
+    int k, igp;
+    size_t c_count = CHARM_MAX_COMPONETS_COUNT; // @todo fix by real components count
+    double *gx, gjw;
+
+    c->ru = 0.;
+    c->rv = 0.;
+    c->rw = 0.;
+    c->re = 0.;
+    for (k = 0; k < c_count; k++) {
+        c->rc[k] = 0.;
+    }
+
+    for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
+        gx = p->par.g.quad_gp[igp];
+        gjw = p->par.g.quad_gj[igp]*p->par.g.quad_gw[igp]/p->par.g.volume;
+        c->ru += charm_get_field_ru(p, gx) * gjw;
+        c->rv += charm_get_field_rv(p, gx) * gjw;
+        c->rw += charm_get_field_rw(p, gx) * gjw;
+        c->re += charm_get_field_re(p, gx) * gjw;
+        for (k = 0; k < c_count; k++) {
+            c->rc[k] += charm_get_field_rc(p, gx, k) * gjw;
+        }
+    }
+    c->mat_id = p->par.mat_id;
+}
+
+
 //void charm_get_fields_arr(charm_data_t* p, double* fld[5])
 //{
 ////    fld[0] = p->par.c.ro;

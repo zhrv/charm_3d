@@ -155,7 +155,7 @@ __attribute__ ((format (printf, 1, 2)));
 
 #define CHARM_EPS 1.e-12
 
-#define FLD_COUNT 5
+//#define FLD_COUNT 5
 
 #define GAM         1.4
 
@@ -163,7 +163,7 @@ __attribute__ ((format (printf, 1, 2)));
 #define _MIN_(X,Y) ((X)<(Y) ? (X) : (Y))
 #define _SQR_(X) ((X)*(X))
 #define _MAG_(X,Y,Z) (_SQR_(X)+_SQR_(Y)+_SQR_(Z))
-#define _NORM_(X) ( (fabs(X) <= CHARM_EPS) ? 0. : (X) )
+#define _NORM_(X) ( /*(fabs(X) <= CHARM_EPS) ? 0. : */(X) )
 
 #define CHARM_FACE_TYPE_INNER 0
 #define CHARM_BND_MAX 128
@@ -282,11 +282,11 @@ typedef struct charm_param
     struct lim
     {
         int         count;
-        double      ro[CHARM_FACES+1];
         double      ru[CHARM_FACES+1];
         double      rv[CHARM_FACES+1];
         double      rw[CHARM_FACES+1];
         double      re[CHARM_FACES+1];
+        double      rc[CHARM_MAX_COMPONETS_COUNT][CHARM_FACES+1];             /**< the state variable */
     } l;
 
     struct amr {
