@@ -76,19 +76,19 @@ void charm_mat_eos_mix(p4est_t * p4est, charm_prim_t * p, int flag)
     int i;
     charm_comp_t *comp;
 
-    double Cp = 0.;
+    double Cp  = 0.;
     double M_  = 0.;
     for (i = 0; i < c_count; i++) {
         comp = charm_get_comp(p4est, i);
         M_ += p->c[i]/comp->m;
         Cp += p->c[i]*charm_comp_calc_cp(p4est, comp, 273.); // @todo temperature
     }
-    double M = 1./M_;
-    double Cv = Cp-gR*M_;
+    double M   = 1./M_;
+    double Cv  = Cp-gR/M;
     double gam = Cp/Cv;
-    p->gam = gam;
-    p->cp = Cp;
-    p->cv = Cv;
+    p->gam     = gam;
+    p->cp      = Cp;
+    p->cv      = Cv;
     switch (flag)
     {
         case 0:		// p=p(r,e)

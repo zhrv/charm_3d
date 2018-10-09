@@ -301,28 +301,27 @@ void charm_calc_flux_lf(p4est_t *p4est, charm_prim_t prim[2], double* qu, double
 
     alpha = _MAX_(fabs(vn[0])+prim[0].cz, fabs(vn[1])+prim[1].cz);
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < f_count; i++) {
         *(q[i]) = 0.5*( ff[i][1]+ff[i][0]-alpha*(uu[i][1]-uu[i][0]) );
     }
 
-    // roe
-    rs[0] = sqrt( prim[0].r );
-    rs[1] = sqrt( prim[1].r );
-    rs_ = 1.0 / ( rs[0] + rs[1] );
-
-    rr = rs[0] * rs[1];
-
-    ur = ( rs[0] * prim[0].u + rs[1] * prim[1].u ) * rs_;
-    vr = ( rs[0] * prim[0].v + rs[1] * prim[1].v ) * rs_;
-    wr = ( rs[0] * prim[0].w + rs[1] * prim[1].w ) * rs_;
-
-    vrn = ur*n[0]+vr*n[1]+wr*n[2];
-
-    for (i = 4; i < f_count; i++) {
-        *(q[i]) = (vrn > 0.) ? prim[0].c[i-4]*prim[0].r*vrn : prim[1].c[i-4]*prim[1].r*vrn;
-//        fc = (vrn > 0.) ? prim[0].c[i-4] : prim[1].c[i-4];
-//        *(q[i]) = fc*vrn*rr;
-    }
+//    // roe
+//    rs[0] = sqrt( prim[0].r );
+//    rs[1] = sqrt( prim[1].r );
+//    rs_ = 1.0 / ( rs[0] + rs[1] );
+//
+//    rr = rs[0] * rs[1];
+//
+//    ur = ( rs[0] * prim[0].u + rs[1] * prim[1].u ) * rs_;
+//    vr = ( rs[0] * prim[0].v + rs[1] * prim[1].v ) * rs_;
+//    wr = ( rs[0] * prim[0].w + rs[1] * prim[1].w ) * rs_;
+//
+//    vrn  = ur*n[0]+vr*n[1]+wr*n[2];
+//    vrn *= rr;
+//
+//    for (i = 4; i < f_count; i++) {
+//        *(q[i]) = ((vrn > 0.) ? prim[0].c[i-4] : prim[1].c[i-4])*vrn;
+//    }
 
     for (i = 0; i < f_count; i++) {
         CHARM_FREE(ff[i]);

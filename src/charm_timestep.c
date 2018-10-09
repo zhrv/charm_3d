@@ -156,6 +156,8 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, doubl
     p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 
     charm_limiter(p4est, ghost, ghost_data);
+
+
     /* update grad */
 //    charm_calc_grad(p4est, ghost, ghost_data);
 
@@ -238,7 +240,7 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
         data->par.c.rw[i] -= _NORM_(dt * rhs_rw[i]);
         data->par.c.re[i] -= _NORM_(dt * rhs_re[i]);
         for (int j = 0; j < c_count; j++) {
-            data->par.c.rc[j][i] -= _NORM_(dt * rhs_rc[j][i]);;
+            data->par.c.rc[j][i] -= _NORM_(dt * rhs_rc[j][i]);
         }
     }
 }
