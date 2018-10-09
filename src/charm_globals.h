@@ -155,7 +155,7 @@ __attribute__ ((format (printf, 1, 2)));
 
 #define CHARM_EPS 1.e-12
 
-#define FLD_COUNT 5
+//#define FLD_COUNT 5
 
 #define GAM         1.4
 
@@ -163,7 +163,7 @@ __attribute__ ((format (printf, 1, 2)));
 #define _MIN_(X,Y) ((X)<(Y) ? (X) : (Y))
 #define _SQR_(X) ((X)*(X))
 #define _MAG_(X,Y,Z) (_SQR_(X)+_SQR_(Y)+_SQR_(Z))
-#define _NORM_(X) ( (fabs(X) <= CHARM_EPS) ? 0. : (X) )
+#define _NORM_(X) ( /*(fabs(X) <= CHARM_EPS) ? 0. : */(X) )
 
 #define CHARM_FACE_TYPE_INNER 0
 #define CHARM_BND_MAX 128
@@ -178,14 +178,14 @@ __attribute__ ((format (printf, 1, 2)));
 
 typedef struct charm_prim
 {
-    double          r;             /**< density */
-    double          u;             /**< velosity */
-    double          v;             /**< velosity */
-    double          w;             /**< velosity */
-    double          e;             /**< energy */
-    double          e_tot;         /**< total energy */
-    double          p;             /**< pressure */
-    double          t;             /**< temperature */
+    double          r;             /**< density        */
+    double          u;             /**< velosity       */
+    double          v;             /**< velosity       */
+    double          w;             /**< velosity       */
+    double          e;             /**< energy         */
+    double          e_tot;         /**< total energy   */
+    double          p;             /**< pressure       */
+    double          t;             /**< temperature    */
     double          cz;            /**< sound velosity */
     double          gam;
     double          cp;
@@ -197,7 +197,6 @@ typedef struct charm_prim
 
 typedef struct charm_cons
 {
-//    double          ro;
     double          ru;
     double          rv;
     double          rw;
@@ -231,7 +230,6 @@ typedef struct charm_mat
     int                 id;
     char                name[64];
     charm_eos_fn_t      eos_fn;
-//    sc_array_t         *comp_idx; /**< component's indexes in array ctx->comp; type: size_t   */
 } charm_mat_t;
 
 typedef struct charm_reg
@@ -243,6 +241,7 @@ typedef struct charm_reg
     double          t;
     double          p;
     double          c[CHARM_MAX_COMPONETS_COUNT];
+    double          grav[CHARM_DIM];
 } charm_reg_t;
 
 
@@ -276,16 +275,18 @@ typedef struct charm_param
         double          a_inv[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
     } g;
 
-    int mat_id;
+    int         mat_id;
+    double      grav[CHARM_DIM];
+
 
     struct lim
     {
         int         count;
-        double      ro[CHARM_FACES+1];
         double      ru[CHARM_FACES+1];
         double      rv[CHARM_FACES+1];
         double      rw[CHARM_FACES+1];
         double      re[CHARM_FACES+1];
+        double      rc[CHARM_MAX_COMPONETS_COUNT][CHARM_FACES+1];             /**< the state variable */
     } l;
 
     struct amr {

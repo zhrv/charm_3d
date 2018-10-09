@@ -256,9 +256,10 @@ void charm_calc_flux_lf(p4est_t *p4est, charm_prim_t prim[2], double* qu, double
 {
     int      i, j;
     double   alpha;
-    double   vn[2], **ff/*[5][2]*/, **uu/*[5][2]*/;
+    double   vn[2], **ff/*[5][2]*/, **uu/*[5][2]*/, fc;
     double **q;
     size_t   f_count;
+    double   rs[2], rs_, rr, ur, vr, wr, vrn;
 
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     f_count = 4+ctx->comp->elem_count;
@@ -293,8 +294,9 @@ void charm_calc_flux_lf(p4est_t *p4est, charm_prim_t prim[2], double* qu, double
 
         for (j = 4; j < f_count; j++) {
             uu[j][i] = prim[i].r*prim[i].c[j-4];
-            ff[j][i] = prim[i].r*prim[i].c[j-4]*vn[i];
+            ff[j][i] = prim[i].r*vn[i]*prim[i].c[j-4];
         }
+
     }
 
     alpha = _MAX_(fabs(vn[0])+prim[0].cz, fabs(vn[1])+prim[1].cz);
@@ -303,12 +305,79 @@ void charm_calc_flux_lf(p4est_t *p4est, charm_prim_t prim[2], double* qu, double
         *(q[i]) = 0.5*( ff[i][1]+ff[i][0]-alpha*(uu[i][1]-uu[i][0]) );
     }
 
+//    // roe
+//    rs[0] = sqrt( prim[0].r );
+//    rs[1] = sqrt( prim[1].r );
+//    rs_ = 1.0 / ( rs[0] + rs[1] );
+//
+//    rr = rs[0] * rs[1];
+//
+//    ur = ( rs[0] * prim[0].u + rs[1] * prim[1].u ) * rs_;
+//    vr = ( rs[0] * prim[0].v + rs[1] * prim[1].v ) * rs_;
+//    wr = ( rs[0] * prim[0].w + rs[1] * prim[1].w ) * rs_;
+//
+//    vrn  = ur*n[0]+vr*n[1]+wr*n[2];
+//    vrn *= rr;
+//
+//    for (i = 4; i < f_count; i++) {
+//        *(q[i]) = ((vrn > 0.) ? prim[0].c[i-4] : prim[1].c[i-4])*vrn;
+//    }
+
     for (i = 0; i < f_count; i++) {
         CHARM_FREE(ff[i]);
         CHARM_FREE(uu[i]);
     }
     CHARM_FREE(q);
     CHARM_FREE(uu);
+    CHARM_FREE(ff);
+}
+
+
+void charm_calc_flux_cd(p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[], double n[3])
+{
+    int      i, j;
+    double   alpha;
+    double   vn[2], **ff/*[5][2]*/;
+    double **q;
+    size_t   f_count;
+
+    charm_ctx_t *ctx = charm_get_ctx(p4est);
+    f_count = 4+ctx->comp->elem_count;
+
+    q  = CHARM_ALLOC(double*, f_count);
+    ff = CHARM_ALLOC(double*, f_count);
+    for (i = 0; i < f_count; i++) {
+        ff[i] = CHARM_ALLOC(double, 2);
+    }
+    q[0] = qu;
+    q[1] = qv;
+    q[2] = qw;
+    q[3] = qe;
+    for (i = 4; i < f_count; i++) {
+        q[i] = &(qc[i-4]);
+    }
+
+    for (i = 0; i < 2; i++) {
+        vn[i] = prim[i].u*n[0]+prim[i].v*n[1]+prim[i].w*n[2];
+
+        ff[0][i] = prim[i].r*vn[i]*prim[i].u+prim[i].p*n[0];
+        ff[1][i] = prim[i].r*vn[i]*prim[i].v+prim[i].p*n[1];
+        ff[2][i] = prim[i].r*vn[i]*prim[i].w+prim[i].p*n[2];
+        ff[3][i] = (prim[i].r*prim[i].e_tot+prim[i].p)*vn[i];
+
+        for (j = 4; j < f_count; j++) {
+            ff[j][i] = prim[i].r*prim[i].c[j-4]*vn[i];
+        }
+    }
+
+    for (i = 0; i < f_count; i++) {
+        *(q[i]) = 0.5*( ff[i][1]+ff[i][0] );
+    }
+
+    for (i = 0; i < f_count; i++) {
+        CHARM_FREE(ff[i]);
+    }
+    CHARM_FREE(q);
     CHARM_FREE(ff);
 }
 

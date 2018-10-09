@@ -21,6 +21,7 @@ double charm_get_field_re(charm_data_t* p, double* x);
 double charm_get_field_rc(charm_data_t* p, double* x, int k);
 
 void charm_get_fields(charm_data_t* p, double* x, charm_cons_t* c);
+void charm_get_fields_avg(charm_data_t* p, charm_cons_t* c);
 void charm_get_fields_arr(charm_data_t* p, double* fld[5]);
 
 

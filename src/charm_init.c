@@ -11,7 +11,6 @@
 #include "charm_eos.h"
 #include "charm_limiter.h"
 
-
 void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q)
 {
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
@@ -29,7 +28,6 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
 
     attr = charm_get_tree_attr(p4est, which_tree);
     reg = attr->reg;
-
     prim.mat_id = reg->mat_id;
     prim.p   = reg->p;
     prim.t   = reg->t;
@@ -55,6 +53,9 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
         par->c.rc[i][0] = cons.rc[i];
     }
     par->mat_id = reg->mat_id;
+    for (i = 0; i < CHARM_DIM; i++) {
+        par->grav[i] = reg->grav[i];
+    }
 }
 
 
@@ -252,6 +253,10 @@ static void charm_init_fetch_reg(charm_ctx_t *ctx, mxml_node_t* node, charm_reg_
     charm_xml_node_child_param_dbl(n1, "T", &(reg->t));
     charm_xml_node_child_param_dbl(n1, "P", &(reg->p));
 
+    charm_xml_node_child_param_dbl(n1, "Gx", &(reg->grav[0]));
+    charm_xml_node_child_param_dbl(n1, "Gy", &(reg->grav[1]));
+    charm_xml_node_child_param_dbl(n1, "Gz", &(reg->grav[2]));
+
     memset(reg->c, 0, CHARM_MAX_COMPONETS_COUNT*sizeof(double));
     n1 = charm_xml_node_get_child(node, "components");
     for (n2 = charm_xml_node_get_child(n1, "component");
@@ -336,6 +341,9 @@ void charm_init_context(charm_ctx_t *ctx)
     }
     else if (strcmp(str, "GODUNOV") == 0) {
         ctx->flux_fn = charm_calc_flux_godunov;
+    }
+    else if (strcmp(str, "CD") == 0) {
+        ctx->flux_fn = charm_calc_flux_cd;
     }
     else {
         CHARM_LERRORF("Unknown flux type '%s'. Use: LF, GODUNOV.\n", str);

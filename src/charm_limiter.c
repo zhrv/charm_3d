@@ -8,23 +8,40 @@
 #include "charm_bnd_cond.h"
 #include "charm_geom.h"
 
+
 static void _charm_limiter_bj_init_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t *p = charm_get_quad_data(info->quad);
+    size_t c_count = charm_get_comp_count(info->p4est);
+    charm_cons_t cons;
+    int j;
 
+    charm_get_fields_avg(p, &cons);
     p->par.l.count = 1;
-    p->par.l.ru[0] = p->par.c.ru[0];
-    p->par.l.rv[0] = p->par.c.rv[0];
-    p->par.l.rw[0] = p->par.c.rw[0];
-    p->par.l.re[0] = p->par.c.re[0];
+    p->par.l.ru[0] = cons.ru;
+    p->par.l.rv[0] = cons.rv;
+    p->par.l.rw[0] = cons.rw;
+    p->par.l.re[0] = cons.re;
+    for (j =0; j < c_count; j++) {
+        p->par.l.rc[j][0] = cons.rc[j];
+    }
+//    p->par.l.ru[0] = p->par.c.ru[0];
+//    p->par.l.rv[0] = p->par.c.rv[0];
+//    p->par.l.rw[0] = p->par.c.rw[0];
+//    p->par.l.re[0] = p->par.c.re[0];
+//    for (j =0; j < c_count; j++) {
+//        p->par.l.rc[j][0] = p->par.c.rc[j][0];
+//    }
 }
+
 
 static void _charm_limiter_bj_neigh_iter_bnd(p4est_iter_face_info_t * info, void *user_data)
 {
-    int i, ibf, igp;
+    int i, j, ibf, igp;
     p4est_t *p4est = info->p4est;
     charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
+    size_t c_count = charm_get_comp_count(info->p4est);
     double n[3];
     double qr, qu, qv, qw, qe;
     double bfv;
@@ -67,7 +84,7 @@ static void _charm_limiter_bj_neigh_iter_bnd(p4est_iter_face_info_t * info, void
         }
     }
 
-    charm_get_fields(udata, c[0], &(cons[0]));
+    charm_get_fields_avg(udata, /*c[0],*/ &(cons[0]));
     charm_param_cons_to_prim(p4est, &(prim[0]), &(cons[0]));
     charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
     charm_param_prim_to_cons(p4est, &(cons[1]), &(prim[1]));
@@ -76,13 +93,16 @@ static void _charm_limiter_bj_neigh_iter_bnd(p4est_iter_face_info_t * info, void
     udata->par.l.rv[i] = cons[1].rv;
     udata->par.l.rw[i] = cons[1].rw;
     udata->par.l.re[i] = cons[1].re;
+    for (j =0; j < c_count; j++) {
+        udata->par.l.rc[j][i] = cons[1].rc[j];
+    }
     udata->par.l.count++;
 }
 
 
 static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, void *user_data)
 {
-    int                     i, j, k,  h_side, f_side;
+    int                     i, j, k,  h_side, f_side, cj;
     p4est_t                *p4est = info->p4est;
     charm_data_t           *ghost_data = (charm_data_t *) user_data;
     charm_data_t           *udata[2];
@@ -92,6 +112,7 @@ static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, vo
     double                  c[3];
     int8_t                  face[2];
     double                  vol, svol;
+    size_t                  c_count = charm_get_comp_count(info->p4est);
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     side[1] = p4est_iter_fside_array_index_int(sides, 1);
@@ -183,7 +204,7 @@ static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, vo
 
         for (i = 0; i < 2; i++) {
             charm_quad_get_center(udata[i], c);
-            charm_get_fields(udata[i], c, &(cons[i]));
+            charm_get_fields_avg(udata[i], /*c,*/ &(cons[i]));
             k = (i+1) % 2;
             if (!side[k]->is.full.is_ghost) {
                 j = udata[k]->par.l.count;
@@ -191,9 +212,11 @@ static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, vo
                 udata[k]->par.l.rv[j] = cons[i].rv;
                 udata[k]->par.l.rw[j] = cons[i].rw;
                 udata[k]->par.l.re[j] = cons[i].re;
+                for (cj =0; cj < c_count; cj++) {
+                    udata[k]->par.l.rc[cj][j] = cons[i].rc[cj];
+                }
                 udata[k]->par.l.count++;
             }
-
         }
     }
 }
@@ -217,21 +240,30 @@ static void _charm_limiter_bj_neigh_iter_fn(p4est_iter_face_info_t * info, void 
 static void _charm_limiter_bj_calc_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t *p = charm_get_quad_data(info->quad);
-    double *u[5], f[5][8];
-    double u_min[5], u_max[5], psi[5], psi_tmp;
+    double **u, *f;
+    double *u_min, *u_max, *psi, psi_tmp;
     int i,j;
     double v[8][CHARM_DIM];
     charm_cons_t cons;
-
+    size_t                  c_count = charm_get_comp_count(info->p4est);
+    size_t                  f_count = c_count+4;
     CHARM_ASSERT(p->par.l.count == 7);
 
-    u[0] = p->par.l.ro;
-    u[1] = p->par.l.ru;
-    u[2] = p->par.l.rv;
-    u[3] = p->par.l.rw;
-    u[4] = p->par.l.re;
+    u_min = CHARM_ALLOC(double, f_count);
+    u_max = CHARM_ALLOC(double, f_count);
+    psi = CHARM_ALLOC(double, f_count);
+    u = CHARM_ALLOC(double*, f_count);
+    f = CHARM_ALLOC(double, f_count);
 
-    for (j = 0; j < 5; j++) {
+    u[0] = p->par.l.ru;
+    u[1] = p->par.l.rv;
+    u[2] = p->par.l.rw;
+    u[3] = p->par.l.re;
+    for (j = 4; j < f_count; j++) {
+        u[j] = p->par.l.rc[j-4];
+    }
+
+    for (j = 0; j < f_count; j++) {
         u_min[j] = u_max[j] = u[j][0];
         for (i = 1; i < p->par.l.count; i++) {
             if (u_min[j] > u[j][i]) u_min[j] = u[j][i];
@@ -240,35 +272,45 @@ static void _charm_limiter_bj_calc_iter_fn(p4est_iter_volume_info_t * info, void
     }
 
     charm_quad_get_vertices(info->p4est, info->quad, info->treeid, v);
-    for (j = 0; j < 5; j++) {
+    for (j = 0; j < f_count; j++) {
         psi[j] = 1.;
     }
     for (i = 0; i < 8; i++) {
         charm_get_fields(p, v[i], &cons);
-//        f[0][i] = cons.ro;
-        f[1][i] = cons.ru;
-        f[2][i] = cons.rv;
-        f[3][i] = cons.rw;
-        f[4][i] = cons.re;
-        for (j = 0; j < 5; j++) {
+        f[0] = cons.ru;
+        f[1] = cons.rv;
+        f[2] = cons.rw;
+        f[3] = cons.re;
+        for (j = 4; j < f_count; j++) {
+            f[j] = cons.rc[j-4];
+        }
+        for (j = 0; j < f_count; j++) {
             psi_tmp = 1.;
-            if (fabs(f[j][i]-u[j][0]) > CHARM_EPS) {
-                if (f[j][i] - u[j][0] > 0) {
-                    psi_tmp = _MIN_(1, (u_max[j] - u[j][0]) / (f[j][i] - u[j][0]));
-                } else if (f[j][i] - u[j][0] < 0) {
-                    psi_tmp = _MIN_(1, (u_min[j] - u[j][0]) / (f[j][i] - u[j][0]));
+            if (fabs(f[j]-u[j][0]) > CHARM_EPS) {
+                if (f[j] - u[j][0] > 0) {
+                    psi_tmp = _MIN_(1, (u_max[j] - u[j][0]) / (f[j] - u[j][0]));
+                } else if (f[j] - u[j][0] < 0) {
+                    psi_tmp = _MIN_(1, (u_min[j] - u[j][0]) / (f[j] - u[j][0]));
                 }
             }
             if (psi_tmp < psi[j]) psi[j] = psi_tmp;
         }
     }
     for (j = 1; j < CHARM_BASE_FN_COUNT; j++) {
-//        p->par.c.ro[j] *= psi[0];
-        p->par.c.ru[j] *= psi[1];
-        p->par.c.rv[j] *= psi[2];
-        p->par.c.rw[j] *= psi[3];
-        p->par.c.re[j] *= psi[4];
+        p->par.c.ru[j] *= psi[0];
+        p->par.c.rv[j] *= psi[1];
+        p->par.c.rw[j] *= psi[2];
+        p->par.c.re[j] *= psi[3];
+        for (i = 0; i < c_count; i++) {
+            p->par.c.rc[i][j] *= psi[4+i];
+        }
     }
+
+    CHARM_FREE(u_min);
+    CHARM_FREE(u_max);
+    CHARM_FREE(psi);
+    CHARM_FREE(u);
+    CHARM_FREE(f);
 }
 
 
@@ -288,10 +330,12 @@ void charm_limiter_bj(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_
 
 }
 
+
 void charm_limiter(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data)
 {
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     if (ctx->lim_fn != NULL) {
         ctx->lim_fn(p4est, ghost, ghost_data);
+        p4est_ghost_exchange_data (p4est, ghost, ghost_data);   /* synchronize the ghost data */
     }
 }
