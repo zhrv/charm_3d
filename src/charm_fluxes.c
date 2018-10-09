@@ -260,6 +260,7 @@ void charm_calc_flux_lf(p4est_t *p4est, charm_prim_t prim[2], double* qu, double
     double **q;
     size_t   f_count;
     double   rs[2], rs_, rr, ur, vr, wr, vrn;
+    double   *tmp;
 
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     f_count = 4+ctx->comp->elem_count;
@@ -275,8 +276,9 @@ void charm_calc_flux_lf(p4est_t *p4est, charm_prim_t prim[2], double* qu, double
     q[1] = qv;
     q[2] = qw;
     q[3] = qe;
+    tmp = qc;
     for (i = 4; i < f_count; i++) {
-        q[i] = &(qc[i-4]);
+        q[i] = /*tmp++;/*/&(qc[i-4]);
     }
 
     for (i = 0; i < 2; i++) {
