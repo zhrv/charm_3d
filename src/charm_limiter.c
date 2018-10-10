@@ -136,6 +136,9 @@ static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, vo
                 cons[i].rv = 0.;
                 cons[i].rw = 0.;
                 cons[i].re = 0.;
+                for (cj = 0; cj < c_count; cj++) {
+                    cons[i].rc[cj] = 0.;
+                }
                 for (j = 0; j < CHARM_HALF; j++) {
                     if (side[i]->is.hanging.is_ghost[j]) {
                         udata[i] = &(ghost_data[side[i]->is.hanging.quadid[j]]);
@@ -151,11 +154,17 @@ static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, vo
                     cons[i].rv += cons_j.rv*vol;
                     cons[i].rw += cons_j.rw*vol;
                     cons[i].re += cons_j.re*vol;
+                    for (cj = 0; cj < c_count; cj++) {
+                        cons[i].rc[cj] += cons_j.rc[cj]*vol;
+                    }
                 }
                 cons[i].ru /= svol;
                 cons[i].rv /= svol;
                 cons[i].rw /= svol;
                 cons[i].re /= svol;
+                for (cj = 0; cj < c_count; cj++) {
+                    cons[i].rc[cj] /= svol;
+                }
             }
             else {
                 if (side[i]->is.full.is_ghost) {

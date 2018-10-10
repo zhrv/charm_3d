@@ -166,7 +166,7 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
 
 static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info, void *user_data)
 {
-    int                     i, j, h_side, igp, ibf;
+    int                     i, j, h_side, igp, ibf,cj;
     p4est_t                *p4est = info->p4est;
     charm_ctx_t            *ctx = charm_get_ctx(p4est);
     charm_data_t           *ghost_data = (charm_data_t *) user_data;
@@ -244,8 +244,8 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
                     for (i = 0; i < 2; i++) {
                         if (!side[i]->is.full.is_ghost) {
                             bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
-                            for (j = 0; j < c_count; j++) {
-                                udata[i]->int_rc[j][ibf] += qc[j] * bfv;
+                            for (cj = 0; cj < c_count; cj++) {
+                                udata[i]->int_rc[cj][ibf] += qc[cj] * bfv;
                             }
                             udata[i]->int_ru[ibf] += qu * bfv;
                             udata[i]->int_rv[ibf] += qv * bfv;
