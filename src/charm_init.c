@@ -61,7 +61,6 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     prim.e_tot = prim.e + 0.5*(prim.u*prim.u+prim.v*prim.v+prim.w*prim.w);
     charm_param_prim_to_cons(p4est, &cons, &prim);
     memset(&(par->c), 0, sizeof(par->c));
-//    par->c.ro[0] = cons.ro;
     par->c.ru[0] = cons.ru;
     par->c.rv[0] = cons.rv;
     par->c.rw[0] = cons.rw;

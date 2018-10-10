@@ -25,13 +25,6 @@ static void _charm_limiter_bj_init_iter_fn(p4est_iter_volume_info_t * info, void
     for (j =0; j < c_count; j++) {
         p->par.l.rc[j][0] = cons.rc[j];
     }
-//    p->par.l.ru[0] = p->par.c.ru[0];
-//    p->par.l.rv[0] = p->par.c.rv[0];
-//    p->par.l.rw[0] = p->par.c.rw[0];
-//    p->par.l.re[0] = p->par.c.re[0];
-//    for (j =0; j < c_count; j++) {
-//        p->par.l.rc[j][0] = p->par.c.rc[j][0];
-//    }
 }
 
 
@@ -67,7 +60,7 @@ static void _charm_limiter_bj_neigh_iter_bnd(p4est_iter_face_info_t * info, void
         CHARM_ASSERT(0);
         udata = &(ghost_data[side[0]->is.full.quadid]);
     } else {
-        udata = charm_get_quad_data(side[0]->is.full.quad);//(charm_data_t *) side[0]->is.full.quad->p.user_data;
+        udata = charm_get_quad_data(side[0]->is.full.quad);
     }
     face = side[0]->face;
     charm_face_get_normal(udata, face, n);
@@ -84,7 +77,7 @@ static void _charm_limiter_bj_neigh_iter_bnd(p4est_iter_face_info_t * info, void
         }
     }
 
-    charm_get_fields_avg(udata, /*c[0],*/ &(cons[0]));
+    charm_get_fields_avg(udata, &(cons[0]));
     charm_param_cons_to_prim(p4est, &(prim[0]), &(cons[0]));
     charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
     charm_param_prim_to_cons(p4est, &(cons[1]), &(prim[1]));
@@ -207,13 +200,13 @@ static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, vo
                 udata[i] = &(ghost_data[side[i]->is.full.quadid]);
             }
             else {
-                udata[i] = charm_get_quad_data(side[i]->is.full.quad);//(charm_data_t *) side[i]->is.full.quad->p.user_data;
+                udata[i] = charm_get_quad_data(side[i]->is.full.quad);
             }
         }
 
         for (i = 0; i < 2; i++) {
             charm_quad_get_center(udata[i], c);
-            charm_get_fields_avg(udata[i], /*c,*/ &(cons[i]));
+            charm_get_fields_avg(udata[i], &(cons[i]));
             k = (i+1) % 2;
             if (!side[k]->is.full.is_ghost) {
                 j = udata[k]->par.l.count;
