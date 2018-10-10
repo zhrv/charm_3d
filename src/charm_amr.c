@@ -51,7 +51,6 @@ static int charm_refine_err_estimate (p4est_t * p4est, p4est_topidx_t which_tree
 static int charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q)
 {
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
-//    double              h = CHARM_GET_H(q->level);
     double              mp[3];
 
     if (q->level >= ctx->max_level) {
@@ -60,7 +59,6 @@ static int charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which
 
     charm_quad_get_center (q->p.user_data, mp);
 
-//    if (( (-0.001 < mp[2]) && (mp[2] < 0.001) ) || ( (-0.006 < mp[2]) && (mp[2] < -0.004) )) {
     if (( (-0.005 < mp[2]) && (mp[2] < 0.002) ) || ( (-0.009 < mp[2]) && (mp[2] < 0.006) )) {
         return 1;
     }
@@ -217,7 +215,7 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
         /* this is coarsening */
         parent_data = (charm_data_t *) incoming[0]->p.user_data;
         child_data  = (charm_data_t *) outgoing[0]->p.user_data;
-        parent_data->par.mat_id = ((charm_data_t *) outgoing[0]->p.user_data)->par.mat_id;
+        parent_data->par.mat_id  = child_data->par.mat_id;
         parent_data->par.grav[0] = child_data->par.grav[0];
         parent_data->par.grav[1] = child_data->par.grav[1];
         parent_data->par.grav[2] = child_data->par.grav[2];
