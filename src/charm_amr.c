@@ -55,11 +55,24 @@ static int charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which
     charm_data_t       *p = charm_get_quad_data(q);
     double              vol = charm_quad_get_volume(p);
     double              mp[3], err2;
+    double *x;
+    charm_data_t        *data = charm_get_quad_data(q);
 
     if (q->level >= ctx->max_level) {
         return 0;
     }
 
+    //***** Rayleigh–Taylor (begin) *****//
+    x = data->par.g.c;
+
+    if (fabs(x[2]-0.5) < 0.01) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+
+    //***** Rayleigh–Taylor (end) *****//
     charm_quad_get_center (q->p.user_data, mp);
 
     err2 = charm_error_sqr_estimate (q);
