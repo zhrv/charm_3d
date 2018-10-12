@@ -31,7 +31,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     charm_param_cons_to_prim(p4est, &prim, &cons);
 
     this_u[0] = prim.r;
-    this_u[1] = prim.p;
+    this_u[1] = prim.p0 + prim.p;
     this_u[2] = prim.e;
     this_u[3] = prim.e_tot;
     this_u[4] = prim.u;

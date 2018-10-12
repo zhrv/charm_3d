@@ -39,20 +39,20 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
             charm_get_fields(data, x, &c);
             charm_param_cons_to_prim(info->p4est, &p, &c);
 
-            fu = c.ru*p.u+p.p;
+            fu = c.ru*p.u+p.p0;
             fv = c.ru*p.v;
             fw = c.ru*p.w;
-            fe = c.ru*p.e_tot+p.p*p.u;
+            fe = c.ru*p.e_tot+p.p0*p.u;
 
             gu = c.rv*p.u;
-            gv = c.rv*p.v+p.p;
+            gv = c.rv*p.v+p.p0;
             gw = c.rv*p.w;
-            ge = c.rv*p.e_tot+p.p*p.v;
+            ge = c.rv*p.e_tot+p.p0*p.v;
 
             hu = c.rw*p.u;
             hv = c.rw*p.v;
-            hw = c.rw*p.w+p.p;
-            he = c.rw*p.e_tot+p.p*p.w;
+            hw = c.rw*p.w+p.p0;
+            he = c.rw*p.e_tot+p.p0*p.w;
 
             for(size_t cj = 0; cj < c_count; ++cj) {
                 fc[cj] = c.ru*p.c[cj];

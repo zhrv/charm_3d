@@ -217,7 +217,7 @@ void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src)
 {
     dest->mat_id = src->mat_id;
     dest->r      = src->r;
-    dest->p      = src->p;
+    dest->p0     = src->p0;
     dest->u      = src->u;
     dest->v      = src->v;
     dest->w      = src->w;

@@ -185,6 +185,7 @@ typedef struct charm_prim
     double          e;             /**< energy         */
     double          e_tot;         /**< total energy   */
     double          p;             /**< pressure       */
+    double          p0;            /**< const pressure */
     double          t;             /**< temperature    */
     double          cz;            /**< sound velosity */
     double          gam;

@@ -29,7 +29,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     attr = charm_get_tree_attr(p4est, which_tree);
     reg = attr->reg;
     prim.mat_id = reg->mat_id;
-    prim.p   = reg->p;
+    prim.p0  = reg->p;
     prim.t   = reg->t;
     prim.u   = reg->v[0];
     prim.v   = reg->v[1];

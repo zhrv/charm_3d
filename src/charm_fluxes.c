@@ -191,7 +191,7 @@ void charm_calc_flux_godunov(p4est_t *p4est, charm_prim_t prim[2], double* qu, d
 //        u_[i] = prim[i].u;
 //        v_[i] = prim[i].v;
 //        w_[i] = prim[i].w;
-//        p_[i] = prim[i].p;
+//        p_[i] = prim[i].p0;
 //    }
 //
 //    nt[0][0] = n[0];
@@ -287,10 +287,10 @@ void charm_calc_flux_lf(p4est_t *p4est, charm_prim_t prim[2], double* qu, double
         uu[2][i] = prim[i].r*prim[i].w;
         uu[3][i] = prim[i].r*prim[i].e_tot;
 
-        ff[0][i] = prim[i].r*vn[i]*prim[i].u+prim[i].p*n[0];
-        ff[1][i] = prim[i].r*vn[i]*prim[i].v+prim[i].p*n[1];
-        ff[2][i] = prim[i].r*vn[i]*prim[i].w+prim[i].p*n[2];
-        ff[3][i] = (prim[i].r*prim[i].e_tot+prim[i].p)*vn[i];
+        ff[0][i] = prim[i].r*vn[i]*prim[i].u+prim[i].p0*n[0];
+        ff[1][i] = prim[i].r*vn[i]*prim[i].v+prim[i].p0*n[1];
+        ff[2][i] = prim[i].r*vn[i]*prim[i].w+prim[i].p0*n[2];
+        ff[3][i] = (prim[i].r*prim[i].e_tot+prim[i].p0)*vn[i];
 
         for (j = 4; j < f_count; j++) {
             uu[j][i] = prim[i].r*prim[i].c[j-4];
@@ -360,10 +360,10 @@ void charm_calc_flux_cd(p4est_t *p4est, charm_prim_t prim[2], double* qu, double
     for (i = 0; i < 2; i++) {
         vn[i] = prim[i].u*n[0]+prim[i].v*n[1]+prim[i].w*n[2];
 
-        ff[0][i] = prim[i].r*vn[i]*prim[i].u+prim[i].p*n[0];
-        ff[1][i] = prim[i].r*vn[i]*prim[i].v+prim[i].p*n[1];
-        ff[2][i] = prim[i].r*vn[i]*prim[i].w+prim[i].p*n[2];
-        ff[3][i] = (prim[i].r*prim[i].e_tot+prim[i].p)*vn[i];
+        ff[0][i] = prim[i].r*vn[i]*prim[i].u+prim[i].p0*n[0];
+        ff[1][i] = prim[i].r*vn[i]*prim[i].v+prim[i].p0*n[1];
+        ff[2][i] = prim[i].r*vn[i]*prim[i].w+prim[i].p0*n[2];
+        ff[3][i] = (prim[i].r*prim[i].e_tot+prim[i].p0)*vn[i];
 
         for (j = 4; j < f_count; j++) {
             ff[j][i] = prim[i].r*prim[i].c[j-4]*vn[i];

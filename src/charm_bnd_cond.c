@@ -41,7 +41,7 @@ void charm_bnd_cond_fn_inlet(charm_prim_t *par_in, charm_prim_t *par_out, int8_t
     par_out->v = param[1];
     par_out->w = param[2];
     par_out->t = param[3];
-    par_out->p = param[4];
+    par_out->p0 = param[4];
 }
 
 void charm_bnd_cond_fn_outlet(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double n[CHARM_DIM])
