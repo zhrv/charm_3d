@@ -179,7 +179,7 @@ static void _charm_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info
     charm_get_fields(data, data->par.g.c, &cons);
     charm_param_cons_to_prim(info->p4est, &prim, &cons);
 
-    dt_loc = ctx->CFL * data->par.g.volume / (sqrt(_MAG_(prim.u, prim.v, prim.w)) + prim.cz);
+    dt_loc = ctx->CFL * data->par.g.volume / (sqrt(_MAG_(prim.u, prim.v, prim.w)));
 
     *dt = SC_MIN(*dt, dt_loc);
 }
@@ -220,7 +220,7 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
     double              rhs_ru[CHARM_BASE_FN_COUNT];
     double              rhs_rv[CHARM_BASE_FN_COUNT];
     double              rhs_rw[CHARM_BASE_FN_COUNT];
-    double              rhs_re[CHARM_BASE_FN_COUNT];
+    double              rhs_rh[CHARM_BASE_FN_COUNT];
     double              rhs_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];
     size_t              c_count = ctx->comp->elem_count;
     int                 i;
@@ -228,7 +228,7 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
     charm_matr_vect_mult(data->par.g.a_inv, data->int_ru, rhs_ru);
     charm_matr_vect_mult(data->par.g.a_inv, data->int_rv, rhs_rv);
     charm_matr_vect_mult(data->par.g.a_inv, data->int_rw, rhs_rw);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_re, rhs_re);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_rh, rhs_rh);
 
     for (int j = 0; j < c_count; j++) {
         charm_matr_vect_mult(data->par.g.a_inv, data->int_rc[j], rhs_rc[j]);
@@ -238,7 +238,7 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
         data->par.c.ru[i] -= _NORM_(dt * rhs_ru[i]);
         data->par.c.rv[i] -= _NORM_(dt * rhs_rv[i]);
         data->par.c.rw[i] -= _NORM_(dt * rhs_rw[i]);
-        data->par.c.re[i] -= _NORM_(dt * rhs_re[i]);
+        data->par.c.rh[i] -= _NORM_(dt * rhs_rh[i]);
         for (int j = 0; j < c_count; j++) {
             data->par.c.rc[j][i] -= _NORM_(dt * rhs_rc[j][i]);
         }
@@ -255,7 +255,7 @@ static void charm_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, v
         data->int_ru[i] = 0.;
         data->int_rv[i] = 0.;
         data->int_rw[i] = 0.;
-        data->int_re[i] = 0.;
+        data->int_rh[i] = 0.;
         for (int j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
             data->int_rc[j][i] = 0.;
         }

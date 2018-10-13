@@ -183,10 +183,11 @@ typedef struct charm_prim
     double          v;             /**< velosity       */
     double          w;             /**< velosity       */
     double          e;             /**< energy         */
-    double          e_tot;         /**< total energy   */
+//    double          e_tot;         /**< total energy   */
+    double          h;             /**< enthalpy       */
     double          p;             /**< pressure       */
+    double          p0;            /**< const pressure */
     double          t;             /**< temperature    */
-    double          cz;            /**< sound velosity */
     double          gam;
     double          cp;
     double          cv;
@@ -200,9 +201,11 @@ typedef struct charm_cons
     double          ru;
     double          rv;
     double          rw;
-    double          re;
+    double          rh;
     double          rc[CHARM_MAX_COMPONETS_COUNT];
     int             mat_id;
+    double          p;
+    double          p0;
 } charm_cons_t;
 
 
@@ -253,8 +256,9 @@ typedef struct charm_param
         double          ru[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          rv[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          rw[CHARM_BASE_FN_COUNT];             /**< the state variable */
-        double          re[CHARM_BASE_FN_COUNT];             /**< the state variable */
+        double          rh[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];             /**< the state variable */
+        double          p[CHARM_BASE_FN_COUNT];
     } c;
 
     struct geom
@@ -277,6 +281,7 @@ typedef struct charm_param
 
     int         mat_id;
     double      grav[CHARM_DIM];
+    double      p0;
 
 
     struct lim
@@ -285,7 +290,7 @@ typedef struct charm_param
         double      ru[CHARM_FACES+1];
         double      rv[CHARM_FACES+1];
         double      rw[CHARM_FACES+1];
-        double      re[CHARM_FACES+1];
+        double      rh[CHARM_FACES+1];
         double      rc[CHARM_MAX_COMPONETS_COUNT][CHARM_FACES+1];             /**< the state variable */
     } l;
 
@@ -301,7 +306,7 @@ typedef struct charm_data
     double              int_ru[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     double              int_rv[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     double              int_rw[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    double              int_re[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    double              int_rh[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     double              int_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];              /**< the time derivative */
 
     int                 ref_flag;

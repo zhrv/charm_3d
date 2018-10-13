@@ -214,7 +214,7 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
     charm_data_t       *parent_data, *child_data;
     int                 i, j, m, n, igp;
     double              vol, svol;
-    double              ar[N][N], cr[N], rhs_ru[N], rhs_rv[N], rhs_rw[N], rhs_re[N], rhs_rc[CHARM_MAX_COMPONETS_COUNT][N];
+    double              ar[N][N], cr[N], rhs_ru[N], rhs_rv[N], rhs_rw[N], rhs_rh[N], rhs_rc[CHARM_MAX_COMPONETS_COUNT][N];
     double              *fld[5];
 
     if (num_outgoing > 1) {
@@ -229,7 +229,7 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
         charm_vect_zero(rhs_ru);
         charm_vect_zero(rhs_rv);
         charm_vect_zero(rhs_rw);
-        charm_vect_zero(rhs_re);
+        charm_vect_zero(rhs_rh);
         for (j = 0; j < c_count; j++) {
             charm_vect_zero(rhs_rc[j]);
         }
@@ -252,8 +252,8 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
             charm_vect_add(rhs_rv, cr);
             charm_matr_vect_mult(ar, child_data->par.c.rw, cr);
             charm_vect_add(rhs_rw, cr);
-            charm_matr_vect_mult(ar, child_data->par.c.re, cr);
-            charm_vect_add(rhs_re, cr);
+            charm_matr_vect_mult(ar, child_data->par.c.rh, cr);
+            charm_vect_add(rhs_rh, cr);
             for (j = 0; j < c_count; j++) {
                 charm_matr_vect_mult(ar, child_data->par.c.rc[j], cr);
                 charm_vect_add(rhs_rc[j], cr);
@@ -262,7 +262,7 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
         charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_ru, parent_data->par.c.ru);
         charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_rv, parent_data->par.c.rv);
         charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_rw, parent_data->par.c.rw);
-        charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_re, parent_data->par.c.re);
+        charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_rh, parent_data->par.c.rh);
         for (j = 0; j < c_count; j++) {
             charm_matr_vect_mult(parent_data->par.g.a_inv, rhs_rc[j], parent_data->par.c.rc[j]);
         }
@@ -292,7 +292,7 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
             charm_matr_vect_mult(ar, parent_data->par.c.ru, rhs_ru);
             charm_matr_vect_mult(ar, parent_data->par.c.rv, rhs_rv);
             charm_matr_vect_mult(ar, parent_data->par.c.rw, rhs_rw);
-            charm_matr_vect_mult(ar, parent_data->par.c.re, rhs_re);
+            charm_matr_vect_mult(ar, parent_data->par.c.rh, rhs_rh);
             for (j = 0; j < c_count; j++) {
                 charm_matr_vect_mult(ar, parent_data->par.c.rc[j], rhs_rc[j]);
             }
@@ -300,7 +300,7 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
             charm_matr_vect_mult(child_data->par.g.a_inv, rhs_ru, child_data->par.c.ru);
             charm_matr_vect_mult(child_data->par.g.a_inv, rhs_rv, child_data->par.c.rv);
             charm_matr_vect_mult(child_data->par.g.a_inv, rhs_rw, child_data->par.c.rw);
-            charm_matr_vect_mult(child_data->par.g.a_inv, rhs_re, child_data->par.c.re);
+            charm_matr_vect_mult(child_data->par.g.a_inv, rhs_rh, child_data->par.c.rh);
             for (j = 0; j < c_count; j++) {
                 charm_matr_vect_mult(child_data->par.g.a_inv, rhs_rc[j], child_data->par.c.rc[j]);
             }

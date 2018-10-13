@@ -17,8 +17,10 @@ double charm_get_field_ro(charm_data_t* p, double* x);
 double charm_get_field_ru(charm_data_t* p, double* x);
 double charm_get_field_rv(charm_data_t* p, double* x);
 double charm_get_field_rw(charm_data_t* p, double* x);
-double charm_get_field_re(charm_data_t* p, double* x);
+double charm_get_field_rh(charm_data_t* p, double* x);
 double charm_get_field_rc(charm_data_t* p, double* x, int k);
+double charm_get_field_p(charm_data_t* p, double* x);
+double charm_get_field_p0(charm_data_t* p);
 
 void charm_get_fields(charm_data_t* p, double* x, charm_cons_t* c);
 void charm_get_fields_avg(charm_data_t* p, charm_cons_t* c);
