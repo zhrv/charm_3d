@@ -32,7 +32,7 @@ void charm_mat_eos_ideal(p4est_t * p4est, charm_prim_t * p, int flag)
         case 0:		// p=p(r,e)
             if (p->r < CHARM_EPS) p->r = CHARM_EPS;
             CHARM_ASSERT(0); // p->p = p->r*p->e*(gam-1);
-            p->cz = sqrt(gam*p->p0/p->r);
+//            p->cz = sqrt(gam*p->p0/p->r);
             break;
 
         case 1:		// e=e(r,p)
@@ -45,25 +45,33 @@ void charm_mat_eos_ideal(p4est_t * p4est, charm_prim_t * p, int flag)
         case 2:		// r=r(T,p)
             CHARM_ASSERT(p->p0 < CHARM_EPS); // p->p0 = CHARM_EPS;
             p->r = p->p0*M/(p->t*gR);
-            p->cz = sqrt(gam*p->p0/p->r);
+//            p->cz = sqrt(gam*p->p0/p->r);
             break;
 
         case 3:
             CHARM_ASSERT(p->p0 < CHARM_EPS); // p->p0 = CHARM_EPS;
             p->r  = p->p0*M/(p->t*gR);
-            p->cz = sqrt(gam*p->p0/p->r);
+//            p->cz = sqrt(gam*p->p0/p->r);
             p->e  = p->p0/(p->r*(gam-1));
             break;
 
         case 4:
             if (p->r < CHARM_EPS) p->r = CHARM_EPS;
             CHARM_ASSERT(0); // p->p  = p->r*p->e*(gam-1);
-            p->cz = sqrt(gam*p->p0/p->r);
+//            p->cz = sqrt(gam*p->p0/p->r);
             p->t  = p->e/Cv;
             break;
 
+        case 5:		// e=e(r,p)
+            p->r = p->p0*M/(p->t*gR);
+            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
+//            p->e = p->p0/(p->r*(gam-1));
+            p->e = Cv*p->t;
+            p->h = p->e+gR*p->t*M;
+            break;
+
         default:
-            CHARM_ASSERT(flag < 5);
+            CHARM_ASSERT(flag < 6);
     }
 
 }
@@ -92,40 +100,46 @@ void charm_mat_eos_mix(p4est_t * p4est, charm_prim_t * p, int flag)
     switch (flag)
     {
         case 0:		// p=p(r,e)
-            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
-            CHARM_ASSERT(0); // p->p = p->r*p->e*(gam-1);
-            p->cz = sqrt(gam*p->p0/p->r);
-            break;
-
+//            CHARM_ASSERT(0); // p->p = p->r*p->e*(gam-1);
+//            break;
+//
         case 1:		// e=e(r,p)
-            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
-            CHARM_ASSERT(p->p0 < CHARM_EPS); // p->p = CHARM_EPS;
-            p->e = p->p0/(p->r*(gam-1));
-            p->t = p->e/Cv;
-            break;
-
+//                    CHARM_ASSERT(0);
+//            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
+//            p->e = p->p0/(p->r*(gam-1));
+//            p->t = p->e/Cv;
+//            break;
+//
         case 2:		// r=r(T,p)
-            CHARM_ASSERT(p->p0 < CHARM_EPS); // p->p = CHARM_EPS;
-            p->r = p->p0*M/(p->t*gR);
-            p->cz = sqrt(gam*p->p0/p->r);
-            break;
-
+//                    CHARM_ASSERT(0);
+//            p->r = p->p0*M/(p->t*gR);
+////            p->cz = sqrt(gam*p->p0/p->r);
+//            break;
+//
         case 3:
-            CHARM_ASSERT(p->p0 < CHARM_EPS); // p->p = CHARM_EPS;
-            p->r  = p->p0*M/(p->t*gR);
-            p->cz = sqrt(gam*p->p0/p->r);
-            p->e  = p->p0/(p->r*(gam-1));
-            break;
+//            p->r  = p->p0*M/(p->t*gR);
+////            p->cz = sqrt(gam*p->p0/p->r);
+//            p->e  = p->p0/(p->r*(gam-1));
+//            break;
+//
+            CHARM_ASSERT(0);
 
         case 4:
             if (p->r < CHARM_EPS) p->r = CHARM_EPS;
-            CHARM_ASSERT(0); // p->p  = p->r*p->e*(gam-1);
-            p->cz = sqrt(gam*p->p0/p->r);
+            p->e = p->h - p->p0/p->r;
             p->t  = p->e/Cv;
             break;
 
+        case 5:		// e=e(r,p)
+            p->r = p->p0*M/(p->t*gR);
+            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
+//            p->e = p->p0/(p->r*(gam-1));
+            p->e = Cv*p->t;
+            p->h = p->e+gR*p->t*M;
+            break;
+
         default:
-            CHARM_ASSERT(flag < 5);
+            CHARM_ASSERT(flag < 6);
     }
 }
 
