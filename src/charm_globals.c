@@ -187,8 +187,10 @@ void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * 
     p->u      = c->ru/p->r;
     p->v      = c->rv/p->r;
     p->w      = c->rw/p->r;
-    p->e_tot  = c->re/p->r;
-    p->e      = p->e_tot-0.5*_MAG_(p->u, p->v, p->w);
+    p->h      = c->rh/p->r;
+//    p->e      = p->e_tot-0.5*_MAG_(p->u, p->v, p->w);
+    p->p0     = c->p0;
+    p->p      = c->p;
 
     for (i = 0; i < c_count; i++) {
         p->c[i] = c->rc[i] / p->r;
@@ -196,7 +198,7 @@ void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * 
         if (p->c[i] > 1.) p->c[i] = 1.;
     }
 
-    mat->eos_fn(p4est, p, 4);  // {p,cz, t}=EOS(r,e)
+    mat->eos_fn(p4est, p, 4);  // {p,cz, t}=EOS(r,h)
 }
 
 
@@ -207,24 +209,29 @@ void charm_param_prim_to_cons(p4est_t * p4est, charm_cons_t * c, charm_prim_t * 
     c->ru = p->r * p->u;
     c->rv = p->r * p->v;
     c->rw = p->r * p->w;
-    c->re = p->r * (p->e + 0.5 * _MAG_(p->u, p->v, p->w));
+    c->rh = p->r * p->h;
     for (size_t i = 0; i < c_count; i++) {
         c->rc[i] = p->r * p->c[i];
     }
+
+    c->p  = p->p;
+    c->p0 = p->p0;
 }
 
 void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src)
 {
     dest->mat_id = src->mat_id;
     dest->r      = src->r;
+    dest->p      = src->p;
     dest->p0     = src->p0;
     dest->u      = src->u;
     dest->v      = src->v;
     dest->w      = src->w;
     dest->t      = src->t;
-    dest->cz     = src->cz;
+//    dest->cz     = src->cz;
+    dest->h      = src->h;
     dest->e      = src->e;
-    dest->e_tot  = src->e_tot;
+//    dest->e_tot  = src->e_tot;
     dest->cp     = src->cp;
     dest->cv     = src->cv;
     dest->gam    = src->gam;

@@ -21,7 +21,7 @@ static void _charm_limiter_bj_init_iter_fn(p4est_iter_volume_info_t * info, void
     p->par.l.ru[0] = cons.ru;
     p->par.l.rv[0] = cons.rv;
     p->par.l.rw[0] = cons.rw;
-    p->par.l.re[0] = cons.re;
+    p->par.l.rh[0] = cons.rh;
     for (j =0; j < c_count; j++) {
         p->par.l.rc[j][0] = cons.rc[j];
     }
@@ -36,7 +36,7 @@ static void _charm_limiter_bj_neigh_iter_bnd(p4est_iter_face_info_t * info, void
     charm_data_t *udata;
     size_t c_count = charm_get_comp_count(info->p4est);
     double n[3];
-    double qr, qu, qv, qw, qe;
+    double qr, qu, qv, qw, qh;
     double bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
@@ -85,7 +85,7 @@ static void _charm_limiter_bj_neigh_iter_bnd(p4est_iter_face_info_t * info, void
     udata->par.l.ru[i] = cons[1].ru;
     udata->par.l.rv[i] = cons[1].rv;
     udata->par.l.rw[i] = cons[1].rw;
-    udata->par.l.re[i] = cons[1].re;
+    udata->par.l.rh[i] = cons[1].rh;
     for (j =0; j < c_count; j++) {
         udata->par.l.rc[j][i] = cons[1].rc[j];
     }
@@ -128,7 +128,7 @@ static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, vo
                 cons[i].ru = 0.;
                 cons[i].rv = 0.;
                 cons[i].rw = 0.;
-                cons[i].re = 0.;
+                cons[i].rh = 0.;
                 for (cj = 0; cj < c_count; cj++) {
                     cons[i].rc[cj] = 0.;
                 }
@@ -146,7 +146,7 @@ static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, vo
                     cons[i].ru += cons_j.ru*vol;
                     cons[i].rv += cons_j.rv*vol;
                     cons[i].rw += cons_j.rw*vol;
-                    cons[i].re += cons_j.re*vol;
+                    cons[i].rh += cons_j.rh*vol;
                     for (cj = 0; cj < c_count; cj++) {
                         cons[i].rc[cj] += cons_j.rc[cj]*vol;
                     }
@@ -154,7 +154,7 @@ static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, vo
                 cons[i].ru /= svol;
                 cons[i].rv /= svol;
                 cons[i].rw /= svol;
-                cons[i].re /= svol;
+                cons[i].rh /= svol;
                 for (cj = 0; cj < c_count; cj++) {
                     cons[i].rc[cj] /= svol;
                 }
@@ -178,7 +178,7 @@ static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, vo
             udata[f_side]->par.l.ru[j] = cons[h_side].ru;
             udata[f_side]->par.l.rv[j] = cons[h_side].rv;
             udata[f_side]->par.l.rw[j] = cons[h_side].rw;
-            udata[f_side]->par.l.re[j] = cons[h_side].re;
+            udata[f_side]->par.l.rh[j] = cons[h_side].rh;
             udata[f_side]->par.l.count++;
         }
         for (j = 0; j < CHARM_HALF; j++) {
@@ -188,7 +188,7 @@ static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, vo
                 udata[h_side]->par.l.ru[k] = cons[f_side].ru;
                 udata[h_side]->par.l.rv[k] = cons[f_side].rv;
                 udata[h_side]->par.l.rw[k] = cons[f_side].rw;
-                udata[h_side]->par.l.re[k] = cons[f_side].re;
+                udata[h_side]->par.l.rh[k] = cons[f_side].rh;
                 udata[h_side]->par.l.count++;
             }
         }
@@ -213,7 +213,7 @@ static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, vo
                 udata[k]->par.l.ru[j] = cons[i].ru;
                 udata[k]->par.l.rv[j] = cons[i].rv;
                 udata[k]->par.l.rw[j] = cons[i].rw;
-                udata[k]->par.l.re[j] = cons[i].re;
+                udata[k]->par.l.rh[j] = cons[i].rh;
                 for (cj =0; cj < c_count; cj++) {
                     udata[k]->par.l.rc[cj][j] = cons[i].rc[cj];
                 }
@@ -260,7 +260,7 @@ static void _charm_limiter_bj_calc_iter_fn(p4est_iter_volume_info_t * info, void
     u[0] = p->par.l.ru;
     u[1] = p->par.l.rv;
     u[2] = p->par.l.rw;
-    u[3] = p->par.l.re;
+    u[3] = p->par.l.rh;
     for (j = 4; j < f_count; j++) {
         u[j] = p->par.l.rc[j-4];
     }
@@ -282,7 +282,7 @@ static void _charm_limiter_bj_calc_iter_fn(p4est_iter_volume_info_t * info, void
         f[0] = cons.ru;
         f[1] = cons.rv;
         f[2] = cons.rw;
-        f[3] = cons.re;
+        f[3] = cons.rh;
         for (j = 4; j < f_count; j++) {
             f[j] = cons.rc[j-4];
         }
@@ -302,7 +302,7 @@ static void _charm_limiter_bj_calc_iter_fn(p4est_iter_volume_info_t * info, void
         p->par.c.ru[j] *= psi[0];
         p->par.c.rv[j] *= psi[1];
         p->par.c.rw[j] *= psi[2];
-        p->par.c.re[j] *= psi[3];
+        p->par.c.rh[j] *= psi[3];
         for (i = 0; i < c_count; i++) {
             p->par.c.rc[i][j] *= psi[4+i];
         }

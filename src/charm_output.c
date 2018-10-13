@@ -16,12 +16,12 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     p4est_locidx_t      local_id = info->quadid;  /* this is the index of q *within its tree's numbering*.  We want to convert it its index for all the quadrants on this process, which we do below */
     p4est_tree_t       *tree;
     charm_data_t       *data = (charm_data_t *) q->p.user_data;
-    double              this_u[9];
+    size_t              c_count = charm_get_comp_count(p4est);
+    double              this_u[9+c_count];
     double             *this_u_ptr;
     int                 j;
     charm_cons_t        cons;
     charm_prim_t        prim;
-    size_t              c_count = charm_get_comp_count(p4est);
 
     tree = p4est_tree_array_index (p4est->trees, which_tree);
     local_id += tree->quadrants_offset;   /* now the id is relative to the MPI process */
@@ -31,16 +31,18 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     charm_param_cons_to_prim(p4est, &prim, &cons);
 
     this_u[0] = prim.r;
-    this_u[1] = prim.p0 + prim.p;
-    this_u[2] = prim.e;
-    this_u[3] = prim.e_tot;
-    this_u[4] = prim.u;
-    this_u[5] = prim.v;
-    this_u[6] = prim.w;
+    this_u[1] = prim.p0;
+    this_u[2] = prim.p;
+    this_u[3] = prim.p0 + prim.p;
+    this_u[4] = prim.e;
+    this_u[5] = prim.e+_MAG_(prim.u, prim.v, prim.w);
+    this_u[6] = prim.u;
+    this_u[7] = prim.v;
+    this_u[8] = prim.w;
     for (j = 0; j < c_count; j++) {
-        this_u[7+j] = prim.c[j];
+        this_u[9+j] = prim.c[j];
     }
-    for (j = 0; j < 7 + c_count; j++) {
+    for (j = 0; j < 9 + c_count; j++) {
         this_u_ptr = (double *) sc_array_index (u_interp[j], (size_t)local_id);
         this_u_ptr[0] = this_u[j];
     }
@@ -58,7 +60,7 @@ void charm_write_solution (p4est_t * p4est, int timestep)
     int                 num_cell_scalars;
     int                 num_cell_vectors;
     charm_ctx_t        *ctx;
-    char*         names7[] = {"R", "P", "E", "E_TOT", "U", "V", "W"};
+    char*         names9[] = {"R", "P_0", "P_1", "P", "E", "E_TOT", "U", "V", "W"};
     charm_comp_t       *comp;
 
     ctx = charm_get_ctx(p4est);
@@ -67,21 +69,21 @@ void charm_write_solution (p4est_t * p4est, int timestep)
     numquads = (size_t)p4est->local_num_quadrants;
 
     num_cell_vectors = 0;
-    num_cell_scalars = 7 + (int)ctx->comp->elem_count;
+    num_cell_scalars = 9 + (int)ctx->comp->elem_count;
     u_interp = CHARM_ALLOC(sc_array_t*, num_cell_scalars + num_cell_vectors);
     for (i = 0; i < num_cell_scalars + num_cell_vectors; i++) {
         u_interp[i] = sc_array_new_size (sizeof(double), numquads);
     }
 
     char** names = CHARM_ALLOC (char *, num_cell_scalars + num_cell_vectors);
-    for (i = 0; i < 7; i++) {
-        names[i] = names7[i];
+    for (i = 0; i < 9; i++) {
+        names[i] = names9[i];
     }
     for (i = 0; i < ctx->comp->elem_count; i++) {
         comp = charm_get_comp(p4est, i);
-        names[i+7] = CHARM_ALLOC (char, 128);
-        strcpy(names[i+7], "C_");
-        strcat(names[i+7], comp->name);
+        names[i+9] = CHARM_ALLOC (char, 128);
+        strcpy(names[i+9], "C_");
+        strcat(names[i+9], comp->name);
     }
 
     p4est_iterate (p4est, NULL,   /* we don't need any ghost quadrants for this loop */
@@ -115,7 +117,7 @@ void charm_write_solution (p4est_t * p4est, int timestep)
     }
     CHARM_FREE(u_interp);
     for (i = 0; i < ctx->comp->elem_count; i++) {
-        CHARM_FREE (names[i+7]);
+        CHARM_FREE (names[i+9]);
     }
 
 }

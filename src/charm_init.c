@@ -30,6 +30,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     reg = attr->reg;
     prim.mat_id = reg->mat_id;
     prim.p0  = reg->p;
+    prim.p   = 0.;
     prim.t   = reg->t;
     prim.u   = reg->v[0];
     prim.v   = reg->v[1];
@@ -39,18 +40,18 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     }
     mat = charm_mat_find_by_id(ctx, reg->mat_id);
 
-    mat->eos_fn(p4est, &prim, 2);
-    mat->eos_fn(p4est, &prim, 1);
-    prim.e_tot = prim.e + 0.5*(prim.u*prim.u+prim.v*prim.v+prim.w*prim.w);
+    mat->eos_fn(p4est, &prim, 5);
+//    prim.e_tot = prim.e + 0.5*(prim.u*prim.u+prim.v*prim.v+prim.w*prim.w);
     charm_param_prim_to_cons(p4est, &cons, &prim);
     memset(&(par->c), 0, sizeof(par->c));
     par->c.ru[0] = cons.ru;
     par->c.rv[0] = cons.rv;
     par->c.rw[0] = cons.rw;
-    par->c.re[0] = cons.re;
+    par->c.rh[0] = cons.rh;
     for (i = 0; i < c_count; i++) {
         par->c.rc[i][0] = cons.rc[i];
     }
+    par->p0 = cons.p0;
     par->mat_id = reg->mat_id;
     for (i = 0; i < CHARM_DIM; i++) {
         par->grav[i] = reg->grav[i];
