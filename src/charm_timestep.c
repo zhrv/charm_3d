@@ -198,7 +198,7 @@ static double _charm_get_timestep (p4est_t * p4est)
     double              loc_dt, glob_dt;
     int                 mpiret, i;
 
-    return ctx->dt;
+//    return ctx->dt;
     loc_dt = ctx->dt;
     p4est_iterate (p4est, NULL,
                    (void *) &loc_dt,

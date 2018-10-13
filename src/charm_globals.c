@@ -230,7 +230,7 @@ void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src)
     dest->t      = src->t;
 //    dest->cz     = src->cz;
     dest->h      = src->h;
-//    dest->e      = src->e;
+    dest->e      = src->e;
 //    dest->e_tot  = src->e_tot;
     dest->cp     = src->cp;
     dest->cv     = src->cv;
