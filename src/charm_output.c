@@ -120,6 +120,7 @@ void charm_write_solution (p4est_t * p4est, int timestep)
         CHARM_FREE (names[i+9]);
     }
 
+    CHARM_GLOBAL_ESSENTIALF (" File for step #%d is saved \n", timestep);
 }
 
 

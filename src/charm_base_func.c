@@ -181,7 +181,7 @@ double charm_get_field_p(charm_data_t* p, double* x)
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
         result += p->par.c.p[i]*charm_base_func(x, i, p);
     }
-    return result;
+    return (result > CHARM_EPS ? result : 0.);
 }
 
 
@@ -198,6 +198,42 @@ double charm_get_field_rc(charm_data_t* p, double* x, int k)
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
         result += p->par.c.rc[k][i]*charm_base_func(x, i, p);
+    }
+    return result;
+}
+
+
+double charm_get_field_grad_p_x(charm_data_t* p, double* x)
+{
+    double result = 0.;
+    int i;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        result += p->par.c.grad_p[0][i]*charm_base_func(x, i, p);
+    }
+    return result;
+}
+
+
+double charm_get_field_grad_p_y(charm_data_t* p, double* x)
+{
+    double result = 0.;
+    int i;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        result += p->par.c.grad_p[1][i]*charm_base_func(x, i, p);
+    }
+    return result;
+}
+
+
+double charm_get_field_grad_p_z(charm_data_t* p, double* x)
+{
+    double result = 0.;
+    int i;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        result += p->par.c.grad_p[2][i]*charm_base_func(x, i, p);
     }
     return result;
 }

@@ -34,7 +34,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     //***** Rayleigh–Taylor (begin) *****//
     x = data->par.g.c;
 
-    if (x[2] > 0.5-0.001*sin(pi2*x[0]/0.01)) {
+    if (x[2] > 0.5-0.01*sin(pi2*x[0]/0.2)) {
         reg = charm_reg_find_by_id(ctx, 1);
     }
     else {
@@ -384,6 +384,7 @@ void charm_init_context(charm_ctx_t *ctx)
     charm_xml_node_child_param_int(node, "FILE_OUTPUT_STEP", &(ctx->write_period));
     charm_xml_node_child_param_int(node, "LOG_OUTPUT_STEP", &(ctx->log_period));
 
+    charm_xml_node_child_param_dbl(node, "TAU_P", &(ctx->tau_p));
     charm_xml_node_child_param_dbl(node, "TAU", &(ctx->dt));
     charm_xml_node_child_param_dbl(node, "CFL", &(ctx->CFL));
     charm_xml_node_child_param_dbl(node, "TMAX", &(ctx->time));

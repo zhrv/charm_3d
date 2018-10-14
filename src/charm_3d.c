@@ -40,14 +40,13 @@ int main (int argc, char **argv)
                            charm_init_initial_condition,  /* initializes data */
                            (void *) (&ctx));            /* context */
 
-    charm_write_solution (p4est, 0);
+//    charm_write_solution (p4est, 0);
 //    charm_calc_grad(p4est, NULL, NULL);
 
     charm_adapt_init(p4est);
 
 
 
-   // charm_write_solution (p4est, 0);
 
 
 

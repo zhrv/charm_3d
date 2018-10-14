@@ -8,10 +8,10 @@
 #include "charm_base_func.h"
 #include "charm_timestep_conv.h"
 #include "charm_limiter.h"
+#include "charm_timestep_press.h"
+#include "charm_timestep_correct_velosity.h"
 
 static double _charm_get_timestep (p4est_t * p4est);
-static void charm_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data);
-static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data);
 static void _charm_timestep_single(p4est_t * p4est, int step, double time, double *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data);
 
 
@@ -111,7 +111,6 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, doubl
     /* write out solution */
     if (!(step % write_period)) {
         charm_write_solution (p4est, step);
-        CHARM_GLOBAL_ESSENTIALF (" File for step #%d is saved \n", step);
     }
 
     /* synchronize the ghost data */
@@ -121,45 +120,11 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, doubl
         p4est_ghost_exchange_data (p4est, ghost, ghost_data);
     }
 
-    p4est_iterate (p4est,
-                   ghost,
-                   (void *) ghost_data,
-                   charm_timestep_zero_quad_iter_fn,
-                   NULL, NULL, NULL);
+    charm_timestep_conv(p4est, ghost, ghost_data, dt);
 
-    p4est_iterate (p4est,
-                   ghost,
-                   (void *) ghost_data,
-                   charm_convect_volume_int_iter_fn,
-                   charm_convect_surface_int_iter_fn,
-                   NULL, NULL);
-
-
-//    p4est_iterate (p4est,                                /* the forest */
-//                   ghost,                                /* the ghost layer */
-//                   (void *) ghost_data,                  /* the synchronized ghost data */
-//                   NULL,                                 /* callback to compute each quad's interior contribution to du/dt */
-//                   charm_diffusion_flux_face_iter_fn,    /* callback to compute each quads' faces' contributions to du/du */
-//                   NULL,
-//                   NULL);                                /* there is no callback for the
-//                                                                corners between quadrants */
-
-    /* update u */
-    p4est_iterate (p4est, NULL,                              /* ghosts are not needed for this loop */
-                   (void *) dt,                             /* pass in dt */
-                   charm_timestep_update_quad_iter_fn,       /* update each cell */
-                   NULL,                                     /* there is no callback for the faces between quadrants */
-                   NULL,                                     /* there is no callback for the faces between quadrants */
-                   NULL);                                    /* there is no callback for the corners between quadrants */
-
-    /* synchronize the ghost data */
-    p4est_ghost_exchange_data (p4est, ghost, ghost_data);
-
+    charm_timestep_press(p4est, ghost, ghost_data, dt);
+    charm_timestep_correct_velosity(p4est, ghost, ghost_data, dt);
     charm_limiter(p4est, ghost, ghost_data);
-
-
-    /* update grad */
-//    charm_calc_grad(p4est, ghost, ghost_data);
 
     *_ghost       = ghost;
     *_ghost_data  = ghost_data;
@@ -198,7 +163,7 @@ static double _charm_get_timestep (p4est_t * p4est)
     double              loc_dt, glob_dt;
     int                 mpiret, i;
 
-//    return ctx->dt;
+    return ctx->dt;
     loc_dt = ctx->dt;
     p4est_iterate (p4est, NULL,
                    (void *) &loc_dt,
@@ -212,53 +177,4 @@ static double _charm_get_timestep (p4est_t * p4est)
 }
 
 
-static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
-{
-    charm_data_t       *data = charm_get_quad_data(info->quad);
-    charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
-    double              dt = *((double *) user_data);
-    double              rhs_ru[CHARM_BASE_FN_COUNT];
-    double              rhs_rv[CHARM_BASE_FN_COUNT];
-    double              rhs_rw[CHARM_BASE_FN_COUNT];
-    double              rhs_rh[CHARM_BASE_FN_COUNT];
-    double              rhs_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];
-    size_t              c_count = ctx->comp->elem_count;
-    int                 i;
-
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_ru, rhs_ru);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_rv, rhs_rv);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_rw, rhs_rw);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_rh, rhs_rh);
-
-    for (int j = 0; j < c_count; j++) {
-        charm_matr_vect_mult(data->par.g.a_inv, data->int_rc[j], rhs_rc[j]);
-    }
-
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->par.c.ru[i] -= _NORM_(dt * rhs_ru[i]);
-        data->par.c.rv[i] -= _NORM_(dt * rhs_rv[i]);
-        data->par.c.rw[i] -= _NORM_(dt * rhs_rw[i]);
-        data->par.c.rh[i] -= _NORM_(dt * rhs_rh[i]);
-        for (int j = 0; j < c_count; j++) {
-            data->par.c.rc[j][i] -= _NORM_(dt * rhs_rc[j][i]);
-        }
-    }
-}
-
-
-static void charm_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
-{
-    charm_data_t       *data = charm_get_quad_data(info->quad);
-    int                 i;
-
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->int_ru[i] = 0.;
-        data->int_rv[i] = 0.;
-        data->int_rw[i] = 0.;
-        data->int_rh[i] = 0.;
-        for (int j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
-            data->int_rc[j][i] = 0.;
-        }
-    }
-}
 
