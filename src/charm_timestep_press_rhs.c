@@ -14,7 +14,7 @@ static void _charm_p_rhs_zero_quad_iter_fn (p4est_iter_volume_info_t * info, voi
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
         data->int_rh[i] = 0.;
-       // data->par.c.p[i] = 0.;
+        data->par.c.p[i] = 0.;
     }
 }
 
@@ -269,6 +269,7 @@ static void _charm_p_rhs_update_quad_iter_fn (p4est_iter_volume_info_t * info, v
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
         data->int_rh[i] /= dt;
+        if (fabs(data->int_rh[i]) < CHARM_EPS) data->int_rh[i] = 0.;
     }
 }
 
@@ -301,7 +302,6 @@ void charm_timestep_press_rhs(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t
                    (void *) dt,
                    _charm_p_rhs_update_quad_iter_fn,
                    NULL, NULL, NULL);
-
 
     p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 }

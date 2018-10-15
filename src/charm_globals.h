@@ -367,6 +367,8 @@ typedef struct charm_ctx
     double              dt;
     double              time;               /**< the max time */
     double              tau_p;
+    double              eps_p;
+    int                 max_iter_p;
 
     sc_array_t         *bnd;
     sc_array_t         *mat;  /**< materials */

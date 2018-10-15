@@ -248,6 +248,7 @@ static void _charm_grad_p_surface_int_iter_inner (p4est_iter_face_info_t * info,
     }
 }
 
+
 static void _charm_grad_p_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
@@ -269,10 +270,16 @@ static void _charm_grad_p_zero_quad_iter_fn (p4est_iter_volume_info_t * info, vo
 static void _charm_grad_p_update_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
+    int                 i, j;
 
     charm_matr_vect_mult(data->par.g.a_inv, data->int_ru, data->par.c.grad_p[0]);
     charm_matr_vect_mult(data->par.g.a_inv, data->int_rv, data->par.c.grad_p[1]);
     charm_matr_vect_mult(data->par.g.a_inv, data->int_rw, data->par.c.grad_p[2]);
+    for (i = 0; i < CHARM_DIM; i++) {
+        for (j = 0; j < CHARM_BASE_FN_COUNT; j++) {
+            if (fabs(data->par.c.grad_p[i][j]) < CHARM_EPS) data->par.c.grad_p[i][j] = 0.;
+        }
+    }
 }
 
 

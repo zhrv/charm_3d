@@ -12,7 +12,7 @@
 #include "charm_timestep_correct_velosity.h"
 
 static double _charm_get_timestep (p4est_t * p4est);
-static void _charm_timestep_single(p4est_t * p4est, int step, double time, double *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data);
+static void _charm_timestep_single(p4est_t * p4est, int step, double time, double *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data, int *p_iter);
 
 
 /** Timestep the advection problem.
@@ -31,6 +31,7 @@ void charm_timesteps(p4est_t * p4est, double time)
     charm_data_t       *ghost_data;
     p4est_ghost_t      *ghost;
     double              calc_time;
+    int                 p_iter;
 
 
     ghost = p4est_ghost_new (p4est, CHARM_CONNECT_FULL);
@@ -43,10 +44,10 @@ void charm_timesteps(p4est_t * p4est, double time)
     CHARM_GLOBAL_ESSENTIAL("Starting time steps...\n");
     for (t = 0., i = 0; t < time; t += dt, i++) {
         calc_time = sc_MPI_Wtime();
-        _charm_timestep_single(p4est, i, t, &dt, &ghost, &ghost_data);
+        _charm_timestep_single(p4est, i, t, &dt, &ghost, &ghost_data, &p_iter);
         calc_time = sc_MPI_Wtime() - calc_time;
         if (i % ctx->log_period == 0) {
-            charm_log_statistics(p4est, i, t, dt, calc_time);
+            charm_log_statistics(p4est, i, t, dt, calc_time, p_iter);
         }
     }
 
@@ -55,7 +56,7 @@ void charm_timesteps(p4est_t * p4est, double time)
 }
 
 
-static void _charm_timestep_single(p4est_t * p4est, int step, double time, double *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data)
+static void _charm_timestep_single(p4est_t * p4est, int step, double time, double *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data, int *p_iter)
 {
     double              t = 0.;
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
@@ -74,7 +75,7 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, doubl
     ref_flag = 0;
     if (refine_period) {
         if (!(step % refine_period)) {
-            if (step) {
+//            if (step) {
                 charm_adapt(p4est, ghost, ghost_data); /* adapt */
                 if (ghost) {
                     p4est_ghost_destroy(ghost);
@@ -84,7 +85,7 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, doubl
                 }
 
                 ref_flag = 1;
-            }
+//            }
             *dt = _charm_get_timestep(p4est);
 
         }
@@ -122,7 +123,7 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, doubl
 
     charm_timestep_conv(p4est, ghost, ghost_data, dt);
 
-    charm_timestep_press(p4est, ghost, ghost_data, dt);
+    charm_timestep_press(p4est, ghost, ghost_data, dt, p_iter);
     charm_timestep_correct_velosity(p4est, ghost, ghost_data, dt);
     charm_limiter(p4est, ghost, ghost_data);
 
@@ -149,6 +150,7 @@ static void _charm_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info
     *dt = SC_MIN(*dt, dt_loc);
 }
 
+
 /** Compute the timestep.
  *
  * Find the smallest quadrant and scale the timestep based on that length and
@@ -163,7 +165,10 @@ static double _charm_get_timestep (p4est_t * p4est)
     double              loc_dt, glob_dt;
     int                 mpiret, i;
 
-    return ctx->dt;
+    if (ctx->CFL == 0) {
+        return ctx->dt;
+    }
+
     loc_dt = ctx->dt;
     p4est_iterate (p4est, NULL,
                    (void *) &loc_dt,

@@ -249,7 +249,7 @@ static void _charm_press_zero_quad_iter_fn (p4est_iter_volume_info_t * info, voi
     int                 i;
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->int_ru[i] = -data->int_rh[i];
+        data->int_ru[i] = data->int_rh[i];
     }
 }
 
@@ -265,12 +265,12 @@ static void _charm_press_update_quad_iter_fn (p4est_iter_volume_info_t * info, v
     int             i;
     double          err;
 
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_ru, rhs_ru);
+    //charm_matr_vect_mult(data->par.g.a_inv, data->int_ru, rhs_ru);
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        //err = _NORM_(tau_p * data->int_ru[i]);
-        err = _NORM_(tau_p * rhs_ru[i]);
-        data->par.c.p[i] -= err;
+        err = _NORM_(tau_p * data->int_ru[i]);
+        //err = _NORM_(tau_p * rhs_ru[i]);
+        data->par.c.p[i] += err;
         if (*max_err < fabs(err)) *max_err = fabs(err);
     }
 }
@@ -281,7 +281,7 @@ static void _charm_press_surface_int_iter_fn (p4est_iter_face_info_t * info, voi
     sc_array_t         *sides = &(info->sides);
 
     if (sides->elem_count != 2) {
-        _charm_press_surface_int_iter_bnd(info, user_data);
+        //_charm_press_surface_int_iter_bnd(info, user_data);
     }
     else {
         _charm_press_surface_int_iter_inner(info, user_data);
@@ -341,19 +341,20 @@ static void charm_timestep_press_value(p4est_t *p4est, p4est_ghost_t *ghost, cha
  * @param ghost_data
  * @param dt
  */
-void charm_timestep_press(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data, double *dt)
+void charm_timestep_press(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data, double *dt, int *iterations)
 {
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     int i = 0;
     double err = DBL_MAX;
     charm_timestep_press_rhs(p4est, ghost, ghost_data, dt);
-    while (err > 1.e-2) {
+    while (err > ctx->eps_p) {
         charm_timestep_press_grad(p4est, ghost, ghost_data);
         charm_timestep_press_value(p4est, ghost, ghost_data, &err);
         ++i;
-        if (i > 1000) {
+        if (i > ctx->max_iter_p) {
             CHARM_GLOBAL_ESSENTIALF("WARNING: iterations limit, err = %e\n", err);
             break;
         }
     }
+    iterations[0] = i;
 }
