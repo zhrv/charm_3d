@@ -131,7 +131,7 @@ void charm_mat_eos_mix(p4est_t * p4est, charm_prim_t * p, int flag)
             break;
 
         case 5:		// e=e(r,p)
-            p->r = p->p0*M/(p->t*gR);
+            p->r = p->p0*M/(p->t*gR); // @todo wrong for outlet
             if (p->r < CHARM_EPS) p->r = CHARM_EPS;
 //            p->e = p->p0/(p->r*(gam-1));
             p->e = Cv*p->t;

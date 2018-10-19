@@ -23,11 +23,25 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     int                 i;
     size_t              c_count = charm_get_comp_count(p4est);
     charm_mat_t        *mat;
+    double             *x;
+    double pi  = 4.*atan(1.);
+    double pi2 = pi*2.;
 
     charm_geom_quad_calc(p4est, q, which_tree);
 
     attr = charm_get_tree_attr(p4est, which_tree);
     reg = attr->reg;
+    //***** Rayleigh–Taylor (begin) *****//
+    x = data->par.g.c;
+
+    if (x[2] > 0.25+0.01*cos(pi2*x[0]/0.1)*cos(pi2*x[1]/0.1)) {
+        reg = charm_reg_find_by_id(ctx, 1);
+    }
+    else {
+        reg = charm_reg_find_by_id(ctx, 2);
+    }
+
+    //***** Rayleigh–Taylor (end) *****//
     prim.mat_id = reg->mat_id;
     prim.p0  = reg->p;
     prim.p   = 0.;
@@ -370,6 +384,9 @@ void charm_init_context(charm_ctx_t *ctx)
     charm_xml_node_child_param_int(node, "FILE_OUTPUT_STEP", &(ctx->write_period));
     charm_xml_node_child_param_int(node, "LOG_OUTPUT_STEP", &(ctx->log_period));
 
+    charm_xml_node_child_param_dbl(node, "TAU_P", &(ctx->tau_p));
+    charm_xml_node_child_param_dbl(node, "EPS_P", &(ctx->eps_p));
+    charm_xml_node_child_param_int(node, "MAX_ITER_P", &(ctx->max_iter_p));
     charm_xml_node_child_param_dbl(node, "TAU", &(ctx->dt));
     charm_xml_node_child_param_dbl(node, "CFL", &(ctx->CFL));
     charm_xml_node_child_param_dbl(node, "TMAX", &(ctx->time));

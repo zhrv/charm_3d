@@ -259,6 +259,7 @@ typedef struct charm_param
         double          rh[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          p[CHARM_BASE_FN_COUNT];
+        double          grad_p[CHARM_DIM][CHARM_BASE_FN_COUNT];
     } c;
 
     struct geom
@@ -365,6 +366,9 @@ typedef struct charm_ctx
     double              CFL;                /**< the CFL */
     double              dt;
     double              time;               /**< the max time */
+    double              tau_p;
+    double              eps_p;
+    int                 max_iter_p;
 
     sc_array_t         *bnd;
     sc_array_t         *mat;  /**< materials */
