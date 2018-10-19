@@ -26,7 +26,9 @@ void charm_bnd_cond(p4est_t* p4est, p4est_topidx_t treeid, int8_t face,
     CHARM_ASSERT(bnd);
     bnd->bnd_fn(par_in, par_out, face, bnd->params, n);
     par_out->mat_id = par_in->mat_id;
-    mat->eos_fn(p4est, par_out, 3); // (T,p) => (r, cz, e)
+    if (bnd->type == BOUND_INLET) { // @todo
+        mat->eos_fn(p4est, par_out, 3); // (T,p) => (r, cz, e)
+    }
     par_out->e_tot = par_out->e+0.5*_MAG_(par_out->u, par_out->v, par_out->w);
 }
 
