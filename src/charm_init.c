@@ -28,6 +28,18 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
 
     attr = charm_get_tree_attr(p4est, which_tree);
     reg = attr->reg;
+    //***** Rayleigh–Taylor (begin) *****//
+    double *x = data->par.g.c;
+    double pi = 4.*atan(1.);
+
+    if (x[2] > 0.25-0.01*sin(pi*x[0]/0.1)*sin(pi*x[1]/0.1)) {
+        reg = charm_reg_find_by_id(ctx, 1);
+    }
+    else {
+        reg = charm_reg_find_by_id(ctx, 2);
+    }
+
+    //***** Rayleigh–Taylor (end) *****//
     prim.mat_id = reg->mat_id;
     prim.p   = reg->p;
     prim.t   = reg->t;

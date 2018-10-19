@@ -61,7 +61,15 @@ static int charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which
     }
 
     charm_quad_get_center (q->p.user_data, mp);
+    //***** Rayleigh–Taylor (begin) *****//
+    if (fabs(mp[2]-0.25) < 0.02) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
 
+    //***** Rayleigh–Taylor (end) *****//
     err2 = charm_error_sqr_estimate (q);
     if (err2 > global_err2 * vol) {
         return 1;
