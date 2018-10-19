@@ -34,7 +34,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     //***** Rayleigh–Taylor (begin) *****//
     x = data->par.g.c;
 
-    if (x[2] > 0.5+0.05*cos(pi2*x[0]/0.25)) {
+    if (x[2] > 0.25+0.01*cos(pi2*x[0]/0.1)*cos(pi2*x[1]/0.1)) {
         reg = charm_reg_find_by_id(ctx, 1);
     }
     else {

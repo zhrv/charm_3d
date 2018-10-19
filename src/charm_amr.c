@@ -65,7 +65,7 @@ static int charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which
     //***** Rayleigh–Taylor (begin) *****//
     x = data->par.g.c;
 
-    if (fabs(x[2]-0.5) < 0.06) {
+    if (fabs(x[2]-0.25) < 0.02) {
         return 1;
     }
     else {
@@ -115,7 +115,7 @@ static int charm_coarsen_err_estimate (p4est_t * p4est, p4est_topidx_t which_tre
     parentu = 0.;
     for (i = 0; i < CHARM_CHILDREN; i++) {
         data = (charm_data_t *) children[i]->p.user_data;
-        charm_get_fields(data, data->par.g.c, &cons);
+        charm_get_fields_avg(data, &cons);
         charm_param_cons_to_prim(p4est, &prim, &cons);
         parentu += prim.r / CHARM_CHILDREN;
     }
