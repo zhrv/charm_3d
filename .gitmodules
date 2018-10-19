@@ -6,3 +6,7 @@
 	path = contrib/mxml
 	url = git@github.com:michaelrsweet/mxml.git
 	ignore=dirty
+[submodule "contrib/petsc"]
+	path = contrib/petsc
+	url = https://bitbucket.org/petsc/petsc
+	ignore=dirty
