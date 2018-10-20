@@ -3,10 +3,12 @@
 #include "charm_timestep.h"
 #include "charm_init.h"
 #include "charm_amr.h"
-
+#include "charm_linsolver.h"
 
 int main (int argc, char **argv)
 {
+    return ___petsc_test(&argc, &argv);
+
     int                   mpiret;
     sc_MPI_Comm           mpicomm;
     p4est_t              *p4est;

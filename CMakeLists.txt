@@ -17,8 +17,13 @@ set(MXML_INCLUDE "${CONTRIB_DIR}/mxml/local/include")
 
 set(MXML_LIB "${CONTRIB_DIR}/mxml/local/lib")
 
-include_directories(${P4EST_INCLUDE} ${MPI_INCLUDE} ${MXML_INCLUDE})
-link_directories(${P4EST_LIB} ${MXML_LIB})
+set(PETSC_INSTALL "${CONTRIB_DIR}/petsc/local")
+set(PETSC_INCLUDE "${PETSC_INSTALL}/include" "${PETSC_INSTALL}/include/sc_builtin")
+set(PETSC_LIB "${PETSC_INSTALL}/lib")
+
+
+include_directories(${P4EST_INCLUDE} ${MPI_INCLUDE} ${MXML_INCLUDE} ${PETSC_INCLUDE})
+link_directories(${P4EST_LIB} ${MXML_LIB} ${PETSC_LIB})
 
 add_executable(	charm_dg
         src/charm_3d.c
@@ -51,6 +56,7 @@ add_executable(	charm_dg
 		src/charm_timestep_press.c
 		src/charm_timestep_correct_velosity.c
 		src/charm_timestep_press_rhs.c
-		src/charm_timestep_press_grad.c)
+		src/charm_timestep_press_grad.c
+		src/charm_linsolver.c)
 
-target_link_libraries(charm_dg p4est sc m mxml)
+target_link_libraries(charm_dg p4est sc m mxml petsc)
