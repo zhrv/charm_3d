@@ -341,7 +341,7 @@ static void charm_timestep_press_value(p4est_t *p4est, p4est_ghost_t *ghost, cha
  * @param ghost_data
  * @param dt
  */
-void charm_timestep_press(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data, double *dt, int *iterations)
+void charm_timestep_press(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data, double *dt)
 {
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     int i = 0;
@@ -356,5 +356,5 @@ void charm_timestep_press(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *gh
             break;
         }
     }
-    iterations[0] = i;
+    ctx->stat.p_iter = i;
 }

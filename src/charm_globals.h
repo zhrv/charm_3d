@@ -378,6 +378,14 @@ typedef struct charm_ctx
     charm_mesh_info_t  *msh;
     charm_flux_fn_t     flux_fn;
     charm_limiter_fn_t  lim_fn;
+
+    struct {
+        int step;
+        double time;
+        double calc_time;
+        double dt;
+        int p_iter;
+    } stat;
 } charm_ctx_t;
 
 typedef struct charm_tree_attr

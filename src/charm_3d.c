@@ -7,7 +7,7 @@
 
 int main (int argc, char **argv)
 {
-    return ___petsc_test(&argc, &argv);
+    //return ___petsc_test(&argc, &argv);
 
     int                   mpiret;
     sc_MPI_Comm           mpicomm;
@@ -41,9 +41,6 @@ int main (int argc, char **argv)
                            sizeof (charm_data_t),         /* data size */
                            charm_init_initial_condition,  /* initializes data */
                            (void *) (&ctx));            /* context */
-
-//    charm_write_solution (p4est, 0);
-//    charm_calc_grad(p4est, NULL, NULL);
 
     charm_adapt_init(p4est);
 

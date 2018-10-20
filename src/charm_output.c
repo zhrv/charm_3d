@@ -27,7 +27,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     local_id += tree->quadrants_offset;   /* now the id is relative to the MPI process */
 
     charm_tree_attr_t * attr = (charm_tree_attr_t *)&(p4est->connectivity->tree_to_attr[which_tree*sizeof(charm_tree_attr_t)]);
-    charm_get_fields(data, data->par.g.c, &cons);
+    charm_get_fields_avg(data/*, data->par.g.c*/, &cons);
     charm_param_cons_to_prim(p4est, &prim, &cons);
 
     this_u[0] = prim.r;
@@ -36,16 +36,17 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     this_u[3] = prim.p0 + prim.p;
     this_u[4] = prim.e;
     this_u[5] = prim.e+_MAG_(prim.u, prim.v, prim.w);
-    this_u[6] = prim.u;
-    this_u[7] = prim.v;
-    this_u[8] = prim.w;
     for (j = 0; j < c_count; j++) {
-        this_u[9+j] = prim.c[j];
+        this_u[6+j] = prim.c[j];
     }
-    for (j = 0; j < 9 + c_count; j++) {
+    for (j = 0; j < 6 + c_count; j++) {
         this_u_ptr = (double *) sc_array_index (u_interp[j], (size_t)local_id);
         this_u_ptr[0] = this_u[j];
     }
+    this_u_ptr = (double *) sc_array_index (u_interp[6 + c_count], (size_t)local_id*3);
+    this_u_ptr[0] = prim.u;
+    this_u_ptr[1] = prim.v;
+    this_u_ptr[2] = prim.w;
 }
 
 
@@ -60,7 +61,7 @@ void charm_write_solution (p4est_t * p4est, int timestep)
     int                 num_cell_scalars;
     int                 num_cell_vectors;
     charm_ctx_t        *ctx;
-    char*         names9[] = {"R", "P_0", "P_1", "P", "E", "E_TOT", "U", "V", "W"};
+    char*         names7[] = {"Density", "Pressure (P_0)", "Pressure (P_1)", "Pressure", "Energy (internal)", "Energy (total)", "Velosity"};
     charm_comp_t       *comp;
 
     ctx = charm_get_ctx(p4est);
@@ -68,29 +69,34 @@ void charm_write_solution (p4est_t * p4est, int timestep)
 
     numquads = (size_t)p4est->local_num_quadrants;
 
-    num_cell_vectors = 0;
-    num_cell_scalars = 9 + (int)ctx->comp->elem_count;
+    num_cell_vectors = 1;
+    num_cell_scalars = 6 + (int)ctx->comp->elem_count;
     u_interp = CHARM_ALLOC(sc_array_t*, num_cell_scalars + num_cell_vectors);
-    for (i = 0; i < num_cell_scalars + num_cell_vectors; i++) {
+    for (i = 0; i < num_cell_scalars; i++) {
         u_interp[i] = sc_array_new_size (sizeof(double), numquads);
+    }
+    for (i = 0; i < num_cell_vectors; i++) {
+        u_interp[num_cell_scalars+i] = sc_array_new_size (sizeof(double), numquads*3);
     }
 
     char** names = CHARM_ALLOC (char *, num_cell_scalars + num_cell_vectors);
-    for (i = 0; i < 9; i++) {
-        names[i] = names9[i];
+    for (i = 0; i < 6; i++) {
+        names[i] = names7[i];
     }
     for (i = 0; i < ctx->comp->elem_count; i++) {
         comp = charm_get_comp(p4est, i);
-        names[i+9] = CHARM_ALLOC (char, 128);
-        strcpy(names[i+9], "C_");
-        strcat(names[i+9], comp->name);
+        names[i+6] = CHARM_ALLOC (char, 128);
+        strcpy(names[i+6], "Concentration (");
+        strcat(names[i+6], comp->name);
+        strcat(names[i+6], ")");
     }
+    names[num_cell_scalars] = names7[6];
 
     p4est_iterate (p4est, NULL,   /* we don't need any ghost quadrants for this loop */
                    (void *) u_interp,     /* pass in u_interp so that we can fill it */
                    charm_interpolate_cell_solution,    /* callback function that interpolates from the cell center to the cell corners, defined above */
                    NULL,          /* there is no callback for the faces between quadrants */
-                    NULL,          /* there is no callback for the edges between quadrants */
+                   NULL,          /* there is no callback for the edges between quadrants */
                    NULL);         /* there is no callback for the corners between quadrants */
 
     charm_vtk_context_t *context = charm_vtk_context_new (p4est, filename);
@@ -112,21 +118,26 @@ void charm_write_solution (p4est_t * p4est, int timestep)
 
     const int           retval = charm_vtk_write_footer (context);
     SC_CHECK_ABORT (!retval, CHARM_STRING "_vtk: Error writing footer");
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < num_cell_scalars+num_cell_vectors; i++) {
         sc_array_destroy(u_interp[i]);
     }
     CHARM_FREE(u_interp);
     for (i = 0; i < ctx->comp->elem_count; i++) {
-        CHARM_FREE (names[i+9]);
+        CHARM_FREE (names[i+6]);
     }
 
     CHARM_GLOBAL_ESSENTIALF (" File for step #%d is saved \n", timestep);
 }
 
 
-void charm_log_statistics(p4est_t * p4est, int timestep, double time, double dt, double calc_time, int p_iter)
+inline void charm_log_statistics(p4est_t * p4est)
 {
-    CHARM_GLOBAL_ESSENTIALF(" STEP = %8d, ELAPSED_TIME = %16.6e\n", timestep, calc_time);
-    CHARM_GLOBAL_ESSENTIALF(" TIME = %16.8e, DT = %16.8e, \n", time, dt);
-    CHARM_GLOBAL_ESSENTIALF(" P_ITER = %8d \n\n", p_iter);
+    charm_ctx_t *ctx = charm_get_ctx(p4est);
+    CHARM_GLOBAL_ESSENTIAL ("\n");
+    CHARM_GLOBAL_ESSENTIAL ("+------------------------------------------------------------------+\n");
+    CHARM_GLOBAL_ESSENTIAL ("|   STEP   |     TIME     |      DT      | ELAPSED TIME |  P_ITER  |\n");
+    CHARM_GLOBAL_ESSENTIAL ("+------------------------------------------------------------------+\n");
+    CHARM_GLOBAL_ESSENTIALF("| %8d | %12.4e | %12.4e | %12.4e | %8d |\n",
+                            ctx->stat.step, ctx->stat.time, ctx->stat.dt, ctx->stat.calc_time, ctx->stat.p_iter);
+    CHARM_GLOBAL_ESSENTIAL ("+------------------------------------------------------------------+\n");
 }

@@ -46,8 +46,14 @@ void charm_timesteps(p4est_t * p4est, double time)
         calc_time = sc_MPI_Wtime();
         _charm_timestep_single(p4est, i, t, &dt, &ghost, &ghost_data, &p_iter);
         calc_time = sc_MPI_Wtime() - calc_time;
+
+        ctx->stat.dt        = dt;
+        ctx->stat.time      = t;
+        ctx->stat.calc_time = calc_time;
+        ctx->stat.step      = i;
+
         if (i % ctx->log_period == 0) {
-            charm_log_statistics(p4est, i, t, dt, calc_time, p_iter);
+            charm_log_statistics(p4est);
         }
     }
 
@@ -123,7 +129,7 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, doubl
 
     charm_timestep_conv(p4est, ghost, ghost_data, dt);
 
-    charm_timestep_press(p4est, ghost, ghost_data, dt, p_iter);
+    charm_timestep_press(p4est, ghost, ghost_data, dt);
     charm_timestep_correct_velosity(p4est, ghost, ghost_data, dt);
     charm_limiter(p4est, ghost, ghost_data);
 

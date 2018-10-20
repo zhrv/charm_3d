@@ -7,6 +7,6 @@
 
 #include "charm_globals.h"
 
-void charm_timestep_press(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data, double *dt, int *p_iter);
+void charm_timestep_press(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data, double *dt);
 
 #endif //CHARM_DG_CHARM_TIMESTEP_PRESS_H
