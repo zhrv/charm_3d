@@ -92,13 +92,10 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, doubl
 
                 ref_flag = 1;
 //            }
-            *dt = _charm_get_timestep(p4est);
-
         }
     }
-    else {
-        *dt = _charm_get_timestep(p4est);
-    }
+
+    *dt = _charm_get_timestep(p4est);
 
     /* repartition */
     if (repartition_period) {
@@ -151,7 +148,7 @@ static void _charm_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info
     charm_get_fields(data, data->par.g.c, &cons);
     charm_param_cons_to_prim(info->p4est, &prim, &cons);
 
-    dt_loc = ctx->CFL * data->par.g.volume / (sqrt(_MAG_(prim.u, prim.v, prim.w)));
+    dt_loc = ctx->CFL * data->par.g.volume / (sqrt(_MAG_(prim.u, prim.v, prim.w))+CHARM_EPS);
 
     *dt = SC_MIN(*dt, dt_loc);
 }
