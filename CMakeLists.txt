@@ -3,7 +3,7 @@ project(charm_dg)
 
 set(CMAKE_C_COMPILER "mpicc")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -DCHARM_DEBUG") # for developing
-##set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3") # for production
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3") # for production
 
 set(CONTRIB_DIR "${CMAKE_SOURCE_DIR}/contrib")
 
@@ -57,6 +57,7 @@ add_executable(	charm_dg
 		src/charm_timestep_correct_velosity.c
 		src/charm_timestep_press_rhs.c
 		src/charm_timestep_press_grad.c
-		src/charm_linsolver.c)
+		src/charm_lsolver.c
+		src/charm_timestep_press_matr.c)
 
 target_link_libraries(charm_dg p4est sc m mxml petsc)

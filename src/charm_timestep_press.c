@@ -8,6 +8,7 @@
 
 void charm_timestep_press_grad(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data);
 void charm_timestep_press_rhs (p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data, double *dt);
+void charm_timestep_press_matr (p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data, double *dt);
 
 
 
@@ -347,14 +348,6 @@ void charm_timestep_press(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *gh
     int i = 0;
     double err = DBL_MAX;
     charm_timestep_press_rhs(p4est, ghost, ghost_data, dt);
-    while (err > ctx->eps_p) {
-        charm_timestep_press_grad(p4est, ghost, ghost_data);
-        charm_timestep_press_value(p4est, ghost, ghost_data, &err);
-        ++i;
-        if (i > ctx->max_iter_p) {
-            CHARM_GLOBAL_ESSENTIALF("WARNING: iterations limit, err = %e\n", err);
-            break;
-        }
-    }
+    //charm_timestep_press_matr(p4est, ghost, ghost_data);
     ctx->stat.p_iter = i;
 }

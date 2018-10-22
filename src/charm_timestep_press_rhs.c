@@ -7,6 +7,11 @@
 #include "charm_bnd_cond.h"
 
 
+/**
+ *
+ * @param info
+ * @param user_data
+ */
 static void _charm_p_rhs_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);

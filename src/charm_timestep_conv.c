@@ -73,7 +73,7 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
             data->int_ru[ibf] -= ((fu*phi_x+gu*phi_y+hu*phi_z) + p.r*data->par.grav[0]*phi);
             data->int_rv[ibf] -= ((fv*phi_x+gv*phi_y+hv*phi_z) + p.r*data->par.grav[1]*phi);
             data->int_rw[ibf] -= ((fw*phi_x+gw*phi_y+hw*phi_z) + p.r*data->par.grav[2]*phi);
-            data->int_rh[ibf] -=  (fh*phi_x+gh*phi_y+hh*phi_z);
+            data->int_rh[ibf] -= ((fh*phi_x+gh*phi_y+hh*phi_z) + p.r*(data->par.grav[0]*p.u+data->par.grav[1]*p.v+data->par.grav[2]*p.w)*phi);
         }
     }
     CHARM_FREE(fc);

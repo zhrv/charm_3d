@@ -3,7 +3,7 @@
 #include "charm_timestep.h"
 #include "charm_init.h"
 #include "charm_amr.h"
-#include "charm_linsolver.h"
+#include "charm_lsolver.h"
 
 int main (int argc, char **argv)
 {
@@ -45,7 +45,7 @@ int main (int argc, char **argv)
     charm_adapt_init(p4est);
 
 
-
+    _petsc_test(p4est); return 0;
 
 
 
