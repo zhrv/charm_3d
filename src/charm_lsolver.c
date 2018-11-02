@@ -13,7 +13,6 @@ Input parameters include:\n\
 -n <mesh_n> : number of mesh points in y-direction\n\n";
 
 
-
 charm_lsolver_t * charm_lsolver_init(int n_glob, int n_loc, int block_n)
 {
     PetscErrorCode ierr;
@@ -27,12 +26,12 @@ charm_lsolver_t * charm_lsolver_init(int n_glob, int n_loc, int block_n)
     ierr = MatCreate(PETSC_COMM_WORLD, &(solver->A));                                       CHKERRCONTINUE(ierr);
     ierr = MatSetSizes(solver->A, PETSC_DECIDE, PETSC_DECIDE, n_glob*block_n, n_glob*block_n);        CHKERRCONTINUE(ierr);
     ierr = MatSetFromOptions           (solver->A);                                         CHKERRCONTINUE(ierr);
-    ierr = MatMPIAIJSetPreallocation   (solver->A, 5, NULL, 5, NULL);                       CHKERRCONTINUE(ierr);
-    ierr = MatSeqAIJSetPreallocation   (solver->A, 5, NULL);                                CHKERRCONTINUE(ierr);
-    ierr = MatSeqSBAIJSetPreallocation (solver->A, 1, 5, NULL);                             CHKERRCONTINUE(ierr);
-    ierr = MatMPISBAIJSetPreallocation (solver->A, 1, 5, NULL, 5, NULL);                    CHKERRCONTINUE(ierr);
-    ierr = MatMPISELLSetPreallocation  (solver->A, 5, NULL, 5, NULL);                       CHKERRCONTINUE(ierr);
-    ierr = MatSeqSELLSetPreallocation  (solver->A, 5, NULL);                                CHKERRCONTINUE(ierr);
+    ierr = MatMPIAIJSetPreallocation   (solver->A, PETSC_DEFAULT, NULL, PETSC_DEFAULT, NULL);                       CHKERRCONTINUE(ierr);
+    ierr = MatSeqAIJSetPreallocation   (solver->A, PETSC_DEFAULT, NULL);                                CHKERRCONTINUE(ierr);
+    ierr = MatSeqSBAIJSetPreallocation (solver->A, block_n, PETSC_DEFAULT, NULL);                             CHKERRCONTINUE(ierr);
+    ierr = MatMPISBAIJSetPreallocation (solver->A, block_n, PETSC_DEFAULT, NULL, PETSC_DEFAULT, NULL);                    CHKERRCONTINUE(ierr);
+    ierr = MatMPISELLSetPreallocation  (solver->A, PETSC_DEFAULT, NULL, PETSC_DEFAULT, NULL);                       CHKERRCONTINUE(ierr);
+    ierr = MatSeqSELLSetPreallocation  (solver->A, PETSC_DEFAULT, NULL);                                CHKERRCONTINUE(ierr);
     //MatSetOption(solver->A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
 
     ierr = VecCreate(PETSC_COMM_WORLD, &(solver->b));                                       CHKERRCONTINUE(ierr);
@@ -95,14 +94,18 @@ void charm_lsolver_add_rhs(charm_lsolver_t *solver, int i, double* vec)
     }
 }
 
+void charm_lsolver_assembly(charm_lsolver_t *solver)
+{
+    PetscErrorCode ierr;
+    ierr = MatAssemblyBegin(solver->A,MAT_FINAL_ASSEMBLY);           CHKERRCONTINUE(ierr);
+    ierr = MatAssemblyEnd(solver->A,MAT_FINAL_ASSEMBLY);             CHKERRCONTINUE(ierr);
+    ierr = VecAssemblyBegin(solver->b);                              CHKERRCONTINUE(ierr);
+    ierr = VecAssemblyEnd(solver->b);                                CHKERRCONTINUE(ierr);
+}
 
 void charm_lsolver_solve(charm_lsolver_t *solver, double eps)
 {
     PetscErrorCode ierr;
-    ierr = MatAssemblyBegin(solver->A,MAT_FINAL_ASSEMBLY);                              CHKERRCONTINUE(ierr);
-    ierr = MatAssemblyEnd(solver->A,MAT_FINAL_ASSEMBLY);                                CHKERRCONTINUE(ierr);
-    ierr = VecAssemblyBegin(solver->b);                              CHKERRCONTINUE(ierr);
-    ierr = VecAssemblyEnd(solver->b);                                CHKERRCONTINUE(ierr);
     ierr = KSPSetOperators(solver->ksp, solver->A, solver->A);                          CHKERRCONTINUE(ierr);
     ierr = KSPSetTolerances(solver->ksp, eps, 1.e-50, PETSC_DEFAULT, PETSC_DEFAULT);    CHKERRCONTINUE(ierr);
     ierr = KSPSolve(solver->ksp, solver->b, solver->x);                                 CHKERRCONTINUE(ierr);
@@ -148,32 +151,41 @@ void _petsc_test(p4est_t *p4est)
         matr1[i] = CHARM_ALLOC(double, 3);
         matr2[i] = CHARM_ALLOC(double, 3);
         for (j = 0; j < 3; j++) {
-            matr1[i][j] = (abs(i-j) < 2) ? 1. : 0.;
-            matr2[i][j] = (abs(i-j) < 2) ? 2. : 0.;
+            matr1[i][j] = (abs(i-j) < 1) ? 1. : 0.;
+            matr2[i][j] = (abs(i-j) < 1) ? 2. : 0.;
         }
     }
 
     charm_lsolver_t *s = charm_lsolver_init(size, 1, 3);
-    charm_lsolver_ins_block(s, rank, rank, matr2);
-    charm_lsolver_ins_rhs(s, rank, &(vec[rank*3]));
+    Vec sol;
+    PetscInt ierr;
+    ierr = VecCreate(PETSC_COMM_WORLD, &(sol));                                       CHKERRCONTINUE(ierr);
+    ierr = VecSetSizes(sol, 3, PETSC_DETERMINE);                              CHKERRCONTINUE(ierr);
+    ierr = VecSetFromOptions(sol);CHKERRCONTINUE(ierr);
+    VecSet(sol, 1.);
+    charm_lsolver_add_block(s, rank, rank, matr2);
+    //charm_lsolver_ins_rhs(s, rank, &(vec[rank*3]));
 
     if (size > 1) {
         switch (rank) {
             case 0:
-                charm_lsolver_ins_block(s, rank, rank + 1, matr1);
+                charm_lsolver_add_block(s, rank, rank + 1, matr1);
                 break;
             case 1:
             case 2:
-                charm_lsolver_ins_block(s, rank, rank - 1, matr1);
-                charm_lsolver_ins_block(s, rank, rank + 1, matr1);
+                charm_lsolver_add_block(s, rank, rank - 1, matr1);
+                charm_lsolver_add_block(s, rank, rank + 1, matr1);
                 break;
             case 3:
-                charm_lsolver_ins_block(s, rank, rank - 1, matr1);
+                charm_lsolver_add_block(s, rank, rank - 1, matr1);
                 break;
         }
     }
 
 
+    charm_lsolver_assembly(s);
+    MatMult(s->A, sol, s->b);
+    MatView(s->A, PETSC_VIEWER_STDOUT_WORLD);
     charm_lsolver_solve(s, 1.e-5);
 
 

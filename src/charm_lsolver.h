@@ -23,7 +23,7 @@ void charm_lsolver_ins_block(charm_lsolver_t *solver, int i, int j, double** mat
 void charm_lsolver_add_block(charm_lsolver_t *solver, int i, int j, double** matr);
 
 void charm_lsolver_ins_rhs(charm_lsolver_t *solver, int i, double* vec);
-
+void charm_lsolver_assembly(charm_lsolver_t *solver);
 void charm_lsolver_solve(charm_lsolver_t *solver, double eps);
 
 void charm_lsolver_get_sol(charm_lsolver_t *solver, int i, double* vec);
