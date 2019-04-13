@@ -333,6 +333,80 @@ void charm_calc_flux_lf(p4est_t *p4est, charm_prim_t prim[2], double* qu, double
 }
 
 
+void charm_calc_flux_hllc(p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[], double n[3])
+{
+    int i,j;
+    double ri, ei, pi, uu[3], uv[3];
+    double nt[3][3], vv[2][3], vn[2][3];
+    double r_[2], u_[2], v_[2], w_[2], p_[2];
+
+    for (i = 0; i < 2; i++) {
+        r_[i] = prim[i].r;
+        u_[i] = prim[i].u;
+        v_[i] = prim[i].v;
+        w_[i] = prim[i].w;
+        p_[i] = prim[i].p;
+    }
+
+    nt[0][0] = n[0];
+    nt[0][1] = n[1];
+    nt[0][2] = n[2];
+
+
+    ri = sqrt(n[0]*n[0]+n[1]*n[1]);
+    if (ri > CHARM_EPS) {
+        nt[1][0] = -n[1]/ri;
+        nt[1][1] =  n[0]/ri;
+        nt[1][2] =  0.;
+    }
+    else {
+        ri = sqrt(n[1]*n[1]+n[2]*n[2]);
+        if (ri > CHARM_EPS) {
+            nt[1][0] =  0.;
+            nt[1][1] = -n[2]/ri;
+            nt[1][2] =  n[1]/ri;
+        }
+        else {
+            ri = sqrt(n[0]*n[0]+n[2]*n[2]);
+            if (ri > CHARM_EPS) {
+                nt[1][0] = -n[2]/ri;
+                nt[1][1] =  0.;
+                nt[1][2] =  n[0]/ri;
+            }
+            else {
+                CHARM_ASSERT(1./sqrt(n[1]*n[1]+n[2]*n[2]) > CHARM_EPS);
+            }
+        }
+    }
+    vect_prod(nt[0], nt[1], nt[2]);
+    for (i = 0; i < 2; i++) {
+        vv[i][0] = u_[i];
+        vv[i][1] = v_[i];
+        vv[i][2] = w_[i];
+    }
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 3; j++) {
+            vn[i][j] = scalar_prod(vv[i], nt[j]);
+        }
+    }
+    rim_orig(  &ri, &ei, &pi, &(uu[0]), &(uu[1]), &(uu[2]),
+               r_[0], p_[0], vn[0][0], vn[0][1], vn[0][2],
+               r_[1], p_[1], vn[1][0], vn[1][1], vn[1][2], GAM);
+
+    for (i = 0; i < 3; i++) {
+        uv[i] = 0.;
+        for (j = 0; j < 3; j++) {
+            uv[i] += nt[j][i]*uu[j];
+        }
+    }
+    *qr = ri*uu[0];
+    *qu = (*qr)*uv[0]+pi*n[0];
+    *qv = (*qr)*uv[1]+pi*n[1];
+    *qw = (*qr)*uv[2]+pi*n[2];
+    *qe = (ri*(ei+0.5*(uv[0]*uv[0]+uv[1]*uv[1]+uv[2]*uv[2]))+pi)*uu[0];
+}
+
+
 void charm_calc_flux_cd(p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[], double n[3])
 {
     int      i, j;
