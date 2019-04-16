@@ -359,6 +359,9 @@ void charm_init_context(charm_ctx_t *ctx)
     else if (strcmp(str, "GODUNOV") == 0) {
         ctx->flux_fn = charm_calc_flux_godunov;
     }
+    else if (strcmp(str, "HLLC") == 0) {
+        ctx->flux_fn = charm_calc_flux_hllc;
+    }
     else if (strcmp(str, "CD") == 0) {
         ctx->flux_fn = charm_calc_flux_cd;
     }
