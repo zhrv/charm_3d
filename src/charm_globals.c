@@ -203,12 +203,13 @@ void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * 
 void charm_param_prim_to_cons(p4est_t * p4est, charm_cons_t * c, charm_prim_t * p)
 {
     size_t c_count = charm_get_comp_count(p4est);
+    size_t i;
     c->mat_id = p->mat_id;
     c->ru = p->r * p->u;
     c->rv = p->r * p->v;
     c->rw = p->r * p->w;
     c->re = p->r * (p->e + 0.5 * _MAG_(p->u, p->v, p->w));
-    for (size_t i = 0; i < c_count; i++) {
+    for (i = 0; i < c_count; i++) {
         c->rc[i] = p->r * p->c[i];
     }
 }
@@ -282,21 +283,22 @@ void charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], doub
     double	    tmp;
     double	  **a;
     int         N = CHARM_BASE_FN_COUNT;
+    int         i, j, ni, nj;
 
     mask = (int*)malloc(N*sizeof(int));//   new int[N];
     a    = (double**)malloc(N*sizeof(double*)); //new double*[N];
-    for (int i = 0; i < N; i++)
+    for (i = 0; i < N; i++)
     {
         a[i] = (double*)malloc(N*sizeof(double)); //new double[N];
-        for (int j = 0; j < N; j++)
+        for (j = 0; j < N; j++)
         {
             a[i][j] = a_src[i][j];
         }
     }
 
-    for (int i = 0; i < N; i++)
+    for (i = 0; i < N; i++)
     {
-        for (int j = 0; j < N; j++)
+        for (j = 0; j < N; j++)
         {
             if (i == j)
             {
@@ -307,15 +309,15 @@ void charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], doub
             }
         }
     }
-    for (int i = 0; i < N; i++)
+    for (i = 0; i < N; i++)
     {
         mask[i] = i;
     }
-    for (int i = 0; i < N; i++)
+    for (i = 0; i < N; i++)
     {
         maxind = i;
         fmaxval = fabs(a[i][i]);
-        for (int ni = i + 1; ni < N; ni++)
+        for (ni = i + 1; ni < N; ni++)
         {
             if (fabs(fmaxval) <= fabs(a[ni][i]))
             {
@@ -327,7 +329,7 @@ void charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], doub
         CHARM_ASSERT(fmaxval != 0);
         if (i != maxind)
         {
-            for (int nj = 0; nj < N; nj++)
+            for (nj = 0; nj < N; nj++)
             {
                 tmp = a[i][nj];
                 a[i][nj] = a[maxind][nj];
@@ -342,17 +344,17 @@ void charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], doub
             mask[maxind] = tmpi;
         }
         double aii = a[i][i];
-        for (int j = 0; j < N; j++)
+        for (j = 0; j < N; j++)
         {
             a[i][j] = a[i][j] / aii;
             am[i][j] = am[i][j] / aii;
         }
-        for (int ni = 0; ni < N; ni++)
+        for (ni = 0; ni < N; ni++)
         {
             if (ni != i)
             {
                 double fconst = a[ni][i];
-                for (int nj = 0; nj < N; nj++)
+                for (nj = 0; nj < N; nj++)
                 {
                     a[ni][nj] = a[ni][nj] - fconst *  a[i][nj];
                     am[ni][nj] = am[ni][nj] - fconst * am[i][nj];
@@ -361,11 +363,11 @@ void charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], doub
         }
     }
     /**/
-    for (int i = 0; i < N; i++)
+    for (i = 0; i < N; i++)
     {
         if (mask[i] != i)
         {
-            for (int j = 0; j < N; j++)
+            for (j = 0; j < N; j++)
             {
                 tmp				= a[i][j];
                 a[i][j]			= a[mask[i]][j];
@@ -374,7 +376,7 @@ void charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], doub
         }
     }
     /**/
-    for (int i = 0; i < N; i++)
+    for (i = 0; i < N; i++)
     {
         free(a[i]);
     }

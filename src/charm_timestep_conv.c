@@ -27,6 +27,7 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
     double              phi_x, phi_y, phi_z, phi;
     double             *x;
     size_t              c_count = charm_get_comp_count(info->p4est);
+    size_t              cj;
 
     fc = CHARM_ALLOC(double, c_count);
     gc = CHARM_ALLOC(double, c_count);
@@ -54,7 +55,7 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
             hw = c.rw*p.w+p.p;
             he = c.rw*p.e_tot+p.p*p.w;
 
-            for(size_t cj = 0; cj < c_count; ++cj) {
+            for(cj = 0; cj < c_count; ++cj) {
                 fc[cj] = c.ru*p.c[cj];
                 gc[cj] = c.rv*p.c[cj];
                 hc[cj] = c.rw*p.c[cj];
@@ -66,7 +67,7 @@ void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *us
 
             phi = charm_base_func(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
 
-            for(size_t cj = 0; cj < c_count; ++cj) {
+            for(cj = 0; cj < c_count; ++cj) {
                 data->int_rc[cj][ibf] -= (fc[cj]*phi_x+gc[cj]*phi_y+hc[cj]*phi_z);
             }
 
@@ -108,6 +109,7 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
     charm_prim_t prim[2];
     double *x, gw, gj;
     double intg[2][5];
+    int j;
 
 
     CHARM_ASSERT(info->tree_boundary);
@@ -149,7 +151,7 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
         for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
             if (!side[0]->is.full.is_ghost) {
                 bfv = charm_base_func(x, ibf, udata) * gw * gj;
-                for (int j = 0; j < c_count; j++) {
+                for (j = 0; j < c_count; j++) {
                     udata->int_rc[j][ibf] += qc[j] * bfv;
                 }
 

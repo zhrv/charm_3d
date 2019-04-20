@@ -50,3 +50,4 @@ add_executable(	charm_dg
 		src/charm_vtk.c)
 
 target_link_libraries(charm_dg p4est sc m mxml)
+set_property(TARGET charm_dg PROPERTY C_STANDARD 90)
