@@ -412,7 +412,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
                     }
 
                     if (type == 5) {
-                        int tagc, tag1, tag2;
+                        int tagc, tag1, tag2, j;
                         retval = sscanf (line, "%lld %lld %d %d %d %d %d %d %d %d %d %d %d", &node, &type, &tagc, &tag1, &tag2,
                                          &trees[num_trees_real*CHARM_CHILDREN+0], &trees[num_trees_real*CHARM_CHILDREN+1], &trees[num_trees_real*CHARM_CHILDREN+3], &trees[num_trees_real*CHARM_CHILDREN+2],
                                          &trees[num_trees_real*CHARM_CHILDREN+4], &trees[num_trees_real*CHARM_CHILDREN+5], &trees[num_trees_real*CHARM_CHILDREN+7], &trees[num_trees_real*CHARM_CHILDREN+6] );
@@ -423,10 +423,10 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
                             CHARM_FREE (trees);
                             return NULL;
                         }
-                        for (int j = 0; j < CHARM_CHILDREN; j++) {
+                        for (j = 0; j < CHARM_CHILDREN; j++) {
                             --trees[num_trees_real*CHARM_CHILDREN+j];
                         }
-                        for (int j = 0; j < CHARM_FACES; j++) {
+                        for (j = 0; j < CHARM_FACES; j++) {
                             fi.type = j;
                             fi.tree = num_trees_real;
                             for (int k = 0; k < CHARM_HALF; k++) {
