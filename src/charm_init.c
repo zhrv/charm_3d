@@ -40,8 +40,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     }
     mat = charm_mat_find_by_id(ctx, reg->mat_id);
 
-    mat->eos_fn(p4est, &prim, 2);
-    mat->eos_fn(p4est, &prim, 1);
+    mat->eos_fn(p4est, &prim, 3); // (T,p) => (r, cz, e)
     prim.e_tot = prim.e + 0.5*(prim.u*prim.u+prim.v*prim.v+prim.w*prim.w);
     charm_param_prim_to_cons(p4est, &cons, &prim);
     memset(&(par->c), 0, sizeof(par->c));

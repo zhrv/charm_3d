@@ -48,14 +48,14 @@ void charm_mat_eos_ideal(p4est_t * p4est, charm_prim_t * p, int flag)
             p->cz = sqrt(gam*p->p/p->r);
             break;
 
-        case 3:
+        case 3: // (T,p) => (r, cz, e)
             if (p->p < CHARM_EPS) p->p = CHARM_EPS;
             p->r  = p->p*M/(p->t*gR);
             p->cz = sqrt(gam*p->p/p->r);
             p->e  = p->p/(p->r*(gam-1));
             break;
 
-        case 4:
+        case 4: // (r,e) => (p, cz, T)
             if (p->r < CHARM_EPS) p->r = CHARM_EPS;
             p->p  = p->r*p->e*(gam-1);
             p->cz = sqrt(gam*p->p/p->r);
@@ -110,14 +110,14 @@ void charm_mat_eos_mix(p4est_t * p4est, charm_prim_t * p, int flag)
             p->cz = sqrt(gam*p->p/p->r);
             break;
 
-        case 3:
+        case 3: // (T,p) => (r, cz, e)
             if (p->p < CHARM_EPS) p->p = CHARM_EPS;
             p->r  = p->p*M/(p->t*gR);
             p->cz = sqrt(gam*p->p/p->r);
             p->e  = p->p/(p->r*(gam-1));
             break;
 
-        case 4:
+        case 4: // (r,e) => (p, cz, T)
             if (p->r < CHARM_EPS) p->r = CHARM_EPS;
             p->p  = p->r*p->e*(gam-1);
             p->cz = sqrt(gam*p->p/p->r);
