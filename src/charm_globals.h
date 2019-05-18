@@ -257,6 +257,13 @@ typedef struct charm_param
         double          rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];             /**< the state variable */
     } c;
 
+    struct
+    {
+        double u[CHARM_DIM][CHARM_BASE_FN_COUNT];
+        double v[CHARM_DIM][CHARM_BASE_FN_COUNT];
+        double w[CHARM_DIM][CHARM_BASE_FN_COUNT];
+    } grad;
+
     struct geom
     {
         double          n[CHARM_FACES][CHARM_DIM];

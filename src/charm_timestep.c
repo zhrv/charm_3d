@@ -7,6 +7,7 @@
 #include "charm_bnd_cond.h"
 #include "charm_base_func.h"
 #include "charm_timestep_conv.h"
+#include "charm_timestep_diff.h"
 #include "charm_limiter.h"
 
 static double _charm_get_timestep (p4est_t * p4est);
@@ -127,39 +128,18 @@ static void _charm_timestep_single(p4est_t * p4est, int step, double time, doubl
                    charm_timestep_zero_quad_iter_fn,
                    NULL, NULL, NULL);
 
-    p4est_iterate (p4est,
-                   ghost,
-                   (void *) ghost_data,
-                   charm_convect_volume_int_iter_fn,
-                   charm_convect_surface_int_iter_fn,
-                   NULL, NULL);
+    charm_timestep_conv(p4est, ghost, ghost_data);
+    charm_timestep_diff(p4est, ghost, ghost_data);
+
+    p4est_iterate (p4est, NULL,
+                   (void *) dt,
+                   charm_timestep_update_quad_iter_fn,
+                   NULL, NULL, NULL);
 
 
-//    p4est_iterate (p4est,                                /* the forest */
-//                   ghost,                                /* the ghost layer */
-//                   (void *) ghost_data,                  /* the synchronized ghost data */
-//                   NULL,                                 /* callback to compute each quad's interior contribution to du/dt */
-//                   charm_diffusion_flux_face_iter_fn,    /* callback to compute each quads' faces' contributions to du/du */
-//                   NULL,
-//                   NULL);                                /* there is no callback for the
-//                                                                corners between quadrants */
-
-    /* update u */
-    p4est_iterate (p4est, NULL,                              /* ghosts are not needed for this loop */
-                   (void *) dt,                             /* pass in dt */
-                   charm_timestep_update_quad_iter_fn,       /* update each cell */
-                   NULL,                                     /* there is no callback for the faces between quadrants */
-                   NULL,                                     /* there is no callback for the faces between quadrants */
-                   NULL);                                    /* there is no callback for the corners between quadrants */
-
-    /* synchronize the ghost data */
-    p4est_ghost_exchange_data (p4est, ghost, ghost_data);
+    p4est_ghost_exchange_data (p4est, ghost, ghost_data); /* synchronize the ghost data */
 
     charm_limiter(p4est, ghost, ghost_data);
-
-
-    /* update grad */
-//    charm_calc_grad(p4est, ghost, ghost_data);
 
     *_ghost       = ghost;
     *_ghost_data  = ghost_data;

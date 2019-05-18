@@ -14,7 +14,7 @@
  */
 
 
-void charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+static void _charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     p4est_quadrant_t   *q = info->quad;
     charm_data_t       *data = charm_get_quad_data(q);
@@ -311,7 +311,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
     CHARM_FREE(qc);
 }
 
-void charm_convect_surface_int_iter_fn (p4est_iter_face_info_t * info, void *user_data)
+static void _charm_convect_surface_int_iter_fn (p4est_iter_face_info_t * info, void *user_data)
 {
     sc_array_t         *sides = &(info->sides);
 
@@ -322,4 +322,15 @@ void charm_convect_surface_int_iter_fn (p4est_iter_face_info_t * info, void *use
         _charm_convect_surface_int_iter_inner(info, user_data);
     }
 
+}
+
+
+void charm_timestep_conv(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data)
+{
+    p4est_iterate (p4est,
+                   ghost,
+                   (void *) ghost_data,
+                   _charm_convect_volume_int_iter_fn,
+                   _charm_convect_surface_int_iter_fn,
+                   NULL, NULL);
 }
