@@ -31,6 +31,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     prim.mat_id = reg->mat_id;
     prim.p   = reg->p;
     prim.t   = reg->t;
+
     prim.u   = reg->v[0];
     prim.v   = reg->v[1];
     prim.w   = reg->v[2];
@@ -340,6 +341,9 @@ void charm_init_context(charm_ctx_t *ctx)
     }
     else if (strcmp(str, "GODUNOV") == 0) {
         ctx->flux_fn = charm_calc_flux_godunov;
+    }
+    else if (strcmp(str, "HLLC") == 0) {
+        ctx->flux_fn = charm_calc_flux_hllc;
     }
     else if (strcmp(str, "CD") == 0) {
         ctx->flux_fn = charm_calc_flux_cd;
