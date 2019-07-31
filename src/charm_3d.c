@@ -1,7 +1,4 @@
 #include "charm_globals.h"
-#include "charm_connectivity.h"
-#include "charm_timestep.h"
-#include "charm_init.h"
 #include "charm_amr.h"
 
 

@@ -1,12 +1,11 @@
 //
-// Created by appmath on 29.09.18.
+// Created by zhrv on 31.07.19.
 //
 
 #include "charm_limiter.h"
 #include "charm_globals.h"
 #include "charm_base_func.h"
 #include "charm_bnd_cond.h"
-#include "charm_geom.h"
 
 
 static void _charm_limiter_bj_init_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
@@ -333,11 +332,3 @@ void charm_limiter_bj(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_
 }
 
 
-void charm_limiter(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data)
-{
-    charm_ctx_t *ctx = charm_get_ctx(p4est);
-    if (ctx->lim_fn != NULL) {
-        ctx->lim_fn(p4est, ghost, ghost_data);
-        p4est_ghost_exchange_data (p4est, ghost, ghost_data);   /* synchronize the ghost data */
-    }
-}

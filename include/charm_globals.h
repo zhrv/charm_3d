@@ -176,6 +176,7 @@ __attribute__ ((format (printf, 1, 2)));
 
 #define CHARM_ARR_SET_ZERO(A) {int i; for (i = 0; i < CHARM_BASE_FN_COUNT; i++) A[i] = 0.; }
 
+
 typedef struct charm_prim
 {
     double          r;             /**< density        */
@@ -314,9 +315,11 @@ typedef struct charm_data
     int                 ref_flag;
 } charm_data_t;
 
-typedef void (*charm_limiter_fn_t)  (p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data);
-typedef void (*charm_bnd_cond_fn_t) (charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double* n);
-typedef void (*charm_flux_fn_t)     (p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[], double n[3]);
+typedef void    (*charm_limiter_fn_t)           (p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data);
+typedef void    (*charm_bnd_cond_fn_t)          (charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double* n);
+typedef void    (*charm_flux_fn_t)              (p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[], double n[3]);
+typedef void    (*charm_timestep_single_fn_t)   (p4est_t * p4est, int step, double time, double *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data);
+typedef double  (*charm_get_timestep_fn_t)      (p4est_t * p4est);
 
 #ifndef GLOBALS_H_FILE
 extern const char *charm_bnd_types[];
@@ -355,6 +358,8 @@ typedef struct charm_mesh_info
     char                filename[128];
 } charm_mesh_info_t;
 
+
+
 typedef struct charm_ctx
 {
     double              max_err;            /**< maximum allowed global interpolation error */
@@ -369,13 +374,15 @@ typedef struct charm_ctx
     double              time;               /**< the max time */
 
     sc_array_t         *bnd;
-    sc_array_t         *mat;  /**< materials */
-    sc_array_t         *reg;  /**< regions */
-    sc_array_t         *comp; /**< components */
+    sc_array_t         *mat;   /**< materials */
+    sc_array_t         *reg;   /**< regions */
+    sc_array_t         *comp;  /**< components */
 
-    charm_mesh_info_t  *msh;
-    charm_flux_fn_t     flux_fn;
-    charm_limiter_fn_t  lim_fn;
+    charm_mesh_info_t          *msh;
+    charm_timestep_single_fn_t  timestep_single_fn;
+    charm_get_timestep_fn_t     get_dt_fn;
+    charm_flux_fn_t             flux_fn;
+    charm_limiter_fn_t          lim_fn;
 } charm_ctx_t;
 
 typedef struct charm_tree_attr
@@ -433,5 +440,24 @@ void dbg_print_param(charm_param_t *);
 
 
 extern int charm_package_id;
+
+void charm_timesteps (p4est_t * p4est, double time);
+
+void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree,
+                                   p4est_quadrant_t * q);
+
+void charm_init_context(charm_ctx_t *ctx);
+
+
+void charm_write_solution (p4est_t * p4est, int timestep);
+void charm_log_statistics(p4est_t * p4est, int timestep, double time, double dt, double calc_time);
+
+
+void charm_quad_get_vertices(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, double v[8][CHARM_DIM]);
+void charm_geom_quad_calc(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t treeid);
+
+
+p4est_connectivity_t* charm_conn_create(charm_ctx_t *ctx);
+
 
 #endif //CHAMR_3D_CHARM_GLOBALS_H
