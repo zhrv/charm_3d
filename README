@@ -1,18 +1,18 @@
 # Последовательность сборки
 
-[zhrv@zhrv-appmath: AMR]$ git clone git@bitbucket.org:zhrv/charm_dg.git
+[zhrv@zhrv-appmath: AMR]$ git clone git@github.com:zhrv/charm_3d.git
 
-[zhrv@zhrv-appmath: AMR]$ cd charm_dg/
+[zhrv@zhrv-appmath: AMR]$ cd charm_3d/
 
-[zhrv@zhrv-appmath: charm_dg (dev)]$ ls
+[zhrv@zhrv-appmath: charm_3d (dev)]$ ls
 
     CMakeLists.txt  contrib  src
 
-[zhrv@zhrv-appmath: charm_dg (dev)]$ git submodule init
+[zhrv@zhrv-appmath: charm_3d (dev)]$ git submodule init
 
-[zhrv@zhrv-appmath: charm_dg (dev)]$ git submodule update
+[zhrv@zhrv-appmath: charm_3d (dev)]$ git submodule update
 
-[zhrv@zhrv-appmath: charm_dg (dev)]$ cd contrib/mxml/
+[zhrv@zhrv-appmath: charm_3d (dev)]$ cd contrib/mxml/
 
 [zhrv@zhrv-appmath: mxml ((HEAD отделён на ef7e5d4))]$ pwd
 
@@ -24,19 +24,19 @@
 
 [zhrv@zhrv-appmath: mxml ((HEAD отделён на ef7e5d4))]$ make install
 
-    Installing libmxml.so to /data/dev/sci/AMR/charm_dg/contrib/mxml/local/lib...
+    Installing libmxml.so to /data/dev/sci/AMR/charm_3d/contrib/mxml/local/lib...
 
-    Installing libmxml.a to /data/dev/sci/AMR/charm_dg/contrib/mxml/local/lib...
+    Installing libmxml.a to /data/dev/sci/AMR/charm_3d/contrib/mxml/local/lib...
 
-    Installing mxmldoc in /data/dev/sci/AMR/charm_dg/contrib/mxml/local/bin...
+    Installing mxmldoc in /data/dev/sci/AMR/charm_3d/contrib/mxml/local/bin...
 
-    Installing documentation in /data/dev/sci/AMR/charm_dg/contrib/mxml/local/share/doc/mxml...
+    Installing documentation in /data/dev/sci/AMR/charm_3d/contrib/mxml/local/share/doc/mxml...
 
-    Installing header files in /data/dev/sci/AMR/charm_dg/contrib/mxml/local/include...
+    Installing header files in /data/dev/sci/AMR/charm_3d/contrib/mxml/local/include...
 
-    Installing pkgconfig files in /data/dev/sci/AMR/charm_dg/contrib/mxml/local/lib/pkgconfig...
+    Installing pkgconfig files in /data/dev/sci/AMR/charm_3d/contrib/mxml/local/lib/pkgconfig...
 
-    Installing man pages in /data/dev/sci/AMR/charm_dg/contrib/mxml/local/share/man...
+    Installing man pages in /data/dev/sci/AMR/charm_3d/contrib/mxml/local/share/man...
 
 [zhrv@zhrv-appmath: mxml ((HEAD отделён на ef7e5d4))]$ ls local
 
