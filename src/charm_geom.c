@@ -2,7 +2,6 @@
 // Created by zhrv on 27.10.17.
 //
 
-#include "charm_geom.h"
 #include "charm_base_func.h"
 
 

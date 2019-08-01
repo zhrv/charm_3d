@@ -2,8 +2,9 @@
 // Created by zhrv on 26.10.17.
 //
 
-#include "charm_output.h"
+#include "charm_globals.h"
 #include "charm_base_func.h"
+#include "charm_vtk.h"
 
 
 static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, void *user_data)

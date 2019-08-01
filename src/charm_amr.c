@@ -2,8 +2,8 @@
 // Created by zhrv on 26.10.17.
 //
 
+#include "charm_globals.h"
 #include "charm_amr.h"
-#include "charm_geom.h"
 #include "charm_base_func.h"
 #include "charm_bnd_cond.h"
 #include "charm_fluxes.h"

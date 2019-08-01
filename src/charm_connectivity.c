@@ -2,7 +2,7 @@
 // Created by zhrv on 19.10.17.
 //
 
-#include "charm_connectivity.h"
+#include "charm_globals.h"
 
 typedef p4est_connectivity_t* (*charm_conn_reader_t)(charm_ctx_t*);
 
