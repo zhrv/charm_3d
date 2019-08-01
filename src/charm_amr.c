@@ -62,6 +62,58 @@ static int charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which
 
     charm_quad_get_center (q->p.user_data, mp);
 
+#ifdef POGGI
+    switch (q->level) {
+        case 0:
+            if (( (-0.005 < mp[2]) && (mp[2] < 0.004) )) {
+                return 1;
+            }
+            else {
+                return 0;
+            }
+            break;
+        case 1:
+            if (( (-0.005/2. < mp[2]) && (mp[2] < 0.004/2.) )) {
+                return 1;
+            }
+            else {
+                return 0;
+            }
+            break;
+        case 2:
+            if (( (-0.005/4. < mp[2]) && (mp[2] < 0.004/4.) )) {
+                return 1;
+            }
+            else {
+                return 0;
+            }
+            break;
+        case 3:
+            if (( (-0.005/8. < mp[2]) && (mp[2] < 0.004/8.) )) {
+                return 1;
+            }
+            else {
+                return 0;
+            }
+            break;
+        case 4:
+            if (( (-0.005/16. < mp[2]) && (mp[2] < 0.004/16.) )) {
+                return 1;
+            }
+            else {
+                return 0;
+            }
+            break;
+        case 5:
+            if (( (-0.005/32. < mp[2]) && (mp[2] < 0.004/32.) )) {
+                return 1;
+            }
+            else {
+                return 0;
+            }
+            break;
+    }
+#else
     err2 = charm_error_sqr_estimate (q);
     if (err2 > global_err2 * vol) {
         return 1;
@@ -69,6 +121,7 @@ static int charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which
     else {
         return 0;
     }
+#endif
 }
 
 static int charm_coarsen_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * children[])
