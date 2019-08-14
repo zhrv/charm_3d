@@ -31,10 +31,10 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     double *x   = data->par.g.c;
     double pi   = 4.*atan(1.);
     double pi2  = pi*2.;
-    double a0 = 80.e-6;
-    double lambda = 1000.e-6;//0.00125;
+    double a0 = 0.5e-3;
+    double lambda = 1.e-3;
 
-    if (x[2] < -5.e-3) {
+    if (x[2] < -5.1e-3) {
         reg = charm_reg_find_by_id(ctx, 0);
     }
     else if ( x[2] > -a0*(1.-cos(pi2*x[0]/lambda))*(1.-cos(pi2*x[1]/lambda)) ) {
