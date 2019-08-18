@@ -148,7 +148,7 @@ __attribute__ ((format (printf, 1, 2)));
 #define CHARM_NOTICE            CHARM_STATISTICS
 #define CHARM_NOTICEF           CHARM_STATISTICSF
 
-#define CHARM_STRING "charm_dg"
+#define CHARM_STRING "charm_3d"
 
 #define CHARM_RIM_NEWTON_STEPS 5000
 #define CHARM_RIM_EPS 1.e-5
@@ -318,7 +318,7 @@ typedef struct charm_data
 typedef void    (*charm_limiter_fn_t)           (p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data);
 typedef void    (*charm_bnd_cond_fn_t)          (charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double* n);
 typedef void    (*charm_flux_fn_t)              (p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[], double n[3]);
-typedef void    (*charm_timestep_single_fn_t)   (p4est_t * p4est, int step, double time, double *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data);
+typedef void    (*charm_timestep_single_fn_t)   (p4est_t * p4est, double *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data);
 typedef double  (*charm_get_timestep_fn_t)      (p4est_t * p4est);
 
 #ifndef GLOBALS_H_FILE
@@ -371,7 +371,9 @@ typedef struct charm_ctx
     int                 max_level;          /**< the allowed level */
     double              CFL;                /**< the CFL */
     double              dt;
+    double              t;                  /**< the current time */
     double              time;               /**< the max time */
+    int                 timestep;
 
     sc_array_t         *bnd;
     sc_array_t         *mat;   /**< materials */
@@ -434,14 +436,14 @@ void   charm_matr_zero(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
 void   charm_vect_zero(double a[CHARM_BASE_FN_COUNT]);
 
 charm_ctx_t* charm_get_ctx(p4est_t* p4est);
-void charm_abort(int err_code);
+void charm_abort(p4est_t *p4est, int err_code);
 
 void dbg_print_param(charm_param_t *);
 
 
 extern int charm_package_id;
 
-void charm_timesteps (p4est_t * p4est, double time);
+void charm_timesteps (p4est_t * p4est);
 
 void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree,
                                    p4est_quadrant_t * q);
@@ -449,7 +451,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree,
 void charm_init_context(charm_ctx_t *ctx);
 
 
-void charm_write_solution (p4est_t * p4est, int timestep);
+void charm_write_solution (p4est_t * p4est);
 void charm_log_statistics(p4est_t * p4est, int timestep, double time, double dt, double calc_time);
 
 

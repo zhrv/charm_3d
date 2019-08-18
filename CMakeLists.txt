@@ -23,6 +23,18 @@ include_directories(${CHARM_INCLUDE} ${P4EST_INCLUDE} ${MPI_INCLUDE} ${MXML_INCL
 link_directories(${P4EST_LIB} ${MXML_LIB})
 
 add_executable(	charm_3d
+
+        include/charm_amr.h
+        include/charm_base_func.h
+        include/charm_bnd_cond.h
+        include/charm_eos.h
+        include/charm_fluxes.h
+        include/charm_globals.h
+        include/charm_limiter.h
+        include/charm_models.h
+        include/charm_vtk.h
+        include/charm_xml.h
+
         src/charm_3d.c
 		src/charm_connectivity.c
         src/charm_timesteps.c

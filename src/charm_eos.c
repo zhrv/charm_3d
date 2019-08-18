@@ -132,7 +132,7 @@ void charm_mat_eos_mix(p4est_t * p4est, charm_prim_t * p, int flag)
 void charm_mat_eos_table(p4est_t * p4est, charm_prim_t * p, int flag)
 {
     CHARM_LERROR("TABLE EOS IS NOT RELEASED\n");
-    charm_abort(1);
+    charm_abort(NULL, 1);
 }
 
 

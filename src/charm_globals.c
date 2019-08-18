@@ -448,9 +448,13 @@ charm_data_t * charm_get_quad_data(p4est_quadrant_t *q)
 }
 
 
-void charm_abort(int err_code)
+void charm_abort(p4est_t *p4est, int err_code)
 {
     int mpiret;
+
+    if (p4est != NULL) {
+        charm_write_solution(p4est);
+    }
 
     sc_finalize ();
     MPI_Finalize ();

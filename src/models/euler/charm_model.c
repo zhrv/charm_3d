@@ -440,9 +440,8 @@ static void charm_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, v
 
 
 
-void charm_model_euler_timestep_single(p4est_t * p4est, int step, double time, double *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data)
+void charm_model_euler_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data)
 {
-    double              t = 0.;
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
     int                 refine_period = ctx->refine_period;
     int                 repartition_period = ctx->repartition_period;
@@ -458,8 +457,8 @@ void charm_model_euler_timestep_single(p4est_t * p4est, int step, double time, d
     /* refine */
     ref_flag = 0;
     if (refine_period) {
-        if (!(step % refine_period)) {
-            if (step) {
+        if (!(ctx->timestep % refine_period)) {
+            if (ctx->timestep) {
                 charm_adapt(p4est, ghost, ghost_data); /* adapt */
                 if (ghost) {
                     p4est_ghost_destroy(ghost);
@@ -480,7 +479,7 @@ void charm_model_euler_timestep_single(p4est_t * p4est, int step, double time, d
 
     /* repartition */
     if (repartition_period) {
-        if (step && !(step % repartition_period)) {
+        if (ctx->timestep && !(ctx->timestep % repartition_period)) {
 
             p4est_partition(p4est, allowcoarsening, NULL);
 
@@ -494,9 +493,9 @@ void charm_model_euler_timestep_single(p4est_t * p4est, int step, double time, d
     }
 
     /* write out solution */
-    if (!(step % write_period)) {
-        charm_write_solution (p4est, step);
-        CHARM_GLOBAL_ESSENTIALF (" File for step #%d is saved \n", step);
+    if (!(ctx->timestep % write_period)) {
+        charm_write_solution (p4est);
+        CHARM_GLOBAL_ESSENTIALF (" File for step #%d is saved \n", ctx->timestep);
     }
 
     /* synchronize the ghost data */

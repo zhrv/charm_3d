@@ -150,7 +150,7 @@ static void charm_init_fetch_comp(mxml_node_t* node, charm_comp_t *comp)
     }
     else {
         CHARM_LERRORF("Unknown Cp type '%s'. Use: CONST, POLYNOM.", str);
-        charm_abort(1);
+        charm_abort(NULL, 1);
     }
     n1 = charm_xml_node_get_child(node, "name");
     charm_xml_node_value_str(n1, comp->name);
@@ -166,7 +166,7 @@ static void charm_init_fetch_comp(mxml_node_t* node, charm_comp_t *comp)
     }
     else {
         CHARM_LERROR("Cp type 'POLYNOM' is not released.\n");
-        charm_abort(1);
+        charm_abort(NULL, 1);
     }
 }
 
@@ -209,7 +209,7 @@ static void charm_init_fetch_mat(charm_ctx_t *ctx, mxml_node_t* node, charm_mat_
     }
     else {
         CHARM_LERRORF("Unknown flux type '%s'. Use: LF, GODUNOV.", str);
-        charm_abort(1);
+        charm_abort(NULL, 1);
     }
     n1 = charm_xml_node_get_child(node, "name");
     charm_xml_node_value_str(n1, mat->name);
@@ -284,7 +284,7 @@ static void charm_init_fetch_reg(charm_ctx_t *ctx, mxml_node_t* node, charm_reg_
         }
         else {
             CHARM_LERRORF("Unknown component id %d for region '%s' in file 'task.xml'\n", id, reg->name);
-            charm_abort(1);
+            charm_abort(NULL, 1);
         }
     }
 
@@ -294,7 +294,7 @@ static void charm_init_fetch_reg(charm_ctx_t *ctx, mxml_node_t* node, charm_reg_
     }
     if (fabs(c)-1. > CHARM_EPS) {
         CHARM_LERRORF("Sum of concentrations for region '%s' is not equal to 1 in file 'task.xml'\n", reg->name);
-        charm_abort(1);
+        charm_abort(NULL, 1);
     }
 }
 
@@ -365,7 +365,7 @@ void charm_init_context(charm_ctx_t *ctx)
     }
     else {
         CHARM_LERRORF("Unknown flux type '%s'. Use: LF, GODUNOV.\n", str);
-        charm_abort(1);
+        charm_abort(NULL, 1);
     }
 
     charm_xml_node_child_param_str(node, "LIMITER", str);
@@ -377,7 +377,7 @@ void charm_init_context(charm_ctx_t *ctx)
     }
     else {
         CHARM_LERRORF("Unknown limiter type '%s'. Use: NONE, BJ.\n", str);
-        charm_abort(1);
+        charm_abort(NULL, 1);
     }
 
     charm_xml_node_child_param_dbl(node, "MAX_ERROR", &(ctx->max_err));
@@ -399,7 +399,7 @@ void charm_init_context(charm_ctx_t *ctx)
     }
     else {
         CHARM_LERRORF("Unknown model type '%s'. Use: EULER.\n", str);
-        charm_abort(1);
+        charm_abort(NULL, 1);
     }
 
 
@@ -410,6 +410,7 @@ void charm_init_context(charm_ctx_t *ctx)
     charm_init_reg(       ctx, charm_xml_node_get_child(node_task, "regions"));
     charm_init_mesh_info( ctx, charm_xml_node_get_child(node_task, "mesh"));
 
+    ctx->timestep = 0;
 
 }
 

@@ -20,11 +20,9 @@
  * \param [in,out] p4est the forest, whose state is updated
  * \param [in] time      the end time
  */
-void charm_timesteps(p4est_t * p4est, double time)
+void charm_timesteps(p4est_t * p4est)
 {
-    double              t;
     double              dt;
-    int                 i;
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
     charm_data_t       *ghost_data;
     p4est_ghost_t      *ghost;
@@ -39,12 +37,12 @@ void charm_timesteps(p4est_t * p4est, double time)
     dt = ctx->get_dt_fn(p4est);
 
     CHARM_GLOBAL_ESSENTIAL("Starting time steps...\n");
-    for (t = 0., i = 0; t < time; t += dt, i++) {
+    for (ctx->t = 0., ctx->timestep = 0; ctx->t < ctx->time; ctx->t += dt, ctx->timestep++) {
         calc_time = sc_MPI_Wtime();
-        ctx->timestep_single_fn(p4est, i, t, &dt, &ghost, &ghost_data);
+        ctx->timestep_single_fn(p4est, &dt, &ghost, &ghost_data);
         calc_time = sc_MPI_Wtime() - calc_time;
-        if (i % ctx->log_period == 0) {
-            charm_log_statistics(p4est, i, t, dt, calc_time);
+        if (ctx->timestep % ctx->log_period == 0) {
+            charm_log_statistics(p4est, ctx->timestep, ctx->t, dt, calc_time);
         }
     }
 
