@@ -59,4 +59,4 @@ add_executable(	charm_3d
 		src/limiters/charm_limiter_bj.c)
 
 target_link_libraries(charm_3d p4est sc m mxml)
-set_property(TARGET charm_3d PROPERTY C_STANDARD 90)
+set_property(TARGET charm_3d PROPERTY C_STANDARD 99)
