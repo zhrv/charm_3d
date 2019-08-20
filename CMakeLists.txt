@@ -1,9 +1,14 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0)
 project(charm_3d)
 
 set(CMAKE_C_COMPILER "mpicc")
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -DCHARM_DEBUG") # for developing
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -DPOGGI") # for production
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3") # for production
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -DCHARM_DEBUG") # for developing
+
+if (DEFINED POGGI)
+	message("\nWARNING: Building for Poggi's task for RMI\n")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPOGGI") # for RMI modeling
+endif()
 
 set(CONTRIB_DIR "${CMAKE_SOURCE_DIR}/contrib")
 
