@@ -55,8 +55,15 @@ add_executable(	charm_3d
         src/limiters/charm_limiter.c
         src/charm_eos.c
         src/charm_vtk.c
+        src/limiters/charm_limiter_bj.c
+
         src/models/euler/charm_model.c
-        src/limiters/charm_limiter_bj.c)
+
+        src/models/ns/charm_model.c
+        src/models/ns/charm_model_ns_conv.c
+        src/models/ns/charm_model_ns_diff.c
+
+        )
 
 target_link_libraries(charm_3d p4est sc m mxml)
 set_property(TARGET charm_3d PROPERTY C_STANDARD 99)

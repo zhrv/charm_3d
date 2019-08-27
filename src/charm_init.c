@@ -397,6 +397,10 @@ void charm_init_context(charm_ctx_t *ctx)
         ctx->get_dt_fn = charm_model_euler_get_dt;
         ctx->timestep_single_fn = charm_model_euler_timestep_single;
     }
+    if (strcmp(str, "NS") == 0) {
+        ctx->get_dt_fn = charm_model_ns_get_dt;
+        ctx->timestep_single_fn = charm_model_ns_timestep_single;
+    }
     else {
         CHARM_LERRORF("Unknown model type '%s'. Use: EULER.\n", str);
         charm_abort(NULL, 1);
