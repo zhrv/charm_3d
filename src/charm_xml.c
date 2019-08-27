@@ -11,7 +11,7 @@ mxml_node_t* charm_xml_node_get_child(mxml_node_t * n, char* name)
     mxml_node_t *node = mxmlFindElement(n, n, name, NULL, NULL, MXML_DESCEND);
     if (node == NULL) {
         CHARM_GLOBAL_LERRORF("Undefined parameter '%s'\n", name);
-        charm_abort(1);
+        charm_abort(NULL, 1);
     }
     return node;
 }

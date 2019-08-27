@@ -2,8 +2,8 @@
 // Created by zhrv on 26.10.17.
 //
 
+#include "charm_globals.h"
 #include "charm_amr.h"
-#include "charm_geom.h"
 #include "charm_base_func.h"
 #include "charm_bnd_cond.h"
 #include "charm_fluxes.h"
@@ -62,6 +62,16 @@ static int charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which
 
     charm_quad_get_center (q->p.user_data, mp);
 
+#ifdef POGGI
+    double h = pow(vol, 1./3.);
+    if ( ((-h < mp[2]) && (mp[2] < h)) || ((-0.00125 < mp[2]) && (mp[2] < 0.00125)) ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+
+#else
     err2 = charm_error_sqr_estimate (q);
     if (err2 > global_err2 * vol) {
         return 1;
@@ -69,6 +79,7 @@ static int charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which
     else {
         return 0;
     }
+#endif
 }
 
 static int charm_coarsen_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * children[])

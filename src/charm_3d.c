@@ -1,7 +1,4 @@
 #include "charm_globals.h"
-#include "charm_connectivity.h"
-#include "charm_timestep.h"
-#include "charm_init.h"
 #include "charm_amr.h"
 
 
@@ -27,7 +24,7 @@ int main (int argc, char **argv)
 
     conn = charm_conn_create(&ctx);
     if (!conn) {
-        charm_abort(1);
+        charm_abort(NULL, 1);
     }
     CHARM_ASSERT(p4est_connectivity_is_valid(conn));
 
@@ -40,7 +37,7 @@ int main (int argc, char **argv)
                            charm_init_initial_condition,  /* initializes data */
                            (void *) (&ctx));            /* context */
 
-    charm_write_solution (p4est, 0);
+    charm_write_solution (p4est);
 //    charm_calc_grad(p4est, NULL, NULL);
 
     charm_adapt_init(p4est);
@@ -52,7 +49,7 @@ int main (int argc, char **argv)
 
 
     /* time step */
-    charm_timesteps (p4est, ctx.time);
+    charm_timesteps (p4est);
 
     /* Destroy the p4est and the connectivity structure. */
     p4est_destroy (p4est);

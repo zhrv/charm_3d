@@ -2,8 +2,9 @@
 // Created by zhrv on 26.10.17.
 //
 
-#include "charm_output.h"
+#include "charm_globals.h"
 #include "charm_base_func.h"
+#include "charm_vtk.h"
 
 
 static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, void *user_data)
@@ -49,12 +50,12 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
 
 
 
-void charm_write_solution (p4est_t * p4est, int timestep)
+void charm_write_solution (p4est_t * p4est)
 {
     char                filename[BUFSIZ] = { '\0' };
     sc_array_t        **u_interp;
     size_t              numquads;
-    int                 i;
+    int                 i, timestep;
     int                 num_cell_scalars;
     int                 num_cell_vectors;
     charm_ctx_t        *ctx;
@@ -62,6 +63,7 @@ void charm_write_solution (p4est_t * p4est, int timestep)
     charm_comp_t       *comp;
 
     ctx = charm_get_ctx(p4est);
+    timestep = ctx->timestep;
     snprintf (filename, 33, CHARM_STRING "_%08d", timestep);
 
     numquads = (size_t)p4est->local_num_quadrants;
