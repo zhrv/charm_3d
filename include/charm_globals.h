@@ -23,6 +23,10 @@
 #define CHARM_QUADRANT_LEN  P4EST_QUADRANT_LEN
 
 
+#ifdef POGGI
+#warning "POGGI!!!!!!!!!!!"
+#endif
+
 
 #ifdef CHARM_DEBUG
 
