@@ -264,10 +264,13 @@ typedef struct charm_param
 
     struct
     {
-        double u[CHARM_DIM][CHARM_BASE_FN_COUNT];
-        double v[CHARM_DIM][CHARM_BASE_FN_COUNT];
-        double w[CHARM_DIM][CHARM_BASE_FN_COUNT];
-    } grad;
+        double xx[CHARM_BASE_FN_COUNT];
+        double yy[CHARM_BASE_FN_COUNT];
+        double zz[CHARM_BASE_FN_COUNT];
+        double xy[CHARM_BASE_FN_COUNT];
+        double xz[CHARM_BASE_FN_COUNT];
+        double yz[CHARM_BASE_FN_COUNT];
+    } tau;
 
     struct geom
     {
@@ -316,6 +319,12 @@ typedef struct charm_data
     double              int_re[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     double              int_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];              /**< the time derivative */
 
+    double              int_tau_xx[CHARM_BASE_FN_COUNT];
+    double              int_tau_yy[CHARM_BASE_FN_COUNT];
+    double              int_tau_zz[CHARM_BASE_FN_COUNT];
+    double              int_tau_xy[CHARM_BASE_FN_COUNT];
+    double              int_tau_xz[CHARM_BASE_FN_COUNT];
+    double              int_tau_yz[CHARM_BASE_FN_COUNT];
     int                 ref_flag;
 } charm_data_t;
 
@@ -378,6 +387,9 @@ typedef struct charm_ctx
     double              t;                  /**< the current time */
     double              time;               /**< the max time */
     int                 timestep;
+
+    double              visc_m;
+    double              visc_l;
 
     sc_array_t         *bnd;
     sc_array_t         *mat;   /**< materials */
@@ -465,5 +477,8 @@ void charm_geom_quad_calc(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t t
 
 p4est_connectivity_t* charm_conn_create(charm_ctx_t *ctx);
 
+
+double charm_get_visc_lambda(p4est_t* p4est, charm_data_t* data);
+double charm_get_visc_mu(p4est_t* p4est, charm_data_t* data);
 
 #endif //CHAMR_3D_CHARM_GLOBALS_H

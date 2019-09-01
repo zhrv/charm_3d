@@ -481,3 +481,17 @@ size_t charm_get_comp_count(p4est_t* p4est)
     charm_ctx_t * ctx       = charm_get_ctx(p4est);
     return ctx->comp->elem_count;
 }
+
+
+double charm_get_visc_lambda(p4est_t* p4est, charm_data_t* data)
+{
+    charm_ctx_t *ctx = charm_get_ctx(p4est);
+    return ctx->visc_l;
+}
+
+
+double charm_get_visc_mu(p4est_t* p4est, charm_data_t* data)
+{
+    charm_ctx_t *ctx = charm_get_ctx(p4est);
+    return ctx->visc_m;
+}
