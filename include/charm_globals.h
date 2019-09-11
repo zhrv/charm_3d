@@ -272,6 +272,13 @@ typedef struct charm_param
         double yz[CHARM_BASE_FN_COUNT];
     } tau;
 
+    struct
+    {
+        double x[CHARM_BASE_FN_COUNT];
+        double y[CHARM_BASE_FN_COUNT];
+        double z[CHARM_BASE_FN_COUNT];
+    } q;
+
     struct geom
     {
         double          n[CHARM_FACES][CHARM_DIM];
