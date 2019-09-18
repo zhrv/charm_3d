@@ -324,3 +324,19 @@ double charm_get_avg_re(charm_data_t* p)
     return result/vol;
 }
 
+
+void charm_get_visc_tau(charm_data_t *p, double* x, charm_tensor_t *tau)
+{
+    int i;
+
+    memset(tau, 0, sizeof(charm_tensor_t));
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        tau->xx += p->par.tau.xx[i]*charm_base_func(x, i, p);
+        tau->xy += p->par.tau.xy[i]*charm_base_func(x, i, p);
+        tau->xz += p->par.tau.xz[i]*charm_base_func(x, i, p);
+        tau->yy += p->par.tau.yy[i]*charm_base_func(x, i, p);
+        tau->yz += p->par.tau.yz[i]*charm_base_func(x, i, p);
+        tau->zz += p->par.tau.zz[i]*charm_base_func(x, i, p);
+    }
+}

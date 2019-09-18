@@ -63,6 +63,7 @@ add_executable(	charm_3d
         src/models/ns/charm_model_ns_conv.c
         src/models/ns/charm_model_ns_diff.c
         src/models/ns/charm_model_ns_diff_grad.c
+        src/models/ns/charm_model_ns_diff_integrals.c
 
         )
 

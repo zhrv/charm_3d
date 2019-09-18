@@ -210,6 +210,16 @@ typedef struct charm_cons
     int             mat_id;
 } charm_cons_t;
 
+typedef struct charm_tensor
+{
+    double xx;
+    double yy;
+    double zz;
+    double xy;
+    double xz;
+    double yz;
+} charm_tensor_t;
+
 
 typedef enum {
     COMP_CONST,
@@ -249,6 +259,15 @@ typedef struct charm_reg
     double          grav[CHARM_DIM];
 } charm_reg_t;
 
+typedef struct charm_tensor_c
+{
+    double xx[CHARM_BASE_FN_COUNT];
+    double yy[CHARM_BASE_FN_COUNT];
+    double zz[CHARM_BASE_FN_COUNT];
+    double xy[CHARM_BASE_FN_COUNT];
+    double xz[CHARM_BASE_FN_COUNT];
+    double yz[CHARM_BASE_FN_COUNT];
+} charm_tensor_c_t;
 
 typedef struct charm_param
 {
@@ -262,15 +281,7 @@ typedef struct charm_param
         double          rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];             /**< the state variable */
     } c;
 
-    struct
-    {
-        double xx[CHARM_BASE_FN_COUNT];
-        double yy[CHARM_BASE_FN_COUNT];
-        double zz[CHARM_BASE_FN_COUNT];
-        double xy[CHARM_BASE_FN_COUNT];
-        double xz[CHARM_BASE_FN_COUNT];
-        double yz[CHARM_BASE_FN_COUNT];
-    } tau;
+    charm_tensor_c_t tau;
 
     struct
     {
@@ -487,5 +498,10 @@ p4est_connectivity_t* charm_conn_create(charm_ctx_t *ctx);
 
 double charm_get_visc_lambda(p4est_t* p4est, charm_data_t* data);
 double charm_get_visc_mu(p4est_t* p4est, charm_data_t* data);
+
+void charm_tensor_zero(charm_tensor_t * t);
+void charm_tensor_add(charm_tensor_t * dest, charm_tensor_t *src);
+void charm_tensor_sum(charm_tensor_t * t1, charm_tensor_t *t2, charm_tensor_t * result);
+void charm_tensor_mul_scalar(charm_tensor_t * dest, double x);
 
 #endif //CHAMR_3D_CHARM_GLOBALS_H

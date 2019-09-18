@@ -495,3 +495,47 @@ double charm_get_visc_mu(p4est_t* p4est, charm_data_t* data)
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     return ctx->visc_m;
 }
+
+
+void charm_tensor_add(charm_tensor_t * dest, charm_tensor_t *src)
+{
+    dest->xx += src->xx;
+    dest->yy += src->yy;
+    dest->zz += src->zz;
+    dest->xy += src->xy;
+    dest->yz += src->yz;
+    dest->xz += src->xz;
+}
+
+
+void charm_tensor_sum(charm_tensor_t * t1, charm_tensor_t *t2, charm_tensor_t * result)
+{
+    result->xx = t1->xx + t2->xx;
+    result->yy = t1->yy + t2->yy;
+    result->zz = t1->zz + t2->zz;
+    result->xy = t1->xy + t2->xy;
+    result->yz = t1->yz + t2->yz;
+    result->xz = t1->xz + t2->xz;
+}
+
+
+void charm_tensor_mul_scalar(charm_tensor_t * dest, double x)
+{
+    dest->xx *= x;
+    dest->yy *= x;
+    dest->zz *= x;
+    dest->xy *= x;
+    dest->yz *= x;
+    dest->xz *= x;
+}
+
+
+void charm_tensor_zero(charm_tensor_t * t)
+{
+    memset(t, 0, sizeof(charm_tensor_t));
+}
+
+
+
+
+
