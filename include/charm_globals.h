@@ -497,7 +497,7 @@ p4est_connectivity_t* charm_conn_create(charm_ctx_t *ctx);
 
 
 double charm_get_visc_lambda(p4est_t* p4est, charm_data_t* data);
-double charm_get_visc_mu(p4est_t* p4est, charm_data_t* data);
+double charm_get_visc_mu(p4est_t* p4est, double *x, charm_data_t* data);
 
 void charm_tensor_zero(charm_tensor_t * t);
 void charm_tensor_add(charm_tensor_t * dest, charm_tensor_t *src);

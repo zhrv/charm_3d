@@ -394,12 +394,10 @@ void charm_init_context(charm_ctx_t *ctx)
 
     charm_xml_node_child_param_str(node, "MODEL", str);
     if (strcmp(str, "EULER") == 0) {
-        ctx->get_dt_fn = charm_model_euler_get_dt;
-        ctx->timestep_single_fn = charm_model_euler_timestep_single;
+        charm_model_euler_init(ctx, charm_xml_node_get_child(node, "MODEL"));
     }
     if (strcmp(str, "NS") == 0) {
-        ctx->get_dt_fn = charm_model_ns_get_dt;
-        ctx->timestep_single_fn = charm_model_ns_timestep_single;
+        charm_model_ns_init(ctx, charm_xml_node_get_child(node, "MODEL"));
     }
     else {
         CHARM_LERRORF("Unknown model type '%s'. Use: EULER.\n", str);

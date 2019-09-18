@@ -27,16 +27,20 @@ static void _charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info
     charm_prim_t        p;
     double              phi_x, phi_y, phi_z, phi;
     double             *x;
-    double              lambda  = charm_get_visc_lambda(info->p4est, data);
-    double              mu      = charm_get_visc_mu(info->p4est, data);
+    double              lambda;
+    double              mu;
 
-    double              lp = (lambda+4.*mu/3.);
-    double              lm = (lambda-2.*mu/3.);
+    double              lp;
+    double              lm;
 
     for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
         for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
             x = data->par.g.quad_gp[igp];
 
+            lambda  = charm_get_visc_lambda(info->p4est, data);
+            mu      = charm_get_visc_mu(info->p4est, x, data);
+            lp = (lambda+4.*mu/3.);
+            lm = (lambda-2.*mu/3.);
             charm_get_fields(data, x, &c);
             charm_param_cons_to_prim(info->p4est, &p, &c);
 
@@ -97,12 +101,11 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
     } else {
         udata = charm_get_quad_data(side[0]->is.full.quad);
     }
-    lambda   = charm_get_visc_lambda(p4est, udata);
-    mu       = charm_get_visc_mu(p4est, udata);
-    lp = (lambda+4.*mu/3.);
-    lm = (lambda-2.*mu/3.);
 
     face = side[0]->face;
+
+    charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[0]->treeid);
+
     charm_face_get_normal(udata, face, n);
     charm_quad_get_center(udata, c[0]);
     charm_face_get_center(udata, face, c[1]);
@@ -121,12 +124,23 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
         x = udata->par.g.face_gp[face][igp];
         gw = udata->par.g.face_gw[face][igp];
         gj = udata->par.g.face_gj[face][igp];
+
+        lambda   = charm_get_visc_lambda(p4est, udata);
+        mu       = charm_get_visc_mu(p4est, x, udata);
+        lp = (lambda+4.*mu/3.);
+        lm = (lambda-2.*mu/3.);
+
         charm_get_fields(udata, x, &cons);
         charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
         charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
-        fu = (prim[0].u+prim[1].u)*0.5;
-        fv = (prim[0].v+prim[1].v)*0.5;
-        fw = (prim[0].w+prim[1].w)*0.5;
+        if (attr->bnd[face]->type == BOUND_WALL_NO_SLIP) {
+            fu = fv = fw = 0.;                              //скорости на границе с прилипанием равны нулю
+        }
+        else {
+            fu = (prim[0].u+prim[1].u)*0.5;
+            fv = (prim[0].v+prim[1].v)*0.5;
+            fw = (prim[0].w+prim[1].w)*0.5;
+        }
         qxx = lp*fu*n[0] + lm*fv*n[1] + lm*fw*n[2];
         qyy = lm*fu*n[0] + lp*fv*n[1] + lm*fw*n[2];
         qzz = lm*fu*n[0] + lm*fv*n[1] + lp*fw*n[2];
@@ -196,14 +210,8 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                         udata[i] = (charm_data_t *) side[i]->is.full.quad->p.user_data;
                     }
                 }
-                lambda[i]   = charm_get_visc_lambda(p4est, udata[i]);
-                mu[i]       = charm_get_visc_mu(p4est, udata[i]);
             }
 
-            fmu     = 0.5*(mu[0]+mu[1]);
-            flambda = 0.5*(lambda[0]+lambda[1]);
-            lp = (flambda+4.*fmu/3.);
-            lm = (flambda-2.*fmu/3.);
 
             CHARM_ASSERT(h_side != -1);
 
@@ -228,7 +236,15 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                 for (i = 0; i < 2; i++) {
                     charm_get_fields(udata[i], x, &(cons[i]));
                     charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
+                    lambda[i]   = charm_get_visc_lambda(p4est, udata[i]);
+                    mu[i]       = charm_get_visc_mu(p4est, x, udata[i]);
+
                 }
+                fmu     = 0.5*(mu[0]+mu[1]);
+                flambda = 0.5*(lambda[0]+lambda[1]);
+                lp = (flambda+4.*fmu/3.);
+                lm = (flambda-2.*fmu/3.);
+
                 fu = (prim[0].u+prim[1].u)*0.5;
                 fv = (prim[0].v+prim[1].v)*0.5;
                 fw = (prim[0].w+prim[1].w)*0.5;
@@ -263,14 +279,7 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
             else {
                 udata[i] = charm_get_quad_data(side[i]->is.full.quad);//(charm_data_t *) side[i]->is.full.quad->p.user_data;
             }
-            lambda[i]   = charm_get_visc_lambda(p4est, udata[i]);
-            mu[i]       = charm_get_visc_mu(p4est, udata[i]);
         }
-
-        fmu     = 0.5*(mu[0]+mu[1]);
-        flambda = 0.5*(lambda[0]+lambda[1]);
-        lp = (flambda+4.*fmu/3.);
-        lm = (flambda-2.*fmu/3.);
 
         charm_face_get_normal(udata[0], face[0], n);
         charm_quad_get_center(udata[0], c[0]);
@@ -293,7 +302,14 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
             for (i = 0; i < 2; i++) {
                 charm_get_fields(udata[i], x, &(cons[i]));
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
+                lambda[i]   = charm_get_visc_lambda(p4est, udata[i]);
+                mu[i]       = charm_get_visc_mu(p4est, x, udata[i]);
             }
+            fmu     = 0.5*(mu[0]+mu[1]);
+            flambda = 0.5*(lambda[0]+lambda[1]);
+            lp = (flambda+4.*fmu/3.);
+            lm = (flambda-2.*fmu/3.);
+
             fu = (prim[0].u+prim[1].u)*0.5;
             fv = (prim[0].v+prim[1].v)*0.5;
             fw = (prim[0].w+prim[1].w)*0.5;

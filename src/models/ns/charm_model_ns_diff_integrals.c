@@ -27,17 +27,11 @@ static void _charm_model_ns_diff_integrals_volume_int_iter_fn (p4est_iter_volume
     charm_prim_t        p;
     double              phi_x, phi_y, phi_z, phi;
     double             *x;
-    double              lambda  = charm_get_visc_lambda(info->p4est, data);
-    double              mu      = charm_get_visc_mu(info->p4est, data);
-
-    double              lp = (lambda+4.*mu/3.);
-    double              lm = (lambda-2.*mu/3.);
     charm_tensor_t      tau;
 
     for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
         for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
             x = data->par.g.quad_gp[igp];
-
             charm_get_fields(data, x, &c);
             charm_param_cons_to_prim(info->p4est, &p, &c);
             charm_get_visc_tau(data, x, &tau);
@@ -61,92 +55,115 @@ static void _charm_model_ns_diff_integrals_volume_int_iter_fn (p4est_iter_volume
 /*
  * Surface integrals
  */
-
-
 static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * info, void *user_data) {
     int i, ibf, igp;
     p4est_t *p4est = info->p4est;
-    charm_ctx_t * ctx = charm_get_ctx(p4est);
     charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
     double n[3];
-    double qxx, qyy, qzz, qxy, qxz, qyz;
-    double fu, fv, fw;
+    double qu, qv, qw, qe;
+    double                  fu, fv, fw;
     double bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
-    size_t              c_count = charm_get_comp_count(info->p4est);
-
-
+    charm_tensor_t          tau[2], ftau;
     int8_t face;
     double c[2][3], l[3];
-    double r_[2], p_[2], u_[2], v_[2], w_[2], e_[2];
     charm_cons_t cons;
     charm_prim_t prim[2];
     double *x, gw, gj;
-    double lambda, mu, lp, lm;
-    int j;
 
 
     CHARM_ASSERT(info->tree_boundary);
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
-            CHARM_ASSERT(!side[0]->is_hanging);
+    CHARM_ASSERT(!side[0]->is_hanging);
 
-    if (side[0]->is.full.is_ghost) {
-                CHARM_ASSERT(0);
-        udata = &(ghost_data[side[0]->is.full.quadid]);
-    } else {
-        udata = charm_get_quad_data(side[0]->is.full.quad);
-    }
-    lambda   = charm_get_visc_lambda(p4est, udata);
-    mu       = charm_get_visc_mu(p4est, udata);
-    lp = (lambda+4.*mu/3.);
-    lm = (lambda-2.*mu/3.);
-
-    face = side[0]->face;
-    charm_face_get_normal(udata, face, n);
-    charm_quad_get_center(udata, c[0]);
-    charm_face_get_center(udata, face, c[1]);
-
-    for (i = 0; i < 3; i++) {
-        l[i] = c[1][i] - c[0][i];
-    }
-
-    if (scalar_prod(n, l) < 0) {
-        for (i = 0; i < 3; i++) {
-            n[i] *= -1.0;
+    charm_tree_attr_t *attr = charm_get_tree_attr(p4est, side[0]->treeid);
+    if (attr->bnd[side[0]->face]->type == BOUND_WALL_NO_SLIP) {
+        if (side[0]->is.full.is_ghost) {
+            CHARM_ASSERT(0);
+            udata = &(ghost_data[side[0]->is.full.quadid]);
+        } else {
+            udata = charm_get_quad_data(side[0]->is.full.quad);
         }
-    }
 
-    for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
-        x = udata->par.g.face_gp[face][igp];
-        gw = udata->par.g.face_gw[face][igp];
-        gj = udata->par.g.face_gj[face][igp];
-        charm_get_fields(udata, x, &cons);
-        charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
-        charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
-        fu = (prim[0].u+prim[1].u)*0.5;
-        fv = (prim[0].v+prim[1].v)*0.5;
-        fw = (prim[0].w+prim[1].w)*0.5;
-        qxx = lp*fu*n[0] + lm*fv*n[1] + lm*fw*n[2];
-        qyy = lm*fu*n[0] + lp*fv*n[1] + lm*fw*n[2];
-        qzz = lm*fu*n[0] + lm*fv*n[1] + lp*fw*n[2];
-        qxy = mu*(fu*n[1] + fv*n[0]);
-        qxz = mu*(fw*n[0] + fu*n[2]);
-        qyz = mu*(fw*n[1] + fv*n[2]);
-        for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
-            if (!side[0]->is.full.is_ghost) {
-                bfv = charm_base_func(x, ibf, udata) * gw * gj;
+        face = side[0]->face;
+        charm_face_get_normal(udata, face, n);
+        charm_quad_get_center(udata, c[0]);
+        charm_face_get_center(udata, face, c[1]);
 
-                udata->int_tau_xx[ibf] += qxx * bfv;
-                udata->int_tau_yy[ibf] += qyy * bfv;
-                udata->int_tau_zz[ibf] += qzz * bfv;
-                udata->int_tau_xy[ibf] += qxy * bfv;
-                udata->int_tau_xz[ibf] += qxz * bfv;
-                udata->int_tau_yz[ibf] += qyz * bfv;
+        for (i = 0; i < 3; i++) {
+            l[i] = c[1][i] - c[0][i];
+        }
+
+        if (scalar_prod(n, l) < 0) {
+            for (i = 0; i < 3; i++) {
+                n[i] *= -1.0;
             }
         }
+
+        for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
+            x  = udata->par.g.face_gp[face][igp];
+            gw = udata->par.g.face_gw[face][igp];
+            gj = udata->par.g.face_gj[face][igp];
+            charm_tensor_zero(&ftau);
+            fu = fv = fw = 0.;
+            for (i = 0; i < 2; i++) {
+                charm_get_fields(udata, x, &(cons));
+                charm_param_cons_to_prim(p4est, &(prim[i]), &(cons));
+                charm_get_visc_tau(udata, x, &(tau[i]));
+                charm_tensor_add(&ftau, &(tau[i]));
+                fu += prim[i].u*tau[i].xx + prim[i].v*tau[i].xy + prim[i].w*tau[i].xz;
+                fv += prim[i].u*tau[i].xy + prim[i].v*tau[i].yy + prim[i].w*tau[i].yz;
+                fw += prim[i].u*tau[i].xz + prim[i].v*tau[i].yz + prim[i].w*tau[i].zz;
+            }
+            charm_tensor_mul_scalar(&ftau, 0.5);
+            fu *= 0.5;
+            fv *= 0.5;
+            fw *= 0.5;
+            qu = ftau.xx*n[0] + ftau.xy*n[1] + ftau.xz*n[2];
+            qv = ftau.xy*n[0] + ftau.yy*n[1] + ftau.yz*n[2];
+            qw = ftau.xz*n[0] + ftau.yz*n[1] + ftau.zz*n[2];
+            qe = fu*n[0] + fv*n[1] + fw*n[2];
+            for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
+                for (i = 0; i < 2; i++) {
+                    if (!side[i]->is.full.is_ghost) {
+                        bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata) * gw * gj;
+                        udata->int_ru[ibf] -= qu * bfv;
+                        udata->int_rv[ibf] -= qv * bfv;
+                        udata->int_rw[ibf] -= qw * bfv;
+                        udata->int_re[ibf] -= qe * bfv;
+                    }
+                }
+            }
+        }
+//        for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
+//            x = udata->par.g.face_gp[face][igp];
+//            gw = udata->par.g.face_gw[face][igp];
+//            gj = udata->par.g.face_gj[face][igp];
+//            charm_get_fields(udata, x, &cons);
+//            charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
+//            charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
+//            double vv[3] = {prim[0].u, prim[0].v, prim[0].w};
+//            double un = scalar_prod(vv, n);
+//            double vn[3] = {un*n[0], un*n[1], un*n[2]};
+//            double vt[3] = {vv[0]-vn[0], vv[1]-vn[1], vv[2]-vn[2]};
+//            double ll = sqrt(scalar_prod(l,l));
+//            qu = -mu*vt[0]/ll;
+//            qv = -mu*vt[1]/ll;
+//            qw = -mu*vt[2]/ll;
+//            qe = 0.;
+//            for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
+//                if (!side[0]->is.full.is_ghost) {
+//                    bfv = charm_base_func(x, ibf, udata) * gw * gj;
+//                    udata->int_ru[ibf] -= qu * bfv;
+//                    udata->int_rv[ibf] -= qv * bfv;
+//                    udata->int_rw[ibf] -= qw * bfv;
+//                    udata->int_re[ibf] -= qe * bfv;
+//                }
+//            }
+//        }
     }
 }
 
@@ -171,7 +188,7 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
     double                  c[2][3];
     double                  l[3];
     int8_t                  face[2];
-    double                  lambda[2], mu[2], flambda, fmu, lp, lm;
+//    double                  lambda[2], mu[2], flambda, fmu, lp, lm;
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     side[1] = p4est_iter_fside_array_index_int(sides, 1);
@@ -199,14 +216,14 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                         udata[i] = (charm_data_t *) side[i]->is.full.quad->p.user_data;
                     }
                 }
-                lambda[i]   = charm_get_visc_lambda(p4est, udata[i]);
-                mu[i]       = charm_get_visc_mu(p4est, udata[i]);
+//                lambda[i]   = charm_get_visc_lambda(p4est, udata[i]);
+//                mu[i]       = charm_get_visc_mu(p4est, udata[i]);
             }
 
-            fmu     = 0.5*(mu[0]+mu[1]);
-            flambda = 0.5*(lambda[0]+lambda[1]);
-            lp = (flambda+4.*fmu/3.);
-            lm = (flambda-2.*fmu/3.);
+//            fmu     = 0.5*(mu[0]+mu[1]);
+//            flambda = 0.5*(lambda[0]+lambda[1]);
+//            lp = (flambda+4.*fmu/3.);
+//            lm = (flambda-2.*fmu/3.);
 
             CHARM_ASSERT(h_side != -1);
 
@@ -270,14 +287,14 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
             else {
                 udata[i] = charm_get_quad_data(side[i]->is.full.quad);//(charm_data_t *) side[i]->is.full.quad->p.user_data;
             }
-            lambda[i]   = charm_get_visc_lambda(p4est, udata[i]);
-            mu[i]       = charm_get_visc_mu(p4est, udata[i]);
+//            lambda[i]   = charm_get_visc_lambda(p4est, udata[i]);
+//            mu[i]       = charm_get_visc_mu(p4est, udata[i]);
         }
 
-        fmu     = 0.5*(mu[0]+mu[1]);
-        flambda = 0.5*(lambda[0]+lambda[1]);
-        lp = (flambda+4.*fmu/3.);
-        lm = (flambda-2.*fmu/3.);
+//        fmu     = 0.5*(mu[0]+mu[1]);
+//        flambda = 0.5*(lambda[0]+lambda[1]);
+//        lp = (flambda+4.*fmu/3.);
+//        lm = (flambda-2.*fmu/3.);
 
         charm_face_get_normal(udata[0], face[0], n);
         charm_quad_get_center(udata[0], c[0]);
@@ -336,7 +353,7 @@ static void _charm_model_ns_diff_integrals_surface_int_iter_fn (p4est_iter_face_
     sc_array_t         *sides = &(info->sides);
 
     if (sides->elem_count != 2) {
-        //_charm_model_ns_conv_surface_int_iter_bnd(info, user_data);
+        _charm_model_ns_conv_surface_int_iter_bnd(info, user_data);
     }
     else {
         _charm_model_ns_conv_surface_int_iter_inner(info, user_data);

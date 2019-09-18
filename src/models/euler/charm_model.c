@@ -9,6 +9,7 @@
 #include "charm_globals.h"
 #include "charm_limiter.h"
 #include "charm_amr.h"
+#include "charm_xml.h"
 
 
 
@@ -529,3 +530,10 @@ void charm_model_euler_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_
 }
 
 
+
+
+void charm_model_euler_init(charm_ctx_t *ctx, mxml_node_t *node)
+{
+    ctx->get_dt_fn              = charm_model_euler_get_dt;
+    ctx->timestep_single_fn     = charm_model_euler_timestep_single;
+}

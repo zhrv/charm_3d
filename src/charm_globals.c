@@ -2,6 +2,8 @@
 // Created by zhrv on 26.10.17.
 //
 #define GLOBAL_H_FILE
+
+#include <charm_base_func.h>
 #include "charm_globals.h"
 
 
@@ -485,15 +487,35 @@ size_t charm_get_comp_count(p4est_t* p4est)
 
 double charm_get_visc_lambda(p4est_t* p4est, charm_data_t* data)
 {
+    return 0;
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     return ctx->visc_l;
 }
 
 
-double charm_get_visc_mu(p4est_t* p4est, charm_data_t* data)
+double charm_get_visc_mu(p4est_t* p4est, double *x, charm_data_t* data)
 {
     charm_ctx_t *ctx = charm_get_ctx(p4est);
-    return ctx->visc_m;
+    size_t c_count = charm_get_comp_count(p4est);
+    charm_comp_t *comp;
+    charm_cons_t cons;
+    charm_prim_t prim;
+    double mu, cm, s;
+    int i;
+
+    charm_get_fields(data, x, &cons);
+    charm_param_cons_to_prim(p4est, &prim, &cons);
+    s  = 0.;
+    mu = 0.;
+    for (i = 0; i < c_count; i++) {
+        comp = charm_get_comp(p4est, i);
+        cm = prim.c[i]/comp->m;
+        s += cm;
+        mu += cm*comp->ml;  // @toto Sutherland
+    }
+    return mu/s;
+
+
 }
 
 
