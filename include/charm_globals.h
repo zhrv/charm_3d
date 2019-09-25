@@ -337,6 +337,10 @@ typedef struct charm_data
     double              int_re[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     double              int_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];              /**< the time derivative */
 
+    double              int_q_x[CHARM_BASE_FN_COUNT];
+    double              int_q_y[CHARM_BASE_FN_COUNT];
+    double              int_q_z[CHARM_BASE_FN_COUNT];
+
     double              int_tau_xx[CHARM_BASE_FN_COUNT];
     double              int_tau_yy[CHARM_BASE_FN_COUNT];
     double              int_tau_zz[CHARM_BASE_FN_COUNT];
@@ -495,6 +499,7 @@ void charm_geom_quad_calc(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t t
 
 p4est_connectivity_t* charm_conn_create(charm_ctx_t *ctx);
 
+double charm_get_heat_k(p4est_t* p4est, double *x, charm_data_t* data);
 
 double charm_get_visc_lambda(p4est_t* p4est, charm_data_t* data);
 double charm_get_visc_mu(p4est_t* p4est, double *x, charm_data_t* data);

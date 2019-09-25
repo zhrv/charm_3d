@@ -511,9 +511,32 @@ double charm_get_visc_mu(p4est_t* p4est, double *x, charm_data_t* data)
         comp = charm_get_comp(p4est, i);
         cm = prim.c[i]/comp->m;
         s += cm;
-        mu += cm*comp->ml;  // @toto Sutherland
+        mu += cm*comp->ml;  // @todo Sutherland
     }
     return mu/s;
+
+
+}
+
+
+double charm_get_heat_k(p4est_t* p4est, double *x, charm_data_t* data)
+{
+    charm_ctx_t *ctx = charm_get_ctx(p4est);
+    size_t c_count = charm_get_comp_count(p4est);
+    charm_comp_t *comp;
+    charm_cons_t cons;
+    charm_prim_t prim;
+    double kt;
+    int i;
+
+    charm_get_fields(data, x, &cons);
+    charm_param_cons_to_prim(p4est, &prim, &cons);
+    kt = 0.;
+    for (i = 0; i < c_count; i++) {
+        comp = charm_get_comp(p4est, i);
+        kt = prim.c[i]*comp->k;  // @todo Sutherland
+    }
+    return kt;
 
 
 }

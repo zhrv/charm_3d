@@ -108,7 +108,7 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
         gw = 1.;
         gj = udata->par.g.area[face];
         mu = charm_get_visc_mu(p4est, x, udata);
-        charm_get_fields(udata, x, &cons);
+        charm_get_fields_avg(udata, &cons);
         charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
         charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
         double vv[3] = {prim[0].u, prim[0].v, prim[0].w};

@@ -29,7 +29,7 @@ static void _charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info
     double             *x;
     double              lambda;
     double              mu;
-
+    double              kt;
     double              lp;
     double              lm;
 
@@ -37,6 +37,7 @@ static void _charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info
         for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
             x = data->par.g.quad_gp[igp];
 
+            kt      = charm_get_heat_k(info->p4est, x, data);
             lambda  = charm_get_visc_lambda(info->p4est, data);
             mu      = charm_get_visc_mu(info->p4est, x, data);
             lp = (lambda+4.*mu/3.);
@@ -55,6 +56,10 @@ static void _charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info
             data->int_tau_xy[ibf] -= mu*(p.u*phi_y+p.v*phi_x);
             data->int_tau_xz[ibf] -= mu*(p.w*phi_x+p.u*phi_z);
             data->int_tau_yz[ibf] -= mu*(p.w*phi_y+p.v*phi_z);
+
+            data->int_q_x[ibf] -= kt*p.t*phi_x;
+            data->int_q_y[ibf] -= kt*p.t*phi_y;
+            data->int_q_z[ibf] -= kt*p.t*phi_z;
         }
     }
 }
@@ -72,8 +77,8 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
     charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
     double n[3];
-    double qxx, qyy, qzz, qxy, qxz, qyz;
-    double fu, fv, fw;
+    double qxx, qyy, qzz, qxy, qxz, qyz, qtx, qty, qtz;
+    double fu, fv, fw, ft;
     double bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
@@ -86,7 +91,7 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
     charm_cons_t cons;
     charm_prim_t prim[2];
     double *x, gw, gj;
-    double lambda, mu, lp, lm;
+    double lambda, mu, lp, lm, kt;
     int j;
 
 
@@ -127,19 +132,22 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
 
         lambda   = charm_get_visc_lambda(p4est, udata);
         mu       = charm_get_visc_mu(p4est, x, udata);
-        lp = (lambda+4.*mu/3.);
-        lm = (lambda-2.*mu/3.);
+        lp  = (lambda+4.*mu/3.);
+        lm  = (lambda-2.*mu/3.);
+        kt += charm_get_heat_k(p4est, x, udata);
 
         charm_get_fields(udata, x, &cons);
         charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
         charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
         if (attr->bnd[face]->type == BOUND_WALL_NO_SLIP) {
             fu = fv = fw = 0.;                              //скорости на границе с прилипанием равны нулю
+            ft = attr->bnd[face]->params[0];
         }
         else {
             fu = (prim[0].u+prim[1].u)*0.5;
             fv = (prim[0].v+prim[1].v)*0.5;
             fw = (prim[0].w+prim[1].w)*0.5;
+            ft = (prim[0].t+prim[1].t)*0.5;
         }
         qxx = lp*fu*n[0] + lm*fv*n[1] + lm*fw*n[2];
         qyy = lm*fu*n[0] + lp*fv*n[1] + lm*fw*n[2];
@@ -147,6 +155,9 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
         qxy = mu*(fu*n[1] + fv*n[0]);
         qxz = mu*(fw*n[0] + fu*n[2]);
         qyz = mu*(fw*n[1] + fv*n[2]);
+        qtx = kt*ft*n[0];
+        qty = kt*ft*n[1];
+        qtz = kt*ft*n[2];
         for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
             if (!side[0]->is.full.is_ghost) {
                 bfv = charm_base_func(x, ibf, udata) * gw * gj;
@@ -157,6 +168,10 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
                 udata->int_tau_xy[ibf] += qxy * bfv;
                 udata->int_tau_xz[ibf] += qxz * bfv;
                 udata->int_tau_yz[ibf] += qyz * bfv;
+
+                udata->int_q_x[ibf] += qtx * bfv;
+                udata->int_q_y[ibf] += qty * bfv;
+                udata->int_q_z[ibf] += qtz * bfv;
             }
         }
     }
@@ -171,8 +186,8 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
     charm_data_t           *ghost_data = (charm_data_t *) user_data;
     charm_data_t           *udata[2];
     double                  n[3];
-    double                  qxx, qyy, qzz, qxy, qxz, qyz;
-    double                  fu, fv, fw;
+    double                  qxx, qyy, qzz, qxy, qxz, qyz, qtx, qty, qtz;
+    double                  fu, fv, fw, ft;
     p4est_iter_face_side_t *side[2];
     sc_array_t             *sides = &(info->sides);
     charm_cons_t            cons[2];
@@ -182,7 +197,7 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
     double                  c[2][3];
     double                  l[3];
     int8_t                  face[2];
-    double                  lambda[2], mu[2], flambda, fmu, lp, lm;
+    double                  lambda[2], mu[2], flambda, fmu, lp, lm, kt;
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     side[1] = p4est_iter_fside_array_index_int(sides, 1);
@@ -233,18 +248,21 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                 x  = udata[h_side]->par.g.face_gp[face[h_side]][igp];
                 gw = udata[h_side]->par.g.face_gw[face[h_side]][igp];
                 gj = udata[h_side]->par.g.face_gj[face[h_side]][igp];
+                kt = 0.;
                 for (i = 0; i < 2; i++) {
                     charm_get_fields(udata[i], x, &(cons[i]));
                     charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
                     lambda[i]   = charm_get_visc_lambda(p4est, udata[i]);
                     mu[i]       = charm_get_visc_mu(p4est, x, udata[i]);
-
+                    kt         += charm_get_heat_k(p4est, x, udata[i]);
                 }
                 fmu     = 0.5*(mu[0]+mu[1]);
                 flambda = 0.5*(lambda[0]+lambda[1]);
                 lp = (flambda+4.*fmu/3.);
                 lm = (flambda-2.*fmu/3.);
+                kt *= 0.5;
 
+                ft = (prim[0].t+prim[1].t)*0.5;
                 fu = (prim[0].u+prim[1].u)*0.5;
                 fv = (prim[0].v+prim[1].v)*0.5;
                 fw = (prim[0].w+prim[1].w)*0.5;
@@ -254,6 +272,9 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                 qxy = fmu*(fu*n[1] + fv*n[0]);
                 qxz = fmu*(fw*n[0] + fu*n[2]);
                 qyz = fmu*(fw*n[1] + fv*n[2]);
+                qtx = kt*ft*n[0];
+                qty = kt*ft*n[1];
+                qtz = kt*ft*n[2];
                 for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                     for (i = 0; i < 2; i++) {
                         if (!side[i]->is.full.is_ghost) {
@@ -264,6 +285,10 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                             udata[i]->int_tau_xy[ibf] += qxy * bfv;
                             udata[i]->int_tau_xz[ibf] += qxz * bfv;
                             udata[i]->int_tau_yz[ibf] += qyz * bfv;
+
+                            udata[i]->int_q_x[ibf] += qtx * bfv;
+                            udata[i]->int_q_y[ibf] += qty * bfv;
+                            udata[i]->int_q_z[ibf] += qtz * bfv;
                         }
                     }
                 }
@@ -299,17 +324,21 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
             x  = udata[0]->par.g.face_gp[face[0]][igp];
             gw = udata[0]->par.g.face_gw[face[0]][igp];
             gj = udata[0]->par.g.face_gj[face[0]][igp];
+            kt = 0.;
             for (i = 0; i < 2; i++) {
                 charm_get_fields(udata[i], x, &(cons[i]));
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
                 lambda[i]   = charm_get_visc_lambda(p4est, udata[i]);
                 mu[i]       = charm_get_visc_mu(p4est, x, udata[i]);
+                kt         += charm_get_heat_k(p4est, x, udata[i]);
             }
             fmu     = 0.5*(mu[0]+mu[1]);
             flambda = 0.5*(lambda[0]+lambda[1]);
             lp = (flambda+4.*fmu/3.);
             lm = (flambda-2.*fmu/3.);
+            kt *= 0.5;
 
+            ft = (prim[0].t+prim[1].t)*0.5;
             fu = (prim[0].u+prim[1].u)*0.5;
             fv = (prim[0].v+prim[1].v)*0.5;
             fw = (prim[0].w+prim[1].w)*0.5;
@@ -319,6 +348,9 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
             qxy = fmu*(fu*n[1] + fv*n[0]);
             qxz = fmu*(fw*n[0] + fu*n[2]);
             qyz = fmu*(fw*n[1] + fv*n[2]);
+            qtx = kt*ft*n[0];
+            qty = kt*ft*n[1];
+            qtz = kt*ft*n[2];
             for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                 for (i = 0; i < 2; i++) {
                     if (!side[i]->is.full.is_ghost) {
@@ -329,6 +361,10 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                         udata[i]->int_tau_xy[ibf] += qxy * bfv;
                         udata[i]->int_tau_xz[ibf] += qxz * bfv;
                         udata[i]->int_tau_yz[ibf] += qyz * bfv;
+
+                        udata[i]->int_q_x[ibf] += qtx * bfv;
+                        udata[i]->int_q_y[ibf] += qty * bfv;
+                        udata[i]->int_q_z[ibf] += qtz * bfv;
                     }
                 }
             }
@@ -360,6 +396,10 @@ static void _charm_model_ns_diff_grad_update_quad_iter_fn (p4est_iter_volume_inf
     charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xy, data->par.tau.xy);
     charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xz, data->par.tau.xz);
     charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_yz, data->par.tau.yz);
+
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_x, data->par.q.x);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_y, data->par.q.y);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_z, data->par.q.z);
 }
 
 
@@ -375,6 +415,10 @@ static void _charm_model_ns_diff_grad_zero_quad_iter_fn (p4est_iter_volume_info_
         data->int_tau_xy[i] = 0.;
         data->int_tau_xz[i] = 0.;
         data->int_tau_yz[i] = 0.;
+
+        data->int_q_x[i] = 0.;
+        data->int_q_y[i] = 0.;
+        data->int_q_z[i] = 0.;
     }
 }
 
