@@ -340,3 +340,17 @@ void charm_get_visc_tau(charm_data_t *p, double* x, charm_tensor_t *tau)
         tau->zz += p->par.tau.zz[i]*charm_base_func(x, i, p);
     }
 }
+
+
+void charm_get_heat_q(charm_data_t *p, double* x, double *q)
+{
+    int i;
+
+    memset(q, 0, sizeof(double)*3);
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        q[0] += p->par.q.x[i]*charm_base_func(x, i, p);
+        q[1] += p->par.q.y[i]*charm_base_func(x, i, p);
+        q[2] += p->par.q.z[i]*charm_base_func(x, i, p);
+    }
+}
