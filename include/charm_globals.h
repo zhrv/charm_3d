@@ -195,6 +195,7 @@ typedef struct charm_prim
     double          gam;
     double          cp;
     double          cv;
+    double          p0;
     int             mat_id;
     double          c[CHARM_MAX_COMPONETS_COUNT]; // concentrations
 } charm_prim_t;
@@ -273,12 +274,13 @@ typedef struct charm_param
 {
     struct
     {
-//        double          ro[CHARM_BASE_FN_COUNT];             /**< the state variable */
-        double          ru[CHARM_BASE_FN_COUNT];             /**< the state variable */
-        double          rv[CHARM_BASE_FN_COUNT];             /**< the state variable */
-        double          rw[CHARM_BASE_FN_COUNT];             /**< the state variable */
-        double          re[CHARM_BASE_FN_COUNT];             /**< the state variable */
-        double          rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];             /**< the state variable */
+        double          ru[CHARM_BASE_FN_COUNT];
+        double          rv[CHARM_BASE_FN_COUNT];
+        double          rw[CHARM_BASE_FN_COUNT];
+        double          re[CHARM_BASE_FN_COUNT];
+        double          rh[CHARM_BASE_FN_COUNT];
+        double          rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];
+        double          p[CHARM_BASE_FN_COUNT];
     } c;
 
     charm_tensor_c_t tau;
@@ -310,6 +312,7 @@ typedef struct charm_param
 
     int         mat_id;
     double      grav[CHARM_DIM];
+    double      p0;
 
 
     struct lim
@@ -319,7 +322,8 @@ typedef struct charm_param
         double      rv[CHARM_FACES+1];
         double      rw[CHARM_FACES+1];
         double      re[CHARM_FACES+1];
-        double      rc[CHARM_MAX_COMPONETS_COUNT][CHARM_FACES+1];             /**< the state variable */
+        double      rh[CHARM_FACES+1];
+        double      rc[CHARM_MAX_COMPONETS_COUNT][CHARM_FACES+1];
     } l;
 
     struct amr {
@@ -331,11 +335,12 @@ typedef struct charm_param
 typedef struct charm_data
 {
     charm_param_t       par;
-    double              int_ru[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    double              int_rv[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    double              int_rw[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    double              int_re[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    double              int_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];              /**< the time derivative */
+    double              int_ru[CHARM_BASE_FN_COUNT];
+    double              int_rv[CHARM_BASE_FN_COUNT];
+    double              int_rw[CHARM_BASE_FN_COUNT];
+    double              int_re[CHARM_BASE_FN_COUNT];
+    double              int_rh[CHARM_BASE_FN_COUNT];
+    double              int_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];
 
     double              int_q_x[CHARM_BASE_FN_COUNT];
     double              int_q_y[CHARM_BASE_FN_COUNT];
@@ -347,6 +352,7 @@ typedef struct charm_data
     double              int_tau_xy[CHARM_BASE_FN_COUNT];
     double              int_tau_xz[CHARM_BASE_FN_COUNT];
     double              int_tau_yz[CHARM_BASE_FN_COUNT];
+    double              int_pi[CHARM_BASE_FN_COUNT];
     int                 ref_flag;
 } charm_data_t;
 
@@ -393,10 +399,16 @@ typedef struct charm_mesh_info
     char                filename[128];
 } charm_mesh_info_t;
 
+typedef enum {
+    CHARM_MODEL_EULER,
+    CHARM_MODEL_NS,
+    CHARM_MODEL_NS_LOW_MACH
+} charm_model_t;
 
 
 typedef struct charm_ctx
 {
+    charm_model_t       model;
     double              max_err;            /**< maximum allowed global interpolation error */
     int                 refine_period;      /**< the number of time steps between mesh refinement */
     int                 repartition_period; /**< the number of time steps between repartitioning */

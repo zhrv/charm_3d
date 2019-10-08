@@ -65,6 +65,12 @@ add_executable(	charm_3d
         src/models/ns/charm_model_ns_diff_grad.c
         src/models/ns/charm_model_ns_diff_integrals.c
 
+        src/models/ns_low_mach/charm_model.c
+        src/models/ns_low_mach/charm_model_ns_low_mach_conv.c
+        src/models/ns_low_mach/charm_model_ns_low_mach_diff.c
+        src/models/ns_low_mach/charm_model_ns_low_mach_diff_grad.c
+        src/models/ns_low_mach/charm_model_ns_low_mach_diff_integrals.c
+
         )
 
 target_link_libraries(charm_3d p4est sc m mxml)

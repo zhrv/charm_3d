@@ -201,8 +201,17 @@ static void charm_init_fetch_mat(charm_ctx_t *ctx, mxml_node_t* node, charm_mat_
             CHARM_GLOBAL_ESSENTIAL("WARNING! There is more than one component in 'task.xml'. First component's parameters is used for EOS. \n");
         }
     }
+    else if (strcmp(str, "IDEAL_LOW_MACH") == 0) {
+        mat->eos_fn = charm_mat_eos_ideal_low_mach;
+        if (ctx->comp->elem_count > 1) {
+            CHARM_GLOBAL_ESSENTIAL("WARNING! There is more than one component in 'task.xml'. First component's parameters is used for EOS. \n");
+        }
+    }
     else if (strcmp(str, "MIX") == 0) {
         mat->eos_fn = charm_mat_eos_mix;
+    }
+    else if (strcmp(str, "MIX_LOW_MACH") == 0) {
+        mat->eos_fn = charm_mat_eos_mix_low_mach;
     }
     else if (strcmp(str, "TABLE") == 0) {
         mat->eos_fn = charm_mat_eos_table;
@@ -394,10 +403,16 @@ void charm_init_context(charm_ctx_t *ctx)
 
     charm_xml_node_child_param_str(node, "MODEL", str);
     if (strcmp(str, "EULER") == 0) {
+        ctx->model = CHARM_MODEL_EULER;
         charm_model_euler_init(ctx, charm_xml_node_get_child(node, "MODEL"));
     }
     if (strcmp(str, "NS") == 0) {
+        ctx->model = CHARM_MODEL_NS;
         charm_model_ns_init(ctx, charm_xml_node_get_child(node, "MODEL"));
+    }
+    if (strcmp(str, "NS_LOW_MACH") == 0) {
+        ctx->model = CHARM_MODEL_NS_LOW_MACH;
+        charm_model_ns_low_mach_init(ctx, charm_xml_node_get_child(node, "MODEL"));
     }
     else {
         CHARM_LERRORF("Unknown model type '%s'. Use: EULER.\n", str);
