@@ -18,6 +18,7 @@ void charm_model_ns_timestep_diff(p4est_t * p4est, p4est_ghost_t * ghost, charm_
 
 static void _charm_model_ns_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
+    p4est_t        *p4est = info->p4est;
     double         *dt = (double*) user_data;
     charm_data_t   *data = charm_get_quad_data(info->quad);
     charm_ctx_t    *ctx = (charm_ctx_t*) info->p4est->user_pointer;
@@ -25,7 +26,7 @@ static void _charm_model_ns_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info
     charm_cons_t    cons;
     charm_prim_t    prim;
 
-    charm_get_fields(data, data->par.g.c, &cons);
+    charm_get_fields(p4est, data, data->par.g.c, &cons);
     charm_param_cons_to_prim(info->p4est, &prim, &cons);
 
     dt_loc = ctx->CFL * data->par.g.volume / (sqrt(_MAG_(prim.u, prim.v, prim.w)) + prim.cz);

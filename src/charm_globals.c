@@ -186,11 +186,6 @@ void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * 
     for (i = 0; i < c_count; i++) {
         p->r += c->rc[i];
     }
-    p->u      = c->ru/p->r;
-    p->v      = c->rv/p->r;
-    p->w      = c->rw/p->r;
-    p->e_tot  = c->re/p->r;
-    p->e      = p->e_tot-0.5*_MAG_(p->u, p->v, p->w);
 
     for (i = 0; i < c_count; i++) {
         p->c[i] = c->rc[i] / p->r;
@@ -198,19 +193,44 @@ void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * 
         if (p->c[i] > 1.) p->c[i] = 1.;
     }
 
-    mat->eos_fn(p4est, p, 4);  // {p,cz, t}=EOS(r,e)
+    p->u      = c->ru/p->r;
+    p->v      = c->rv/p->r;
+    p->w      = c->rw/p->r;
+    if (ctx->model == CHARM_MODEL_NS_LOW_MACH) {
+        p->p = c->p;
+        p->p0 = c->p0;
+        p->H = c->rh/p->r;
+        p->h = p->H - 0.5 * _MAG_(p->u, p->v, p->w);
+        mat->eos_fn(p4est, p, 5);  // {e,e_tot,cz,t}=EOS(r,h)
+    }
+    else {
+        p->e_tot = c->re / p->r;
+        p->e = p->e_tot - 0.5 * _MAG_(p->u, p->v, p->w);
+        p->H = p->e_tot + p->p/p->r;
+        p->h = p->e + p->p/p->r;
+
+        mat->eos_fn(p4est, p, 4);  // {p,cz,t,h}=EOS(r,e)
+    }
 }
 
 
 void charm_param_prim_to_cons(p4est_t * p4est, charm_cons_t * c, charm_prim_t * p)
 {
-    size_t c_count = charm_get_comp_count(p4est);
+    charm_ctx_t * ctx       = charm_get_ctx(p4est);
+    size_t c_count          = charm_get_comp_count(p4est);
     size_t i;
     c->mat_id = p->mat_id;
     c->ru = p->r * p->u;
     c->rv = p->r * p->v;
     c->rw = p->r * p->w;
-    c->re = p->r * (p->e + 0.5 * _MAG_(p->u, p->v, p->w));
+    if (ctx->model == CHARM_MODEL_NS_LOW_MACH) {
+        c->re = p->r * (p->e + 0.5 * _MAG_(p->u, p->v, p->w));
+        c->rh = c->re + p->p0;
+    }
+    else {
+        c->re = p->r * (p->e + 0.5 * _MAG_(p->u, p->v, p->w));
+        c->rh = c->re + p->p0;
+    }
     for (i = 0; i < c_count; i++) {
         c->rc[i] = p->r * p->c[i];
     }
@@ -503,7 +523,7 @@ double charm_get_visc_mu(p4est_t* p4est, double *x, charm_data_t* data)
     double mu, cm, s;
     int i;
 
-    charm_get_fields(data, x, &cons);
+    charm_get_fields(p4est, data, x, &cons);
     charm_param_cons_to_prim(p4est, &prim, &cons);
     s  = 0.;
     mu = 0.;
@@ -529,7 +549,7 @@ double charm_get_heat_k(p4est_t* p4est, double *x, charm_data_t* data)
     double kt;
     int i;
 
-    charm_get_fields(data, x, &cons);
+    charm_get_fields(p4est, data, x, &cons);
     charm_param_cons_to_prim(p4est, &prim, &cons);
     kt = 0.;
     for (i = 0; i < c_count; i++) {

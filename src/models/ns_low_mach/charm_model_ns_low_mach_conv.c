@@ -21,14 +21,15 @@
 
 static void _charm_model_ns_low_mach_conv_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
+    p4est_t            *p4est = info->p4est;
     p4est_quadrant_t   *q = info->quad;
     charm_data_t       *data = charm_get_quad_data(q);
     int                 ibf, igp;
     charm_cons_t        c;
     charm_prim_t        p;
-    double              fu, fv, fw, fe, *fc;
-    double              gu, gv, gw, ge, *gc;
-    double              hu, hv, hw, he, *hc;
+    double              fu, fv, fw, fh, *fc;
+    double              gu, gv, gw, gh, *gc;
+    double              hu, hv, hw, hh, *hc;
     double              phi_x, phi_y, phi_z, phi;
     double             *x;
     size_t              c_count = charm_get_comp_count(info->p4est);
@@ -42,23 +43,23 @@ static void _charm_model_ns_low_mach_conv_volume_int_iter_fn (p4est_iter_volume_
         for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
             x = data->par.g.quad_gp[igp];
 
-            charm_get_fields(data, x, &c);
+            charm_get_fields(p4est, data, x, &c);
             charm_param_cons_to_prim(info->p4est, &p, &c);
 
-            fu = c.ru*p.u+p.p;
+            fu = c.ru*p.u;
             fv = c.ru*p.v;
             fw = c.ru*p.w;
-            fe = c.ru*p.e_tot+p.p*p.u;
+            fh = c.ru*p.h;
 
             gu = c.rv*p.u;
-            gv = c.rv*p.v+p.p;
+            gv = c.rv*p.v;
             gw = c.rv*p.w;
-            ge = c.rv*p.e_tot+p.p*p.v;
+            gh = c.rv*p.h;
 
             hu = c.rw*p.u;
             hv = c.rw*p.v;
-            hw = c.rw*p.w+p.p;
-            he = c.rw*p.e_tot+p.p*p.w;
+            hw = c.rw*p.w;
+            hh = c.rw*p.h;
 
             for(cj = 0; cj < c_count; ++cj) {
                 fc[cj] = c.ru*p.c[cj];
@@ -79,7 +80,7 @@ static void _charm_model_ns_low_mach_conv_volume_int_iter_fn (p4est_iter_volume_
             data->int_ru[ibf] -= ((fu*phi_x+gu*phi_y+hu*phi_z) + p.r*data->par.grav[0]*phi);
             data->int_rv[ibf] -= ((fv*phi_x+gv*phi_y+hv*phi_z) + p.r*data->par.grav[1]*phi);
             data->int_rw[ibf] -= ((fw*phi_x+gw*phi_y+hw*phi_z) + p.r*data->par.grav[2]*phi);
-            data->int_re[ibf] -= (fe*phi_x+ge*phi_y+he*phi_z);
+            data->int_rh[ibf] -= (fh*phi_x+gh*phi_y+hh*phi_z);
         }
     }
     CHARM_FREE(fc);
@@ -100,7 +101,7 @@ static void _charm_model_ns_low_mach_conv_surface_int_iter_bnd (p4est_iter_face_
     charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
     double n[3];
-    double qu, qv, qw, qe, *qc;
+    double qu, qv, qw, qh, *qc;
     double bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
@@ -149,10 +150,10 @@ static void _charm_model_ns_low_mach_conv_surface_int_iter_bnd (p4est_iter_face_
         x = udata->par.g.face_gp[face][igp];
         gw = udata->par.g.face_gw[face][igp];
         gj = udata->par.g.face_gj[face][igp];
-        charm_get_fields(udata, x, &cons);
+        charm_get_fields(p4est, udata, x, &cons);
         charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
         charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
-        ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qe, qc, n); /* flux from side 0 to side 1 */
+        ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qh, qc, n); /* flux from side 0 to side 1 */
         for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
             if (!side[0]->is.full.is_ghost) {
                 bfv = charm_base_func(x, ibf, udata) * gw * gj;
@@ -163,7 +164,7 @@ static void _charm_model_ns_low_mach_conv_surface_int_iter_bnd (p4est_iter_face_
                 udata->int_ru[ibf] += qu * bfv;
                 udata->int_rv[ibf] += qv * bfv;
                 udata->int_rw[ibf] += qw * bfv;
-                udata->int_re[ibf] += qe * bfv;
+                udata->int_rh[ibf] += qh * bfv;
             }
         }
     }
@@ -179,7 +180,7 @@ static void _charm_model_ns_low_mach_conv_surface_int_iter_inner (p4est_iter_fac
     charm_data_t           *ghost_data = (charm_data_t *) user_data;
     charm_data_t           *udata[2];
     double                  n[3];
-    double                  qu, qv, qw, qe, *qc;
+    double                  qu, qv, qw, qh, *qc;
     p4est_iter_face_side_t *side[2];
     sc_array_t             *sides = &(info->sides);
     charm_cons_t            cons[2];
@@ -243,10 +244,10 @@ static void _charm_model_ns_low_mach_conv_surface_int_iter_inner (p4est_iter_fac
                 gw = udata[h_side]->par.g.face_gw[face[h_side]][igp];
                 gj = udata[h_side]->par.g.face_gj[face[h_side]][igp];
                 for (i = 0; i < 2; i++) {
-                    charm_get_fields(udata[i], x, &(cons[i]));
+                    charm_get_fields(p4est, udata[i], x, &(cons[i]));
                     charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
                 }
-                ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qe, qc, n);  // flux from side 0 to side 1
+                ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qh, qc, n);  // flux from side 0 to side 1
                 for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                     for (i = 0; i < 2; i++) {
                         if (!side[i]->is.full.is_ghost) {
@@ -257,7 +258,7 @@ static void _charm_model_ns_low_mach_conv_surface_int_iter_inner (p4est_iter_fac
                             udata[i]->int_ru[ibf] += qu * bfv;
                             udata[i]->int_rv[ibf] += qv * bfv;
                             udata[i]->int_rw[ibf] += qw * bfv;
-                            udata[i]->int_re[ibf] += qe * bfv;
+                            udata[i]->int_rh[ibf] += qh * bfv;
                         }
                     }
                 }
@@ -293,10 +294,10 @@ static void _charm_model_ns_low_mach_conv_surface_int_iter_inner (p4est_iter_fac
             gw = udata[0]->par.g.face_gw[face[0]][igp];
             gj = udata[0]->par.g.face_gj[face[0]][igp];
             for (i = 0; i < 2; i++) {
-                charm_get_fields(udata[i], x, &(cons[i]));
+                charm_get_fields(p4est, udata[i], x, &(cons[i]));
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
             }
-            ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qe, qc, n);  // flux from side 0 to side 1
+            ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qh, qc, n);  // flux from side 0 to side 1
             for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                 for (i = 0; i < 2; i++) {
                     if (!side[i]->is.full.is_ghost) {
@@ -307,7 +308,7 @@ static void _charm_model_ns_low_mach_conv_surface_int_iter_inner (p4est_iter_fac
                         udata[i]->int_ru[ibf] += qu * bfv;
                         udata[i]->int_rv[ibf] += qv * bfv;
                         udata[i]->int_rw[ibf] += qw * bfv;
-                        udata[i]->int_re[ibf] += qe * bfv;
+                        udata[i]->int_rh[ibf] += qh * bfv;
                     }
                 }
             }

@@ -21,6 +21,7 @@
 
 static void _charm_model_ns_conv_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
+    p4est_t            *p4est = info->p4est;
     p4est_quadrant_t   *q = info->quad;
     charm_data_t       *data = charm_get_quad_data(q);
     int                 ibf, igp;
@@ -42,7 +43,7 @@ static void _charm_model_ns_conv_volume_int_iter_fn (p4est_iter_volume_info_t * 
         for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
             x = data->par.g.quad_gp[igp];
 
-            charm_get_fields(data, x, &c);
+            charm_get_fields(p4est, data, x, &c);
             charm_param_cons_to_prim(info->p4est, &p, &c);
 
             fu = c.ru*p.u+p.p;
@@ -149,7 +150,7 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
         x = udata->par.g.face_gp[face][igp];
         gw = udata->par.g.face_gw[face][igp];
         gj = udata->par.g.face_gj[face][igp];
-        charm_get_fields(udata, x, &cons);
+        charm_get_fields(p4est, udata, x, &cons);
         charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
         charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
         ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qe, qc, n); /* flux from side 0 to side 1 */
@@ -243,7 +244,7 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                 gw = udata[h_side]->par.g.face_gw[face[h_side]][igp];
                 gj = udata[h_side]->par.g.face_gj[face[h_side]][igp];
                 for (i = 0; i < 2; i++) {
-                    charm_get_fields(udata[i], x, &(cons[i]));
+                    charm_get_fields(p4est, udata[i], x, &(cons[i]));
                     charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
                 }
                 ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qe, qc, n);  // flux from side 0 to side 1
@@ -293,7 +294,7 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
             gw = udata[0]->par.g.face_gw[face[0]][igp];
             gj = udata[0]->par.g.face_gj[face[0]][igp];
             for (i = 0; i < 2; i++) {
-                charm_get_fields(udata[i], x, &(cons[i]));
+                charm_get_fields(p4est, udata[i], x, &(cons[i]));
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
             }
             ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qe, qc, n);  // flux from side 0 to side 1

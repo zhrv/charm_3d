@@ -59,10 +59,15 @@ void charm_mat_eos_ideal(p4est_t * p4est, charm_prim_t * p, int flag)
             p->p  = p->r*p->e*(gam-1);
             p->cz = sqrt(gam*p->p/p->r);
             p->t  = p->e/Cv;
+            p->h  = p->t*Cp;
+            break;
+
+        case 5:
+            CHARM_ASSERT(flag != 5);
             break;
 
         default:
-            CHARM_ASSERT(flag < 5);
+            CHARM_ASSERT(flag < 6);
     }
 
 }
@@ -93,7 +98,7 @@ void charm_mat_eos_ideal_low_mach(p4est_t * p4est, charm_prim_t * p, int flag)
             break;
 
         case 2:		// r=r(T,p)
-            p->r = p->p0*M/(p->t*gR);
+            p->r  = p->p0*M/(p->t*gR);
             p->cz = sqrt(gam*p->p0/p->r);
             break;
 
@@ -107,8 +112,15 @@ void charm_mat_eos_ideal_low_mach(p4est_t * p4est, charm_prim_t * p, int flag)
             CHARM_ASSERT(flag != 4);
             break;
 
+        case 5: // {e,e_tot,cz,t}=EOS(r,h)
+            p->e  = p->h-p->p0/p->r;  //p->p0/(p->r*(gam-1));
+            p->e_tot = p->e+0.5*_MAG_(p->u, p->v, p->w);
+            p->cz = sqrt(gam*p->p0/p->r);
+            p->t  = p->e/Cv;
+            break;
+
         default:
-            CHARM_ASSERT(flag < 5);
+            CHARM_ASSERT(flag < 6);
     }
 
 }
@@ -164,11 +176,16 @@ void charm_mat_eos_mix(p4est_t * p4est, charm_prim_t * p, int flag)
             p->e  = p->p/(p->r*(gam-1));
             break;
 
-        case 4: // (r,e) => (p, cz, T)
+        case 4: // (r,e) => (p, cz, T, h)
             if (p->r < CHARM_EPS) p->r = CHARM_EPS;
             p->p  = p->r*p->e*(gam-1);
             p->cz = sqrt(gam*p->p/p->r);
             p->t  = p->e/Cv;
+            p->h  = p->t*Cp;
+            break;
+
+        case 5:
+            CHARM_ASSERT(flag != 5);
             break;
 
         default:
@@ -224,8 +241,15 @@ void charm_mat_eos_mix_low_mach(p4est_t * p4est, charm_prim_t * p, int flag)
             CHARM_ASSERT(flag != 4);
             break;
 
+        case 5: // {e,e_tot,cz,t}=EOS(r,h)
+            p->e  = p->h-p->p0/p->r;  //p->p0/(p->r*(gam-1));
+            p->e_tot = p->e+0.5*_MAG_(p->u, p->v, p->w);
+            p->cz = sqrt(gam*p->p0/p->r);
+            p->t  = p->e/Cv;
+            break;
+
         default:
-            CHARM_ASSERT(flag < 5);
+            CHARM_ASSERT(flag < 6);
     }
 }
 

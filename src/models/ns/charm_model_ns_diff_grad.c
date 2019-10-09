@@ -20,6 +20,7 @@
 
 static void _charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
+    p4est_t            *p4est = info->p4est;
     p4est_quadrant_t   *q = info->quad;
     charm_data_t       *data = charm_get_quad_data(q);
     int                 ibf, igp;
@@ -42,7 +43,7 @@ static void _charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info
             mu      = charm_get_visc_mu(info->p4est, x, data);
             lp = (lambda+4.*mu/3.);
             lm = (lambda-2.*mu/3.);
-            charm_get_fields(data, x, &c);
+            charm_get_fields(p4est, data, x, &c);
             charm_param_cons_to_prim(info->p4est, &p, &c);
 
             phi_x = charm_base_func_dx(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
@@ -136,7 +137,7 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
         lm  = (lambda-2.*mu/3.);
         kt  = charm_get_heat_k(p4est, x, udata);
 
-        charm_get_fields(udata, x, &cons);
+        charm_get_fields(p4est, udata, x, &cons);
         charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
         charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
         if (attr->bnd[face]->type == BOUND_WALL_NO_SLIP) {
@@ -250,7 +251,7 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                 gj = udata[h_side]->par.g.face_gj[face[h_side]][igp];
                 kt = 0.;
                 for (i = 0; i < 2; i++) {
-                    charm_get_fields(udata[i], x, &(cons[i]));
+                    charm_get_fields(p4est, udata[i], x, &(cons[i]));
                     charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
                     lambda[i]   = charm_get_visc_lambda(p4est, udata[i]);
                     mu[i]       = charm_get_visc_mu(p4est, x, udata[i]);
@@ -326,7 +327,7 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
             gj = udata[0]->par.g.face_gj[face[0]][igp];
             kt = 0.;
             for (i = 0; i < 2; i++) {
-                charm_get_fields(udata[i], x, &(cons[i]));
+                charm_get_fields(p4est, udata[i], x, &(cons[i]));
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
                 lambda[i]   = charm_get_visc_lambda(p4est, udata[i]);
                 mu[i]       = charm_get_visc_mu(p4est, x, udata[i]);

@@ -20,6 +20,7 @@
 
 static void _charm_model_ns_diff_integrals_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
+    p4est_t            *p4est = info->p4est;
     p4est_quadrant_t   *q = info->quad;
     charm_data_t       *data = charm_get_quad_data(q);
     int                 ibf, igp;
@@ -32,7 +33,7 @@ static void _charm_model_ns_diff_integrals_volume_int_iter_fn (p4est_iter_volume
     for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
         for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
             x = data->par.g.quad_gp[igp];
-            charm_get_fields(data, x, &c);
+            charm_get_fields(p4est, data, x, &c);
             charm_param_cons_to_prim(info->p4est, &p, &c);
             charm_get_visc_tau(data, x, &tau);
 
@@ -137,7 +138,7 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
             charm_tensor_zero(&ftau);
             fu = fv = fw = ft = 0.;
             for (i = 0; i < 2; i++) {
-                charm_get_fields(udata, x, &(cons));
+                charm_get_fields(p4est, udata, x, &(cons));
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons));
                 charm_get_heat_q(udata, x, qt);
                 charm_get_visc_tau(udata, x, &(tau[i]));
@@ -268,7 +269,7 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                 charm_tensor_zero(&ftau);
                 fu = fv = fw = ft = 0.;
                 for (i = 0; i < 2; i++) {
-                    charm_get_fields(udata[i], x, &(cons[i]));
+                    charm_get_fields(p4est, udata[i], x, &(cons[i]));
                     charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
                     charm_get_heat_q(udata[i], x, qt);
                     charm_get_visc_tau(udata[i], x, &(tau[i]));
@@ -333,7 +334,7 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
             charm_tensor_zero(&ftau);
             fu = fv = fw = ft = 0.;
             for (i = 0; i < 2; i++) {
-                charm_get_fields(udata[i], x, &(cons[i]));
+                charm_get_fields(p4est, udata[i], x, &(cons[i]));
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
                 charm_get_heat_q(udata[i], x, qt);
                 charm_get_visc_tau(udata[i], x, &(tau[i]));

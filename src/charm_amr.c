@@ -113,7 +113,7 @@ static int charm_coarsen_err_estimate (p4est_t * p4est, p4est_topidx_t which_tre
     parentu = 0.;
     for (i = 0; i < CHARM_CHILDREN; i++) {
         data = (charm_data_t *) children[i]->p.user_data;
-        charm_get_fields(data, data->par.g.c, &cons);
+        charm_get_fields(p4est, data, data->par.g.c, &cons);
         charm_param_cons_to_prim(p4est, &prim, &cons);
         parentu += prim.r / CHARM_CHILDREN;
     }
@@ -122,7 +122,7 @@ static int charm_coarsen_err_estimate (p4est_t * p4est, p4est_topidx_t which_tre
     for (i = 0; i < CHARM_CHILDREN; i++) {
         data = (charm_data_t *) children[i]->p.user_data;
         childerr2 = charm_error_sqr_estimate (children[i]);
-        charm_get_fields(data, data->par.g.c, &cons);
+        charm_get_fields(p4est, data, data->par.g.c, &cons);
         charm_param_cons_to_prim(p4est, &prim, &cons);
 
         if (childerr2 > global_err2 * vol) {
@@ -411,7 +411,7 @@ static void _charm_amr_par_calc_face_iter_bnd (p4est_iter_face_info_t * info, vo
         x = udata->par.g.face_gp[face][igp];
         gw = udata->par.g.face_gw[face][igp];
         gj = udata->par.g.face_gj[face][igp];
-        charm_get_fields(udata, x, &cons);
+        charm_get_fields(p4est, udata, x, &cons);
         charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
         charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
         qr = 0.5*(prim[0].r+prim[1].r);
@@ -490,7 +490,7 @@ static void _charm_amr_par_calc_face_iter_inner (p4est_iter_face_info_t * info, 
                 gw = udata[h_side]->par.g.face_gw[face[h_side]][igp];
                 gj = udata[h_side]->par.g.face_gj[face[h_side]][igp];
                 for (i = 0; i < 2; i++) {
-                    charm_get_fields(udata[i], x, &(cons[i]));
+                    charm_get_fields(p4est, udata[i], x, &(cons[i]));
                     charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
                 }
                 for (ibf = 0; ibf < CHARM_DIM; ibf++) {
@@ -532,7 +532,7 @@ static void _charm_amr_par_calc_face_iter_inner (p4est_iter_face_info_t * info, 
             gw = udata[0]->par.g.face_gw[face[0]][igp];
             gj = udata[0]->par.g.face_gj[face[0]][igp];
             for (i = 0; i < 2; i++) {
-                charm_get_fields(udata[i], x, &(cons[i]));
+                charm_get_fields(p4est, udata[i], x, &(cons[i]));
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
             }
             qr = 0.5*(prim[0].r+prim[1].r);

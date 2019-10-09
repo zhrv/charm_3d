@@ -18,11 +18,13 @@ double charm_get_field_ru(charm_data_t* p, double* x);
 double charm_get_field_rv(charm_data_t* p, double* x);
 double charm_get_field_rw(charm_data_t* p, double* x);
 double charm_get_field_re(charm_data_t* p, double* x);
+double charm_get_field_rh(charm_data_t* p, double* x);
+double charm_get_field_p(charm_data_t* p, double* x);
 double charm_get_field_rc(charm_data_t* p, double* x, int k);
 
-void charm_get_fields(charm_data_t* p, double* x, charm_cons_t* c);
-void charm_get_fields_avg(charm_data_t* p, charm_cons_t* c);
-void charm_get_fields_arr(charm_data_t* p, double* fld[5]);
+void charm_get_fields(p4est_t *p4est, charm_data_t* p, double* x, charm_cons_t* c);
+void charm_get_fields_avg(p4est_t *p4est, charm_data_t* p, charm_cons_t* c);
+void charm_get_fields_arr(p4est_t *p4est, charm_data_t* p, double* fld[5]);
 
 void charm_get_visc_tau(charm_data_t *p, double* x, charm_tensor_t *tau);
 void charm_get_heat_q(charm_data_t *p, double* x, double *q);

@@ -195,6 +195,8 @@ typedef struct charm_prim
     double          gam;
     double          cp;
     double          cv;
+    double          H;
+    double          h;
     double          p0;
     int             mat_id;
     double          c[CHARM_MAX_COMPONETS_COUNT]; // concentrations
@@ -207,7 +209,10 @@ typedef struct charm_cons
     double          rv;
     double          rw;
     double          re;
+    double          rh;
     double          rc[CHARM_MAX_COMPONETS_COUNT];
+    double          p0;
+    double          p;
     int             mat_id;
 } charm_cons_t;
 

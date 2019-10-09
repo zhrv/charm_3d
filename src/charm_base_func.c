@@ -184,6 +184,18 @@ double charm_get_field_re(charm_data_t* p, double* x)
 }
 
 
+double charm_get_field_rh(charm_data_t* p, double* x)
+{
+    double result = 0.;
+    int i;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        result += p->par.c.rh[i]*charm_base_func(x, i, p);
+    }
+    return result;
+}
+
+
 double charm_get_field_rc(charm_data_t* p, double* x, int k)
 {
     double result = 0.;
@@ -195,23 +207,45 @@ double charm_get_field_rc(charm_data_t* p, double* x, int k)
     return result;
 }
 
-void charm_get_fields(charm_data_t* p, double* x, charm_cons_t* c){
+double charm_get_field_p(charm_data_t* p, double* x)
+{
+    double result = 0.;
+    int i;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        result += p->par.c.p[i]*charm_base_func(x, i, p);
+    }
+    return result;
+}
+
+
+void charm_get_fields(p4est_t *p4est, charm_data_t* p, double* x, charm_cons_t* c)
+{
     int k;
-    size_t c_count = CHARM_MAX_COMPONETS_COUNT; // @todo fix by real components count
+    charm_ctx_t * ctx       = charm_get_ctx(p4est);
+    size_t        c_count   = ctx->comp->elem_count;
+
 //    c->ro = charm_get_field_ro(p, x);
     c->ru = charm_get_field_ru(p, x);
     c->rv = charm_get_field_rv(p, x);
     c->rw = charm_get_field_rw(p, x);
-    c->re = charm_get_field_re(p, x);
     for (k = 0; k < c_count; k++) {
         c->rc[k] = charm_get_field_rc(p, x, k);
     }
+//    if (ctx->model == CHARM_MODEL_NS_LOW_MACH) {
+//        c->rh = charm_get_field_rh(p, x);
+//    }
+//    else {
+//        c->re = charm_get_field_re(p, x);
+//        c->p = charm_get_field_p(p, x);
+//        c->p0 = p->par.p0;
+//    }
 
     c->mat_id = p->par.mat_id;
 }
 
 
-void charm_get_fields_avg(charm_data_t* p, charm_cons_t* c)
+void charm_get_fields_avg(p4est_t *p4est, charm_data_t* p, charm_cons_t* c)
 {
     int k, igp;
     size_t c_count = CHARM_MAX_COMPONETS_COUNT; // @todo fix by real components count
