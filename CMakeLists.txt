@@ -71,7 +71,9 @@ add_executable(	charm_3d
         src/models/ns_low_mach/charm_model_ns_low_mach_diff_grad.c
         src/models/ns_low_mach/charm_model_ns_low_mach_diff_integrals.c
 
-        )
+        src/models/ns_low_mach/charm_model_ns_low_mach_pressure.cpp
+
+)
 
 target_link_libraries(charm_3d p4est sc m mxml)
 set_property(TARGET charm_3d PROPERTY C_STANDARD 99)
