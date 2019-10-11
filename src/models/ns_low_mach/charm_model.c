@@ -14,6 +14,7 @@
 
 void charm_model_ns_low_mach_timestep_conv(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 void charm_model_ns_low_mach_timestep_diff(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
+void charm_model_ns_low_mach_pressure(p4est_t * p4est, double *dt, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 
 
 static void _charm_model_ns_low_mach_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
@@ -195,8 +196,9 @@ void charm_model_ns_low_mach_timestep_single(p4est_t * p4est, double *dt, p4est_
                    charm_model_ns_low_mach_timestep_update_quad_iter_fn,
                    NULL, NULL, NULL);
 
-
     p4est_ghost_exchange_data (p4est, ghost, ghost_data); /* synchronize the ghost data */
+
+    charm_model_ns_low_mach_pressure(p4est, dt, ghost, ghost_data);
 
     charm_limiter(p4est, ghost, ghost_data);
 

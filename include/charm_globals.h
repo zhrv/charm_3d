@@ -297,6 +297,13 @@ typedef struct charm_param
         double z[CHARM_BASE_FN_COUNT];
     } q;
 
+    struct
+    {
+        double x[CHARM_BASE_FN_COUNT];
+        double y[CHARM_BASE_FN_COUNT];
+        double z[CHARM_BASE_FN_COUNT];
+    } grad_p;
+
     struct geom
     {
         double          n[CHARM_FACES][CHARM_DIM];
@@ -351,13 +358,20 @@ typedef struct charm_data
     double              int_q_y[CHARM_BASE_FN_COUNT];
     double              int_q_z[CHARM_BASE_FN_COUNT];
 
+    double              int_grad_p_x[CHARM_BASE_FN_COUNT];
+    double              int_grad_p_y[CHARM_BASE_FN_COUNT];
+    double              int_grad_p_z[CHARM_BASE_FN_COUNT];
+
+    double              div_vel[CHARM_BASE_FN_COUNT];
+
+    double              int_pi[CHARM_BASE_FN_COUNT];
+
     double              int_tau_xx[CHARM_BASE_FN_COUNT];
     double              int_tau_yy[CHARM_BASE_FN_COUNT];
     double              int_tau_zz[CHARM_BASE_FN_COUNT];
     double              int_tau_xy[CHARM_BASE_FN_COUNT];
     double              int_tau_xz[CHARM_BASE_FN_COUNT];
     double              int_tau_yz[CHARM_BASE_FN_COUNT];
-    double              int_pi[CHARM_BASE_FN_COUNT];
     int                 ref_flag;
 } charm_data_t;
 
@@ -426,6 +440,9 @@ typedef struct charm_ctx
     double              t;                  /**< the current time */
     double              time;               /**< the max time */
     int                 timestep;
+
+    int                 pressure_iterations;
+    double              pressure_tau;
 
     double              visc_m;
     double              visc_l;

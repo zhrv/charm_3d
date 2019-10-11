@@ -71,7 +71,10 @@ add_executable(	charm_3d
         src/models/ns_low_mach/charm_model_ns_low_mach_diff_grad.c
         src/models/ns_low_mach/charm_model_ns_low_mach_diff_integrals.c
 
-        src/models/ns_low_mach/charm_model_ns_low_mach_pressure.cpp
+        src/models/ns_low_mach/charm_model_ns_low_mach_pressure.c
+        src/models/ns_low_mach/charm_model_ns_low_mach_pressure_grad.c
+        src/models/ns_low_mach/charm_model_ns_low_mach_pressure_integrals.c
+        src/models/ns_low_mach/charm_model_ns_low_mach_pressure_div_vel.c
 
 )
 
