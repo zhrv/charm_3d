@@ -36,9 +36,9 @@ static void _charm_model_ns_low_mach_pressure_grad_volume_int_iter_fn (p4est_ite
             phi_y = charm_base_func_dy(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
             phi_z = charm_base_func_dz(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
 
-            data->int_grad_p_x[ibf] += p.p*phi_x;
-            data->int_grad_p_y[ibf] += p.p*phi_y;
-            data->int_grad_p_z[ibf] += p.p*phi_z;
+            data->int_grad_p_x[ibf] -= p.p*phi_x;
+            data->int_grad_p_y[ibf] -= p.p*phi_y;
+            data->int_grad_p_z[ibf] -= p.p*phi_z;
         }
     }
 }
@@ -118,9 +118,9 @@ static void _charm_model_ns_low_mach_pressure_grad_surface_int_iter_bnd (p4est_i
             if (!side[0]->is.full.is_ghost) {
                 bfv = charm_base_func(x, ibf, udata) * gw * gj;
 
-                udata->int_grad_p_x[ibf] -= qpx * bfv;
-                udata->int_grad_p_y[ibf] -= qpy * bfv;
-                udata->int_grad_p_z[ibf] -= qpz * bfv;
+                udata->int_grad_p_x[ibf] += qpx * bfv;
+                udata->int_grad_p_y[ibf] += qpy * bfv;
+                udata->int_grad_p_z[ibf] += qpz * bfv;
             }
         }
     }
@@ -211,9 +211,9 @@ static void _charm_model_ns_low_mach_pressure_grad_surface_int_iter_inner (p4est
                         if (!side[i]->is.full.is_ghost) {
                             bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
 
-                            udata[i]->int_grad_p_x[ibf] -= qpx * bfv;
-                            udata[i]->int_grad_p_y[ibf] -= qpy * bfv;
-                            udata[i]->int_grad_p_z[ibf] -= qpz * bfv;
+                            udata[i]->int_grad_p_x[ibf] += qpx * bfv;
+                            udata[i]->int_grad_p_y[ibf] += qpy * bfv;
+                            udata[i]->int_grad_p_z[ibf] += qpz * bfv;
                         }
                     }
                 }
@@ -265,9 +265,9 @@ static void _charm_model_ns_low_mach_pressure_grad_surface_int_iter_inner (p4est
                     if (!side[i]->is.full.is_ghost) {
                         bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
 
-                        udata[i]->int_grad_p_x[ibf] -= qpx * bfv;
-                        udata[i]->int_grad_p_y[ibf] -= qpy * bfv;
-                        udata[i]->int_grad_p_z[ibf] -= qpz * bfv;
+                        udata[i]->int_grad_p_x[ibf] += qpx * bfv;
+                        udata[i]->int_grad_p_y[ibf] += qpy * bfv;
+                        udata[i]->int_grad_p_z[ibf] += qpz * bfv;
                     }
                 }
             }

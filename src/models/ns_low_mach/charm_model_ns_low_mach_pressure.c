@@ -16,12 +16,11 @@ void charm_model_ns_low_mach_pressure_integrals(p4est_t * p4est, p4est_ghost_t *
 static void _charm_model_ns_low_mach_pressure_update_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
-    charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
     double              dt = *((double *) user_data);
     int                 i;
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->par.c.p[i] -= _NORM_(dt * data->int_pi[i]);
+        data->par.c.p[i] += _NORM_(dt * data->int_pi[i]);
     }
 }
 
@@ -29,7 +28,7 @@ static void _charm_model_ns_low_mach_pressure_update_quad_iter_fn (p4est_iter_vo
 static void _charm_model_ns_low_mach_pressure_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
-    int                 i, j;
+    int                 i;
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
         data->int_pi[i] = data->div_vel[i];
@@ -75,4 +74,5 @@ void charm_model_ns_low_mach_pressure(p4est_t * p4est, double *dt, p4est_ghost_t
                   (void *) dt,
                   _charm_model_ns_low_mach_pressure_correct_vel_quad_iter_fn,
                   NULL, NULL, NULL);
+    p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 }

@@ -37,7 +37,7 @@ static void _charm_model_ns_low_mach_pressure_div_vel_volume_int_iter_fn (p4est_
             phi_y = charm_base_func_dy(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
             phi_z = charm_base_func_dz(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
 
-            data->div_vel[ibf] += p.u*phi_x + p.v*phi_y + p.w*phi_z;
+            data->div_vel[ibf] -= p.u*phi_x + p.v*phi_y + p.w*phi_z;
         }
     }
 }
@@ -117,7 +117,7 @@ static void _charm_model_ns_low_mach_pressure_div_vel_surface_int_iter_bnd (p4es
             if (!side[0]->is.full.is_ghost) {
                 bfv = charm_base_func(x, ibf, udata) * gw * gj;
 
-                udata->div_vel[ibf] -= qu * bfv;
+                udata->div_vel[ibf] += qu * bfv;
             }
         }
     }
@@ -208,7 +208,7 @@ static void _charm_model_ns_low_mach_pressure_div_vel_surface_int_iter_inner (p4
                         if (!side[i]->is.full.is_ghost) {
                             bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
 
-                            udata[i]->div_vel[ibf] -= qu * bfv;
+                            udata[i]->div_vel[ibf] += qu * bfv;
                         }
                     }
                 }
@@ -259,7 +259,7 @@ static void _charm_model_ns_low_mach_pressure_div_vel_surface_int_iter_inner (p4
                     if (!side[i]->is.full.is_ghost) {
                         bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
 
-                        udata[i]->div_vel[ibf] -= qu * bfv;
+                        udata[i]->div_vel[ibf] += qu * bfv;
                     }
                 }
             }

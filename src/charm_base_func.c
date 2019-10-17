@@ -388,3 +388,16 @@ void charm_get_heat_q(charm_data_t *p, double* x, double *q)
         q[2] += p->par.q.z[i]*charm_base_func(x, i, p);
     }
 }
+
+void charm_get_grad_p(charm_data_t *p, double* x, double *grad_p)
+{
+    int i;
+
+    memset(grad_p, 0, sizeof(double)*3);
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        grad_p[0] += p->par.grad_p.x[i]*charm_base_func(x, i, p);
+        grad_p[1] += p->par.grad_p.y[i]*charm_base_func(x, i, p);
+        grad_p[2] += p->par.grad_p.z[i]*charm_base_func(x, i, p);
+    }
+}

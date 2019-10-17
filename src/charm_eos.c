@@ -88,7 +88,7 @@ void charm_mat_eos_ideal_low_mach(p4est_t * p4est, charm_prim_t * p, int flag)
     switch (flag)
     {
         case 0:		// p=p(r,e)
-            CHARM_ASSERT(flag ! = 0);
+            CHARM_ASSERT(flag != 0);
             break;
 
         case 1:		// e=e(r,p)
@@ -217,7 +217,7 @@ void charm_mat_eos_mix_low_mach(p4est_t * p4est, charm_prim_t * p, int flag)
     switch (flag)
     {
         case 0:		// p=p(r,e)
-            CHARM_ASSERT(flag ! = 0);
+            CHARM_ASSERT(flag != 0);
             break;
 
         case 1:		// e=e(r,p)

@@ -15,7 +15,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
     charm_data_t       *data    = (charm_data_t *) q->p.user_data;
     charm_param_t      *par     = &data->par;
-    charm_prim_t   prim;
+    charm_prim_t        prim;
     charm_cons_t        cons;
     charm_tree_attr_t  *attr;
     charm_reg_t        *reg;
@@ -406,11 +406,11 @@ void charm_init_context(charm_ctx_t *ctx)
         ctx->model = CHARM_MODEL_EULER;
         charm_model_euler_init(ctx, charm_xml_node_get_child(node, "MODEL"));
     }
-    if (strcmp(str, "NS") == 0) {
+    else if (strcmp(str, "NS") == 0) {
         ctx->model = CHARM_MODEL_NS;
         charm_model_ns_init(ctx, charm_xml_node_get_child(node, "MODEL"));
     }
-    if (strcmp(str, "NS_LOW_MACH") == 0) {
+    else if (strcmp(str, "NS_LOW_MACH") == 0) {
         ctx->model = CHARM_MODEL_NS_LOW_MACH;
         charm_model_ns_low_mach_init(ctx, charm_xml_node_get_child(node, "MODEL"));
     }

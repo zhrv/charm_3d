@@ -18,34 +18,23 @@
 
 static void _charm_model_ns_low_mach_pressure_integrals_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
-    p4est_t            *p4est = info->p4est;
     p4est_quadrant_t   *q = info->quad;
     charm_data_t       *data = charm_get_quad_data(q);
     int                 ibf, igp;
-    charm_cons_t        c;
-    charm_prim_t        p;
-    double              phi_x, phi_y, phi_z, phi;
+    double              grad_p[3];
+    double              phi_x, phi_y, phi_z;
     double             *x;
-    charm_tensor_t      tau;
 
     for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
         for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
             x = data->par.g.quad_gp[igp];
-            charm_get_fields(p4est, data, x, &c);
-            charm_param_cons_to_prim(info->p4est, &p, &c);
-            charm_get_visc_tau(data, x, &tau);
+            charm_get_grad_p(data, x, grad_p);
 
             phi_x = charm_base_func_dx(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
             phi_y = charm_base_func_dy(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
             phi_z = charm_base_func_dz(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
 
-            data->int_ru[ibf] += (tau.xx*phi_x+tau.xy*phi_y+tau.xz*phi_z);
-            data->int_rv[ibf] += (tau.xy*phi_x+tau.yy*phi_y+tau.yz*phi_z);
-            data->int_rw[ibf] += (tau.xz*phi_x+tau.yz*phi_y+tau.zz*phi_z);
-
-            data->int_rh[ibf] += (tau.xx*p.u+tau.xy*p.v+tau.xz*p.w)*phi_x;
-            data->int_rh[ibf] += (tau.xy*p.u+tau.yy*p.v+tau.yz*p.w)*phi_y;
-            data->int_rh[ibf] += (tau.xz*p.u+tau.yz*p.v+tau.zz*p.w)*phi_z;
+            data->int_pi[ibf] += (grad_p[0]*phi_x+grad_p[1]*phi_y+grad_p[2]*phi_z);
         }
     }
 }
@@ -60,18 +49,14 @@ static void _charm_model_ns_low_mach_pressure_integrals_surface_int_iter_bnd (p4
     charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
     double n[3];
-    double qu, qv, qw, qh, qt[3];
-    double                  fu, fv, fw, ft;
-    double bfv;
+    double fp, bfv, grad_p[3];
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
-    charm_tensor_t          tau[2], ftau;
     int8_t face;
     double c[2][3], l[3];
     charm_cons_t cons;
     charm_prim_t prim[2];
     double *x, gw, gj;
-    double mu;
 
 
     CHARM_ASSERT(info->tree_boundary);
@@ -103,94 +88,24 @@ static void _charm_model_ns_low_mach_pressure_integrals_surface_int_iter_bnd (p4
             }
         }
 
-//        x  = udata->par.g.fc[face];
-//        gw = 1.;
-//        gj = udata->par.g.area[face];
-//        mu = charm_get_visc_mu(p4est, x, udata);
-//        charm_get_fields_avg(udata, &cons);
-//        charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
-//        charm_get_heat_q(udata, x, qt);
-//        charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
-//        double vv[3] = {prim[0].u, prim[0].v, prim[0].w};
-//        double un = scalar_prod(vv, n);
-//        double vn[3] = {un*n[0], un*n[1], un*n[2]};
-//        double vt[3] = {vv[0]-vn[0], vv[1]-vn[1], vv[2]-vn[2]};
-//        double ll = vect_length(l);
-//        qu = -mu*vt[0]/ll;
-//        qv = -mu*vt[1]/ll;
-//        qw = -mu*vt[2]/ll;
-//        qe = -qt[0]*n[0]-qt[1]*n[1]-qt[2]*n[2];
-//        for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
-//            if (!side[0]->is.full.is_ghost) {
-//                bfv = charm_base_func(x, ibf, udata) * gw * gj;
-//                udata->int_ru[ibf] -= qu * bfv;
-//                udata->int_rv[ibf] -= qv * bfv;
-//                udata->int_rw[ibf] -= qw * bfv;
-//                udata->int_re[ibf] -= qe * bfv;
-//            }
-//        }
         for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
             x  = udata->par.g.face_gp[face][igp];
             gw = udata->par.g.face_gw[face][igp];
             gj = udata->par.g.face_gj[face][igp];
-            charm_tensor_zero(&ftau);
-            fu = fv = fw = ft = 0.;
-            for (i = 0; i < 2; i++) {
-                charm_get_fields(p4est, udata, x, &(cons));
+            fp = 0.;
+            for (i = 0; i < 2; i++) { // @todo
+                charm_get_grad_p(udata, x, grad_p);
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons));
-                charm_get_heat_q(udata, x, qt);
-                charm_get_visc_tau(udata, x, &(tau[i]));
-                charm_tensor_add(&ftau, &(tau[i]));
-                fu += prim[i].u*tau[i].xx + prim[i].v*tau[i].xy + prim[i].w*tau[i].xz;
-                fv += prim[i].u*tau[i].xy + prim[i].v*tau[i].yy + prim[i].w*tau[i].yz;
-                fw += prim[i].u*tau[i].xz + prim[i].v*tau[i].yz + prim[i].w*tau[i].zz;
-                ft += qt[0]*n[0] + qt[1]*n[1] + qt[2]*n[2];
+                fp += grad_p[0]*n[0] + grad_p[1]*n[1] + grad_p[2]*n[2];
             }
-            charm_tensor_mul_scalar(&ftau, 0.5);
-            fu *= 0.5;
-            fv *= 0.5;
-            fw *= 0.5;
-            ft *= 0.5;
-            qu = ftau.xx*n[0] + ftau.xy*n[1] + ftau.xz*n[2];
-            qv = ftau.xy*n[0] + ftau.yy*n[1] + ftau.yz*n[2];
-            qw = ftau.xz*n[0] + ftau.yz*n[1] + ftau.zz*n[2];
-            qh = fu*n[0] + fv*n[1] + fw*n[2] - ft;
+            fp *= 0.5;
             for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                 if (!side[0]->is.full.is_ghost) {
                     bfv = charm_base_func(x, ibf, udata) * gw * gj;
-                    udata->int_ru[ibf] -= qu * bfv;
-                    udata->int_rv[ibf] -= qv * bfv;
-                    udata->int_rw[ibf] -= qw * bfv;
-                    udata->int_rh[ibf] -= qh * bfv;
+                    udata->int_pi[ibf] -= fp * bfv;
                 }
             }
         }
-//        for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
-//            x = udata->par.g.face_gp[face][igp];
-//            gw = udata->par.g.face_gw[face][igp];
-//            gj = udata->par.g.face_gj[face][igp];
-//            charm_get_fields(udata, x, &cons);
-//            charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
-//            charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
-//            double vv[3] = {prim[0].u, prim[0].v, prim[0].w};
-//            double un = scalar_prod(vv, n);
-//            double vn[3] = {un*n[0], un*n[1], un*n[2]};
-//            double vt[3] = {vv[0]-vn[0], vv[1]-vn[1], vv[2]-vn[2]};
-//            double ll = sqrt(scalar_prod(l,l));
-//            qu = -mu*vt[0]/ll;
-//            qv = -mu*vt[1]/ll;
-//            qw = -mu*vt[2]/ll;
-//            qe = 0.;
-//            for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
-//                if (!side[0]->is.full.is_ghost) {
-//                    bfv = charm_base_func(x, ibf, udata) * gw * gj;
-//                    udata->int_ru[ibf] -= qu * bfv;
-//                    udata->int_rv[ibf] -= qv * bfv;
-//                    udata->int_rw[ibf] -= qw * bfv;
-//                    udata->int_re[ibf] -= qe * bfv;
-//                }
-//            }
-//        }
     }
 }
 
@@ -203,15 +118,14 @@ static void _charm_model_ns_low_mach_pressure_integrals_surface_int_iter_inner (
     charm_data_t           *ghost_data = (charm_data_t *) user_data;
     charm_data_t           *udata[2];
     double                  n[3];
-    double                  qu, qv, qw, qh, qt[3];
-    double                  fu, fv, fw, ft;
+    double                  fp;
     p4est_iter_face_side_t *side[2];
     sc_array_t             *sides = &(info->sides);
     charm_cons_t            cons[2];
     charm_prim_t            prim[2];
     charm_tensor_t          tau[2], ftau;
     double                 *x, gw, gj;
-    double                  bfv;
+    double                  bfv, grad_p[3];
     double                  c[2][3];
     double                  l[3];
     int8_t                  face[2];
@@ -265,35 +179,17 @@ static void _charm_model_ns_low_mach_pressure_integrals_surface_int_iter_inner (
                 gw = udata[h_side]->par.g.face_gw[face[h_side]][igp];
                 gj = udata[h_side]->par.g.face_gj[face[h_side]][igp];
                 charm_tensor_zero(&ftau);
-                fu = fv = fw = ft = 0.;
+                fp = 0.;
                 for (i = 0; i < 2; i++) {
-                    charm_get_fields(p4est, udata[i], x, &(cons[i]));
-                    charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
-                    charm_get_heat_q(udata[i], x, qt);
-                    charm_get_visc_tau(udata[i], x, &(tau[i]));
-                    charm_tensor_add(&ftau, &(tau[i]));
-                    fu += prim[i].u*tau[i].xx + prim[i].v*tau[i].xy + prim[i].w*tau[i].xz;
-                    fv += prim[i].u*tau[i].xy + prim[i].v*tau[i].yy + prim[i].w*tau[i].yz;
-                    fw += prim[i].u*tau[i].xz + prim[i].v*tau[i].yz + prim[i].w*tau[i].zz;
-                    ft += qt[0]*n[0] + qt[1]*n[1] + qt[2]*n[2];
+                    charm_get_grad_p(udata[i], x, grad_p);
+                    fp += grad_p[0]*n[0] + grad_p[1]*n[1] + grad_p[2]*n[2];
                 }
-                charm_tensor_mul_scalar(&ftau, 0.5);
-                fu *= 0.5;
-                fv *= 0.5;
-                fw *= 0.5;
-                ft *= 0.5;
-                qu = ftau.xx*n[0] + ftau.xy*n[1] + ftau.xz*n[2];
-                qv = ftau.xy*n[0] + ftau.yy*n[1] + ftau.yz*n[2];
-                qw = ftau.xz*n[0] + ftau.yz*n[1] + ftau.zz*n[2];
-                qh = fu*n[0] + fv*n[1] + fw*n[2] - ft;
+                fp *= 0.5;
                 for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                     for (i = 0; i < 2; i++) {
                         if (!side[i]->is.full.is_ghost) {
                             bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
-                            udata[i]->int_ru[ibf] -= qu * bfv;
-                            udata[i]->int_rv[ibf] -= qv * bfv;
-                            udata[i]->int_rw[ibf] -= qw * bfv;
-                            udata[i]->int_rh[ibf] -= qh * bfv;
+                            udata[i]->int_pi[ibf] -= fp * bfv;
                         }
                     }
                 }
@@ -330,35 +226,18 @@ static void _charm_model_ns_low_mach_pressure_integrals_surface_int_iter_inner (
             gw = udata[0]->par.g.face_gw[face[0]][igp];
             gj = udata[0]->par.g.face_gj[face[0]][igp];
             charm_tensor_zero(&ftau);
-            fu = fv = fw = ft = 0.;
+            fp = 0.;
             for (i = 0; i < 2; i++) {
-                charm_get_fields(p4est, udata[i], x, &(cons[i]));
-                charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
-                charm_get_heat_q(udata[i], x, qt);
-                charm_get_visc_tau(udata[i], x, &(tau[i]));
-                charm_tensor_add(&ftau, &(tau[i]));
-                fu += prim[i].u*tau[i].xx + prim[i].v*tau[i].xy + prim[i].w*tau[i].xz;
-                fv += prim[i].u*tau[i].xy + prim[i].v*tau[i].yy + prim[i].w*tau[i].yz;
-                fw += prim[i].u*tau[i].xz + prim[i].v*tau[i].yz + prim[i].w*tau[i].zz;
-                ft += qt[0]*n[0] + qt[1]*n[1] + qt[2]*n[2];
+                charm_get_grad_p(udata[i], x, grad_p);
+                fp += grad_p[0]*n[0] + grad_p[1]*n[1] + grad_p[2]*n[2];
             }
             charm_tensor_mul_scalar(&ftau, 0.5);
-            fu *= 0.5;
-            fv *= 0.5;
-            fw *= 0.5;
-            ft *= 0.5;
-            qu = ftau.xx*n[0] + ftau.xy*n[1] + ftau.xz*n[2];
-            qv = ftau.xy*n[0] + ftau.yy*n[1] + ftau.yz*n[2];
-            qw = ftau.xz*n[0] + ftau.yz*n[1] + ftau.zz*n[2];
-            qh = fu*n[0] + fv*n[1] + fw*n[2] - ft;
+            fp *= 0.5;
             for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                 for (i = 0; i < 2; i++) {
                     if (!side[i]->is.full.is_ghost) {
                         bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
-                        udata[i]->int_ru[ibf] -= qu * bfv;
-                        udata[i]->int_rv[ibf] -= qv * bfv;
-                        udata[i]->int_rw[ibf] -= qw * bfv;
-                        udata[i]->int_rh[ibf] -= qh * bfv;
+                        udata[i]->int_pi[ibf] -= fp * bfv;
                     }
                 }
             }
