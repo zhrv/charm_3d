@@ -232,14 +232,18 @@ void charm_get_fields(p4est_t *p4est, charm_data_t* p, double* x, charm_cons_t* 
     for (k = 0; k < c_count; k++) {
         c->rc[k] = charm_get_field_rc(p, x, k);
     }
-//    if (ctx->model == CHARM_MODEL_NS_LOW_MACH) {
-//        c->rh = charm_get_field_rh(p, x);
-//    }
-//    else {
-//        c->re = charm_get_field_re(p, x);
-//        c->p = charm_get_field_p(p, x);
-//        c->p0 = p->par.p0;
-//    }
+
+    if (ctx->model == CHARM_MODEL_NS_LOW_MACH) {  // @todo
+        c->rh = charm_get_field_rh(p, x);
+        c->p = charm_get_field_p(p, x);
+        c->p0 = p->par.p0;
+        c->re = c->rh-c->p0;
+    }
+    else {
+        c->re = charm_get_field_re(p, x);
+        c->rh = c->re+c->p0;
+        c->p = c->p0 = 0.;
+    }
 
     c->mat_id = p->par.mat_id;
 }

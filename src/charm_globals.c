@@ -229,7 +229,7 @@ void charm_param_prim_to_cons(p4est_t * p4est, charm_cons_t * c, charm_prim_t * 
     }
     else {
         c->re = p->r * (p->e + 0.5 * _MAG_(p->u, p->v, p->w));
-        c->rh = c->re + p->p0;
+        c->rh = c->re + p->p;
     }
     for (i = 0; i < c_count; i++) {
         c->rc[i] = p->r * p->c[i];
@@ -251,6 +251,7 @@ void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src)
     dest->cp     = src->cp;
     dest->cv     = src->cv;
     dest->gam    = src->gam;
+    dest->p0     = src->p0;
     memcpy(dest->c, src->c, CHARM_MAX_COMPONETS_COUNT*sizeof(double));
 }
 

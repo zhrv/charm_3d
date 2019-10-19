@@ -189,7 +189,7 @@ void charm_model_ns_low_mach_timestep_single(p4est_t * p4est, double *dt, p4est_
                    NULL, NULL, NULL);
 
     charm_model_ns_low_mach_timestep_conv(p4est, ghost, ghost_data);
-    charm_model_ns_low_mach_timestep_diff(p4est, ghost, ghost_data);
+    //charm_model_ns_low_mach_timestep_diff(p4est, ghost, ghost_data);
 
     p4est_iterate (p4est, NULL,
                    (void *) dt,
@@ -212,5 +212,8 @@ void charm_model_ns_low_mach_init(charm_ctx_t *ctx, mxml_node_t *node)
 {
     ctx->get_dt_fn              = charm_model_ns_low_mach_get_dt;
     ctx->timestep_single_fn     = charm_model_ns_low_mach_timestep_single;
+
+    charm_xml_node_child_param_int(node, "PRESSURE_ITERATIONS", &(ctx->pressure_iterations));
+    charm_xml_node_child_param_dbl(node, "PRESSURE_TAU",        &(ctx->pressure_tau));
 }
 

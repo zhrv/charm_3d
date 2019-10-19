@@ -327,11 +327,11 @@ static void _charm_calc_flux_hllc_x_1(p4est_t *p4est, charm_prim_t prim[2], doub
     size_t          c_count = charm_get_comp_count(p4est);
     double          sl, sr, p_star, s_star, p_pvrs, ql, qr, tmp;
 
-    p_pvrs = 0.5*(prim[0].p+prim[1].p)-0.5*(prim[1].u-prim[0].u)*0.25*(prim[0].r+prim[1].r)*(prim[0].cz+prim[1].cz);
+    p_pvrs = 0.5*(prim[0].p0+prim[1].p0)-0.5*(prim[1].u-prim[0].u)*0.25*(prim[0].r+prim[1].r)*(prim[0].cz+prim[1].cz);
     p_star = (p_pvrs > 0.) ? p_pvrs : 0.;
 
-    ql = (p_star <= prim[0].p) ? 1 : sqrt(1.+(prim[0].gam+1.)*(p_star/prim[0].p-1.)/(2.*prim[0].gam));
-    qr = (p_star <= prim[1].p) ? 1 : sqrt(1.+(prim[1].gam+1.)*(p_star/prim[1].p-1.)/(2.*prim[1].gam));
+    ql = (p_star <= prim[0].p0) ? 1 : sqrt(1.+(prim[0].gam+1.)*(p_star/prim[0].p0-1.)/(2.*prim[0].gam));
+    qr = (p_star <= prim[1].p0) ? 1 : sqrt(1.+(prim[1].gam+1.)*(p_star/prim[1].p0-1.)/(2.*prim[1].gam));
 
     sl = prim[0].u-prim[0].cz*ql;
     sr = prim[1].u+prim[1].cz*qr;
@@ -342,7 +342,7 @@ static void _charm_calc_flux_hllc_x_1(p4est_t *p4est, charm_prim_t prim[2], doub
         sr = tmp;
     }
 
-    s_star  = prim[1].p-prim[0].p;
+    s_star  = prim[1].p0-prim[0].p0;
     s_star += prim[0].r*prim[0].u*(sl-prim[0].u);
     s_star -= prim[1].r*prim[1].u*(sr-prim[1].u);
     s_star /= (prim[0].r*(sl-prim[0].u)-prim[1].r*(sr-prim[1].u));
@@ -357,19 +357,19 @@ static void _charm_calc_flux_hllc_x_1(p4est_t *p4est, charm_prim_t prim[2], doub
     }
 
     if (sl >= 0.) {
-        *qu = prim[0].r*prim[0].u*prim[0].u+prim[0].p;
+        *qu = prim[0].r*prim[0].u*prim[0].u+prim[0].p0;
         *qv = prim[0].r*prim[0].v*prim[0].u;
         *qw = prim[0].r*prim[0].w*prim[0].u;
-        *qe = (prim[0].r*prim[0].e_tot+prim[0].p)*prim[0].u;
+        *qe = (prim[0].r*prim[0].e_tot+prim[0].p0)*prim[0].u;
         for (i = 0; i < c_count; i++) {
             qc[i] = prim[0].r*prim[0].u*prim[0].c[i];
         }
     }
     else if (sr <= 0.) {
-        *qu = prim[1].r*prim[1].u*prim[1].u+prim[1].p;
+        *qu = prim[1].r*prim[1].u*prim[1].u+prim[1].p0;
         *qv = prim[1].r*prim[1].v*prim[1].u;
         *qw = prim[1].r*prim[1].w*prim[1].u;
-        *qe = (prim[1].r*prim[1].e_tot+prim[1].p)*prim[1].u;
+        *qe = (prim[1].r*prim[1].e_tot+prim[1].p0)*prim[1].u;
         for (i = 0; i < c_count; i++) {
             qc[i] = prim[1].r*prim[1].u*prim[1].c[i];
         }
@@ -378,58 +378,173 @@ static void _charm_calc_flux_hllc_x_1(p4est_t *p4est, charm_prim_t prim[2], doub
         if (s_star >= 0) {
             *qu = F_HLLC_U( /*  UK, FK, SK, SS, PK, RK, VK */
                     prim[0].r * prim[0].u,
-                    prim[0].r * prim[0].u * prim[0].u + prim[0].p,
-                    sl, s_star, prim[0].p, prim[0].r, prim[0].u
+                    prim[0].r * prim[0].u * prim[0].u + prim[0].p0,
+                    sl, s_star, prim[0].p0, prim[0].r, prim[0].u
             );
             *qv = F_HLLC_V( /*  UK, FK, SK, SS, PK, RK, VK */
                     prim[0].r * prim[0].v,
                     prim[0].r * prim[0].u * prim[0].v,
-                    sl, s_star, prim[0].p, prim[0].r, prim[0].u
+                    sl, s_star, prim[0].p0, prim[0].r, prim[0].u
             );
             *qw = F_HLLC_V( /*  UK, FK, SK, SS, PK, RK, VK */
                     prim[0].r * prim[0].w,
                     prim[0].r * prim[0].u * prim[0].w,
-                    sl, s_star, prim[0].p, prim[0].r, prim[0].u
+                    sl, s_star, prim[0].p0, prim[0].r, prim[0].u
             );
             *qe = F_HLLC_E( /*  UK, FK, SK, SS, PK, RK, VK */
                     prim[0].r * prim[0].e_tot,
-                    (prim[0].r * prim[0].e_tot + prim[0].p)*prim[0].u,
-                    sl, s_star, prim[0].p, prim[0].r, prim[0].u
+                    (prim[0].r * prim[0].e_tot + prim[0].p0)*prim[0].u,
+                    sl, s_star, prim[0].p0, prim[0].r, prim[0].u
             );
             for (i = 0; i < c_count; i++) {
                 qc[i] = F_HLLC_V( /*  UK, FK, SK, SS, PK, RK, VK */
                         prim[0].r * prim[0].c[i],
                         prim[0].r * prim[0].c[i] * prim[0].u,
-                        sl, s_star, prim[0].p, prim[0].r, prim[0].u
+                        sl, s_star, prim[0].p0, prim[0].r, prim[0].u
                 );
             }
         }
         else {
             *qu = F_HLLC_U( /*  UK, FK, SK, SS, PK, RK, VK */
                     prim[1].r * prim[1].u,
-                    prim[1].r * prim[1].u * prim[1].u + prim[1].p,
-                    sr, s_star, prim[1].p, prim[1].r, prim[1].u
+                    prim[1].r * prim[1].u * prim[1].u + prim[1].p0,
+                    sr, s_star, prim[1].p0, prim[1].r, prim[1].u
             );
             *qv = F_HLLC_V( /*  UK, FK, SK, SS, PK, RK, VK */
                     prim[1].r * prim[1].v,
                     prim[1].r * prim[1].u * prim[1].v,
-                    sr, s_star, prim[1].p, prim[1].r, prim[1].u
+                    sr, s_star, prim[1].p0, prim[1].r, prim[1].u
             );
             *qw = F_HLLC_V( /*  UK, FK, SK, SS, PK, RK, VK */
                     prim[1].r * prim[1].w,
                     prim[1].r * prim[1].u * prim[1].w,
-                    sr, s_star, prim[1].p, prim[1].r, prim[1].u
+                    sr, s_star, prim[1].p0, prim[1].r, prim[1].u
             );
             *qe = F_HLLC_E( /*  UK, FK, SK, SS, PK, RK, VK */
                     prim[1].r * prim[1].e_tot,
-                    (prim[1].r * prim[1].e_tot + prim[1].p)*prim[1].u,
-                    sr, s_star, prim[1].p, prim[1].r, prim[1].u
+                    (prim[1].r * prim[1].e_tot + prim[1].p0)*prim[1].u,
+                    sr, s_star, prim[1].p0, prim[1].r, prim[1].u
             );
             for (i = 0; i < c_count; i++) {
                 qc[i] = F_HLLC_V( /*  UK, FK, SK, SS, PK, RK, VK */
                         prim[1].r * prim[1].c[i],
                         prim[1].r * prim[1].c[i] * prim[1].u,
-                        sr, s_star, prim[1].p, prim[1].r, prim[1].u
+                        sr, s_star, prim[1].p0, prim[1].r, prim[1].u
+                );
+            }
+        }
+    }
+}
+
+static void _charm_calc_flux_hllc_x_1_low_mach(p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[])
+{
+    int             i;
+    size_t          c_count = charm_get_comp_count(p4est);
+    double          sl, sr, p_star, s_star, p_pvrs, ql, qr, tmp;
+
+    p_pvrs = 0.5*(prim[0].p0+prim[1].p0)-0.5*(prim[1].u-prim[0].u)*0.25*(prim[0].r+prim[1].r)*(prim[0].cz+prim[1].cz);
+    p_star = (p_pvrs > 0.) ? p_pvrs : 0.;
+
+    ql = (p_star <= prim[0].p0) ? 1 : sqrt(1.+(prim[0].gam+1.)*(p_star/prim[0].p0-1.)/(2.*prim[0].gam));
+    qr = (p_star <= prim[1].p0) ? 1 : sqrt(1.+(prim[1].gam+1.)*(p_star/prim[1].p0-1.)/(2.*prim[1].gam));
+
+    sl = prim[0].u-prim[0].cz*ql;
+    sr = prim[1].u+prim[1].cz*qr;
+
+    if (sl>sr) {
+        tmp = sl;
+        sl = sr;
+        sr = tmp;
+    }
+
+    s_star  = prim[1].p0-prim[0].p0;
+    s_star += prim[0].r*prim[0].u*(sl-prim[0].u);
+    s_star -= prim[1].r*prim[1].u*(sr-prim[1].u);
+    s_star /= (prim[0].r*(sl-prim[0].u)-prim[1].r*(sr-prim[1].u));
+
+    if (s_star < sl) s_star = sl;
+    if (s_star > sr) s_star = sr;
+
+
+    if (!((sl <= s_star) && (s_star <= sr))) {
+        CHARM_LERROR("HLLC: inequality SL <= S* <= SR is FALSE.\n");
+        charm_abort(p4est, 1);
+    }
+
+    if (sl >= 0.) {
+        *qu = prim[0].r*prim[0].u*prim[0].u+prim[0].p0;
+        *qv = prim[0].r*prim[0].v*prim[0].u;
+        *qw = prim[0].r*prim[0].w*prim[0].u;
+        *qe = (prim[0].r*prim[0].e_tot+prim[0].p0)*prim[0].u;
+        for (i = 0; i < c_count; i++) {
+            qc[i] = prim[0].r*prim[0].u*prim[0].c[i];
+        }
+    }
+    else if (sr <= 0.) {
+        *qu = prim[1].r*prim[1].u*prim[1].u+prim[1].p0;
+        *qv = prim[1].r*prim[1].v*prim[1].u;
+        *qw = prim[1].r*prim[1].w*prim[1].u;
+        *qe = (prim[1].r*prim[1].e_tot+prim[1].p0)*prim[1].u;
+        for (i = 0; i < c_count; i++) {
+            qc[i] = prim[1].r*prim[1].u*prim[1].c[i];
+        }
+    }
+    else {
+        if (s_star >= 0) {
+            *qu = F_HLLC_U( /*  UK, FK, SK, SS, PK, RK, VK */
+                    prim[0].r * prim[0].u,
+                    prim[0].r * prim[0].u * prim[0].u + prim[0].p0,
+                    sl, s_star, prim[0].p0, prim[0].r, prim[0].u
+            );
+            *qv = F_HLLC_V( /*  UK, FK, SK, SS, PK, RK, VK */
+                    prim[0].r * prim[0].v,
+                    prim[0].r * prim[0].u * prim[0].v,
+                    sl, s_star, prim[0].p0, prim[0].r, prim[0].u
+            );
+            *qw = F_HLLC_V( /*  UK, FK, SK, SS, PK, RK, VK */
+                    prim[0].r * prim[0].w,
+                    prim[0].r * prim[0].u * prim[0].w,
+                    sl, s_star, prim[0].p0, prim[0].r, prim[0].u
+            );
+            *qe = F_HLLC_E( /*  UK, FK, SK, SS, PK, RK, VK */
+                    prim[0].r * prim[0].e_tot,
+                    (prim[0].r * prim[0].e_tot + prim[0].p0)*prim[0].u,
+                    sl, s_star, prim[0].p0, prim[0].r, prim[0].u
+            );
+            for (i = 0; i < c_count; i++) {
+                qc[i] = F_HLLC_V( /*  UK, FK, SK, SS, PK, RK, VK */
+                        prim[0].r * prim[0].c[i],
+                        prim[0].r * prim[0].c[i] * prim[0].u,
+                        sl, s_star, prim[0].p0, prim[0].r, prim[0].u
+                );
+            }
+        }
+        else {
+            *qu = F_HLLC_U( /*  UK, FK, SK, SS, PK, RK, VK */
+                    prim[1].r * prim[1].u,
+                    prim[1].r * prim[1].u * prim[1].u + prim[1].p0,
+                    sr, s_star, prim[1].p0, prim[1].r, prim[1].u
+            );
+            *qv = F_HLLC_V( /*  UK, FK, SK, SS, PK, RK, VK */
+                    prim[1].r * prim[1].v,
+                    prim[1].r * prim[1].u * prim[1].v,
+                    sr, s_star, prim[1].p0, prim[1].r, prim[1].u
+            );
+            *qw = F_HLLC_V( /*  UK, FK, SK, SS, PK, RK, VK */
+                    prim[1].r * prim[1].w,
+                    prim[1].r * prim[1].u * prim[1].w,
+                    sr, s_star, prim[1].p0, prim[1].r, prim[1].u
+            );
+            *qe = F_HLLC_E( /*  UK, FK, SK, SS, PK, RK, VK */
+                    prim[1].r * prim[1].e_tot,
+                    (prim[1].r * prim[1].e_tot + prim[1].p0)*prim[1].u,
+                    sr, s_star, prim[1].p0, prim[1].r, prim[1].u
+            );
+            for (i = 0; i < c_count; i++) {
+                qc[i] = F_HLLC_V( /*  UK, FK, SK, SS, PK, RK, VK */
+                        prim[1].r * prim[1].c[i],
+                        prim[1].r * prim[1].c[i] * prim[1].u,
+                        sr, s_star, prim[1].p0, prim[1].r, prim[1].u
                 );
             }
         }
@@ -438,21 +553,22 @@ static void _charm_calc_flux_hllc_x_1(p4est_t *p4est, charm_prim_t prim[2], doub
 
 void charm_calc_flux_hllc(p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[], double n[3])
 {
+    charm_ctx_t *ctx = charm_get_ctx(p4est);
     int i,j;
     double ri, ei, pi, uu[3], uv[3];
     double nt[3][3], vv[2][3], vn[2][3];
-    double r_[2], u_[2], v_[2], w_[2], p_[2];
+    double /*r_[2],*/ u_[2], v_[2], w_[2]/*, p_[2]*/;
     size_t          c_count = charm_get_comp_count(p4est);
     double _qu, _qv, _qw;
 
     charm_prim_t prim_[2];
 
     for (i = 0; i < 2; i++) {
-        r_[i] = prim[i].r;
+//        r_[i] = prim[i].r;
         u_[i] = prim[i].u;
         v_[i] = prim[i].v;
         w_[i] = prim[i].w;
-        p_[i] = prim[i].p;
+//        p_[i] = prim[i].p;
     }
 
     nt[0][0] = n[0];
@@ -501,8 +617,12 @@ void charm_calc_flux_hllc(p4est_t *p4est, charm_prim_t prim[2], double* qu, doub
         prim_[i].w = vn[i][2];
     }
 
-
-    _charm_calc_flux_hllc_x_1( p4est, prim_, &_qu, &_qv, &_qw, qe, qc );
+    if (ctx->model == CHARM_MODEL_NS_LOW_MACH) {
+        _charm_calc_flux_hllc_x_1_low_mach(p4est, prim_, &_qu, &_qv, &_qw, qe, qc);
+    }
+    else {
+        _charm_calc_flux_hllc_x_1(p4est, prim_, &_qu, &_qv, &_qw, qe, qc);
+    }
 
     *qu = _qu*nt[0][0] + _qv*nt[1][0] + _qw*nt[2][0];
     *qv = _qu*nt[0][1] + _qv*nt[1][1] + _qw*nt[2][1];
