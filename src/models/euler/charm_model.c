@@ -63,7 +63,7 @@ double charm_model_euler_get_dt (p4est_t * p4est)
  */
 
 
-static void _charm_convect_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+static void _charm_convect_volume_int_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
     p4est_quadrant_t   *q = info->quad;
     charm_data_t       *data = charm_get_quad_data(q);

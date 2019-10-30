@@ -167,7 +167,7 @@ __attribute__ ((format (printf, 1, 2)));
 #define _MIN_(X,Y) ((X)<(Y) ? (X) : (Y))
 #define _SQR_(X) ((X)*(X))
 #define _MAG_(X,Y,Z) (_SQR_(X)+_SQR_(Y)+_SQR_(Z))
-#define _NORM_(X) ( /*(fabs(X) <= CHARM_EPS) ? 0. : */(X) )
+#define _NORM_(X) ( (fabs(X) <= CHARM_EPS) ? 0. : (X) )
 
 #define CHARM_FACE_TYPE_INNER 0
 #define CHARM_BND_MAX 128
