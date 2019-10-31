@@ -396,7 +396,7 @@ void charm_init_context(charm_ctx_t *ctx)
     if (strcmp(str, "EULER") == 0) {
         charm_model_euler_init(ctx, charm_xml_node_get_child(node, "MODEL"));
     }
-    if (strcmp(str, "NS") == 0) {
+    else if (strcmp(str, "NS") == 0) {
         charm_model_ns_init(ctx, charm_xml_node_get_child(node, "MODEL"));
     }
     else {
