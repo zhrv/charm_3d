@@ -5,7 +5,7 @@
 #include "charm_eos.h"
 
 
-double gR = 8.314472;
+double gR = 8.31446261815324; // Дж/(моль К)
 
 double charm_comp_calc_cp(p4est_t *p4est, charm_comp_t * comp, double t)
 {
