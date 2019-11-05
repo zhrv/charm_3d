@@ -249,15 +249,29 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                 ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qe, qc, n);  // flux from side 0 to side 1
                 for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                     for (i = 0; i < 2; i++) {
-                        if (!side[i]->is.full.is_ghost) {
-                            bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
-                            for (cj = 0; cj < c_count; cj++) {
-                                udata[i]->int_rc[cj][ibf] += qc[cj] * bfv;
+                        if (i == h_side) {
+                            if (!side[i]->is.hanging.is_ghost[j]) {
+                                bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
+                                for (cj = 0; cj < c_count; cj++) {
+                                    udata[i]->int_rc[cj][ibf] += qc[cj] * bfv;
+                                }
+                                udata[i]->int_ru[ibf] += qu * bfv;
+                                udata[i]->int_rv[ibf] += qv * bfv;
+                                udata[i]->int_rw[ibf] += qw * bfv;
+                                udata[i]->int_re[ibf] += qe * bfv;
                             }
-                            udata[i]->int_ru[ibf] += qu * bfv;
-                            udata[i]->int_rv[ibf] += qv * bfv;
-                            udata[i]->int_rw[ibf] += qw * bfv;
-                            udata[i]->int_re[ibf] += qe * bfv;
+                        }
+                        else {
+                            if (!side[i]->is.full.is_ghost) {
+                                bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
+                                for (cj = 0; cj < c_count; cj++) {
+                                    udata[i]->int_rc[cj][ibf] += qc[cj] * bfv;
+                                }
+                                udata[i]->int_ru[ibf] += qu * bfv;
+                                udata[i]->int_rv[ibf] += qv * bfv;
+                                udata[i]->int_rw[ibf] += qw * bfv;
+                                udata[i]->int_re[ibf] += qe * bfv;
+                            }
                         }
                     }
                 }
