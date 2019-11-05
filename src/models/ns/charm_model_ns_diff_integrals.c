@@ -289,12 +289,23 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                 qe = fu*n[0] + fv*n[1] + fw*n[2] - ft;
                 for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                     for (i = 0; i < 2; i++) {
-                        if (!side[i]->is.full.is_ghost) {
-                            bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
-                            udata[i]->int_ru[ibf] -= qu * bfv;
-                            udata[i]->int_rv[ibf] -= qv * bfv;
-                            udata[i]->int_rw[ibf] -= qw * bfv;
-                            udata[i]->int_re[ibf] -= qe * bfv;
+                        if (i == h_side) {
+                            if (!side[i]->is.hanging.is_ghost[j]) {
+                                bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
+                                udata[i]->int_ru[ibf] -= qu * bfv;
+                                udata[i]->int_rv[ibf] -= qv * bfv;
+                                udata[i]->int_rw[ibf] -= qw * bfv;
+                                udata[i]->int_re[ibf] -= qe * bfv;
+                            }
+                        }
+                        else {
+                            if (!side[i]->is.full.is_ghost) {
+                                bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
+                                udata[i]->int_ru[ibf] -= qu * bfv;
+                                udata[i]->int_rv[ibf] -= qv * bfv;
+                                udata[i]->int_rw[ibf] -= qw * bfv;
+                                udata[i]->int_re[ibf] -= qe * bfv;
+                            }
                         }
                     }
                 }

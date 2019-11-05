@@ -227,7 +227,6 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                 }
             }
 
-
             CHARM_ASSERT(h_side != -1);
 
             charm_face_get_normal(udata[0], face[0], n);
@@ -277,18 +276,35 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                 qtz = kt*ft*n[2];
                 for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                     for (i = 0; i < 2; i++) {
-                        if (!side[i]->is.full.is_ghost) {
-                            bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
-                            udata[i]->int_tau_xx[ibf] += qxx * bfv;
-                            udata[i]->int_tau_yy[ibf] += qyy * bfv;
-                            udata[i]->int_tau_zz[ibf] += qzz * bfv;
-                            udata[i]->int_tau_xy[ibf] += qxy * bfv;
-                            udata[i]->int_tau_xz[ibf] += qxz * bfv;
-                            udata[i]->int_tau_yz[ibf] += qyz * bfv;
+                        if (i == h_side) {
+                            if (!side[i]->is.hanging.is_ghost[j]) {
+                                bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
+                                udata[i]->int_tau_xx[ibf] += qxx * bfv;
+                                udata[i]->int_tau_yy[ibf] += qyy * bfv;
+                                udata[i]->int_tau_zz[ibf] += qzz * bfv;
+                                udata[i]->int_tau_xy[ibf] += qxy * bfv;
+                                udata[i]->int_tau_xz[ibf] += qxz * bfv;
+                                udata[i]->int_tau_yz[ibf] += qyz * bfv;
 
-                            udata[i]->int_q_x[ibf] -= qtx * bfv;
-                            udata[i]->int_q_y[ibf] -= qty * bfv;
-                            udata[i]->int_q_z[ibf] -= qtz * bfv;
+                                udata[i]->int_q_x[ibf] -= qtx * bfv;
+                                udata[i]->int_q_y[ibf] -= qty * bfv;
+                                udata[i]->int_q_z[ibf] -= qtz * bfv;
+                            }
+                        }
+                        else {
+                            if (!side[i]->is.full.is_ghost) {
+                                bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
+                                udata[i]->int_tau_xx[ibf] += qxx * bfv;
+                                udata[i]->int_tau_yy[ibf] += qyy * bfv;
+                                udata[i]->int_tau_zz[ibf] += qzz * bfv;
+                                udata[i]->int_tau_xy[ibf] += qxy * bfv;
+                                udata[i]->int_tau_xz[ibf] += qxz * bfv;
+                                udata[i]->int_tau_yz[ibf] += qyz * bfv;
+
+                                udata[i]->int_q_x[ibf] -= qtx * bfv;
+                                udata[i]->int_q_y[ibf] -= qty * bfv;
+                                udata[i]->int_q_z[ibf] -= qtz * bfv;
+                            }
                         }
                     }
                 }
