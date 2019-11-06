@@ -15,6 +15,8 @@ void charm_model_ns_timestep_diff_integrals(p4est_t * p4est, p4est_ghost_t * gho
 
 void charm_model_ns_timestep_diff(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data)
 {
+    charm_ctx_t *ctx = charm_get_ctx(p4est);
+    if (!ctx->use_visc) return;
     charm_model_ns_timestep_diff_grad(p4est, ghost, ghost_data);
     charm_model_ns_timestep_diff_integrals(p4est, ghost, ghost_data);
 }
