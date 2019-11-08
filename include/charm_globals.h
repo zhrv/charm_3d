@@ -410,6 +410,7 @@ typedef struct charm_ctx
     double              time;               /**< the max time */
     int                 timestep;
 
+    int                 use_visc;
     double              visc_m;
     double              visc_l;
 

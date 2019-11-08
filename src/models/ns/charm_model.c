@@ -209,5 +209,6 @@ void charm_model_ns_init(charm_ctx_t *ctx, mxml_node_t *node)
 {
     ctx->get_dt_fn              = charm_model_ns_get_dt;
     ctx->timestep_single_fn     = charm_model_ns_timestep_single;
+    charm_xml_node_child_param_int(node, "use_visc", &(ctx->use_visc));
 }
 

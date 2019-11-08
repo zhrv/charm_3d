@@ -392,6 +392,7 @@ void charm_init_context(charm_ctx_t *ctx)
     charm_xml_node_child_param_dbl(node, "CFL", &(ctx->CFL));
     charm_xml_node_child_param_dbl(node, "TMAX", &(ctx->time));
 
+    ctx->use_visc = 0;
     charm_xml_node_child_param_str(node, "MODEL", str);
     if (strcmp(str, "EULER") == 0) {
         charm_model_euler_init(ctx, charm_xml_node_get_child(node, "MODEL"));
