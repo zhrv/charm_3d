@@ -36,6 +36,7 @@ int main (int argc, char **argv)
                            sizeof (charm_data_t),         /* data size */
                            charm_init_initial_condition,  /* initializes data */
                            (void *) (&ctx));            /* context */
+    charm_set_p4est(p4est);
 
     charm_write_solution (p4est);
 //    charm_calc_grad(p4est, NULL, NULL);

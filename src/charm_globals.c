@@ -7,7 +7,7 @@
 #include "charm_globals.h"
 
 
-
+p4est_t * g_p4est = NULL;
 int charm_package_id = -1;
 
 const char *charm_bnd_types[] ={
@@ -17,6 +17,11 @@ const char *charm_bnd_types[] ={
         "BOUND_WALL_NO_SLIP",
         NULL
 };
+
+
+p4est_t * charm_get_p4est() { return g_p4est; }
+void charm_set_p4est(p4est_t *p4est) { g_p4est = p4est; }
+
 
 
 double scalar_prod(double v1[CHARM_DIM], double v2[CHARM_DIM])

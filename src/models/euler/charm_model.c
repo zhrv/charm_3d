@@ -543,7 +543,7 @@ void charm_model_euler_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_
 
 
 
-void charm_model_euler_init(charm_ctx_t *ctx, mxml_node_t *node)
+void charm_model_euler_init(charm_ctx_t *ctx, mxml_node_t *node, mxml_node_t *node_task)
 {
     ctx->get_dt_fn              = charm_model_euler_get_dt;
     ctx->timestep_single_fn     = charm_model_euler_timestep_single;

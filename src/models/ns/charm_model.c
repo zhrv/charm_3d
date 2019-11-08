@@ -14,7 +14,8 @@
 
 void charm_model_ns_timestep_conv(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 void charm_model_ns_timestep_diff(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
-
+void charm_model_ns_timestep_chem(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
+void charm_model_ns_chem_init(charm_ctx_t *ctx, mxml_node_t *node_task);
 
 static void _charm_model_ns_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
@@ -199,16 +200,20 @@ void charm_model_ns_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t *
 
     charm_limiter(p4est, ghost, ghost_data);
 
+    charm_model_ns_timestep_chem(p4est, ghost, ghost_data);
+
     *_ghost       = ghost;
     *_ghost_data  = ghost_data;
 
 }
 
 
-void charm_model_ns_init(charm_ctx_t *ctx, mxml_node_t *node)
+void charm_model_ns_init(charm_ctx_t *ctx, mxml_node_t *node, mxml_node_t *node_task)
 {
     ctx->get_dt_fn              = charm_model_ns_get_dt;
     ctx->timestep_single_fn     = charm_model_ns_timestep_single;
     charm_xml_node_child_param_int(node, "use_visc", &(ctx->use_visc));
+
+    charm_model_ns_chem_init(ctx, node_task);
 }
 

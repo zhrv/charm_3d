@@ -392,26 +392,24 @@ void charm_init_context(charm_ctx_t *ctx)
     charm_xml_node_child_param_dbl(node, "CFL", &(ctx->CFL));
     charm_xml_node_child_param_dbl(node, "TMAX", &(ctx->time));
 
-    ctx->use_visc = 0;
-    charm_xml_node_child_param_str(node, "MODEL", str);
-    if (strcmp(str, "EULER") == 0) {
-        charm_model_euler_init(ctx, charm_xml_node_get_child(node, "MODEL"));
-    }
-    else if (strcmp(str, "NS") == 0) {
-        charm_model_ns_init(ctx, charm_xml_node_get_child(node, "MODEL"));
-    }
-    else {
-        CHARM_LERRORF("Unknown model type '%s'. Use: EULER.\n", str);
-        charm_abort(NULL, 1);
-    }
-
-
-
     charm_init_bnd(       ctx, charm_xml_node_get_child(node_task, "boundaries"));
     charm_init_comps(     ctx, charm_xml_node_get_child(node_task, "components"));
     charm_init_mat(       ctx, charm_xml_node_get_child(node_task, "materials"));
     charm_init_reg(       ctx, charm_xml_node_get_child(node_task, "regions"));
     charm_init_mesh_info( ctx, charm_xml_node_get_child(node_task, "mesh"));
+
+    ctx->use_visc = 0;
+    charm_xml_node_child_param_str(node, "MODEL", str);
+    if (strcmp(str, "EULER") == 0) {
+        charm_model_euler_init(ctx, charm_xml_node_get_child(node, "MODEL"), node_task);
+    }
+    else if (strcmp(str, "NS") == 0) {
+        charm_model_ns_init(ctx, charm_xml_node_get_child(node, "MODEL"), node_task);
+    }
+    else {
+        CHARM_LERRORF("Unknown model type '%s'. Use: EULER.\n", str);
+        charm_abort(NULL, 1);
+    }
 
     ctx->timestep = 0;
 

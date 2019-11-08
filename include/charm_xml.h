@@ -8,6 +8,7 @@
 #include "mxml.h"
 
 
+mxml_node_t* charm_xml_node_get_child_or_null(mxml_node_t * n, char* name);
 mxml_node_t* charm_xml_node_get_child(mxml_node_t *, char*);
 mxml_node_t* charm_xml_node_get_next_child(mxml_node_t * current, mxml_node_t * n, char* name);
 

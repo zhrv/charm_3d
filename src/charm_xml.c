@@ -6,6 +6,12 @@
 #include "charm_globals.h"
 
 
+mxml_node_t* charm_xml_node_get_child_or_null(mxml_node_t * n, char* name)
+{
+    mxml_node_t *node = mxmlFindElement(n, n, name, NULL, NULL, MXML_DESCEND);
+    return node;
+}
+
 mxml_node_t* charm_xml_node_get_child(mxml_node_t * n, char* name)
 {
     mxml_node_t *node = mxmlFindElement(n, n, name, NULL, NULL, MXML_DESCEND);
@@ -25,13 +31,19 @@ mxml_node_t* charm_xml_node_get_next_child(mxml_node_t * current, mxml_node_t * 
 
 int charm_xml_node_value_dbl(mxml_node_t *n, double*d)
 {
-
+    int whitespace = 0;
+    const char* str = mxmlGetText(n, &whitespace);
+    *d = atof(str);
+    return 0;
 }
 
 
 int charm_xml_node_value_int(mxml_node_t *n, int*val)
 {
-
+    int whitespace = 0;
+    const char* str = mxmlGetText(n, &whitespace);
+    *val = atoi(str);
+    return 0;
 }
 
 
@@ -40,6 +52,7 @@ int charm_xml_node_value_str(mxml_node_t *n, char*val)
     int whitespace = 0;
     const char* str = mxmlGetText(n, &whitespace);
     strcpy(val, str);
+    return 0;
 }
 
 

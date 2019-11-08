@@ -393,7 +393,13 @@ typedef struct charm_mesh_info
     char                filename[128];
 } charm_mesh_info_t;
 
-
+typedef struct charm_reaction
+{
+    int     left_comps[3];       /**< номера компонент реакции справа (int) */
+    int     right_comps[3];      /**< номера компонент реакции слева  (int)*/
+    double  lg_a;                /**< предэкспоненциальный множитель */
+    double  e;                   /**< энергия активации */
+} charm_reaction_t;
 
 typedef struct charm_ctx
 {
@@ -415,9 +421,10 @@ typedef struct charm_ctx
     double              visc_l;
 
     sc_array_t         *bnd;
-    sc_array_t         *mat;   /**< materials */
-    sc_array_t         *reg;   /**< regions */
-    sc_array_t         *comp;  /**< components */
+    sc_array_t         *mat;       /**< materials */
+    sc_array_t         *reg;       /**< regions */
+    sc_array_t         *comp;      /**< components */
+    sc_array_t         *reactions; /**< reactions */
 
     charm_mesh_info_t          *msh;
     charm_timestep_single_fn_t  timestep_single_fn;
@@ -509,5 +516,8 @@ void charm_tensor_zero(charm_tensor_t * t);
 void charm_tensor_add(charm_tensor_t * dest, charm_tensor_t *src);
 void charm_tensor_sum(charm_tensor_t * t1, charm_tensor_t *t2, charm_tensor_t * result);
 void charm_tensor_mul_scalar(charm_tensor_t * dest, double x);
+
+p4est_t * charm_get_p4est();
+void charm_set_p4est(p4est_t *);
 
 #endif //CHAMR_3D_CHARM_GLOBALS_H
