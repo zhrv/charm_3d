@@ -325,6 +325,7 @@ typedef struct charm_param
     struct amr {
         double      grad_u[CHARM_DIM];
     } a;
+
 } charm_param_t;
 
 
@@ -397,7 +398,7 @@ typedef struct charm_reaction
 {
     int     left_comps[3];       /**< номера компонент реакции справа (int) */
     int     right_comps[3];      /**< номера компонент реакции слева  (int)*/
-    double  lg_a;                /**< предэкспоненциальный множитель */
+    double  a;                   /**< предэкспоненциальный множитель */
     double  e;                   /**< энергия активации */
 } charm_reaction_t;
 
@@ -451,14 +452,16 @@ void charm_quad_get_center(charm_data_t *d, double* c);
 void charm_face_get_center(charm_data_t *d, int8_t face, double* c);
 double charm_quad_get_volume(charm_data_t *d);
 
-charm_comp_t *  charm_get_comp(p4est_t * p4est, int i);
-size_t          charm_get_comp_count(p4est_t* p4est);
-charm_comp_t *  charm_comp_find_by_id(charm_ctx_t *ctx, int id);
-int             charm_comp_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index);
-charm_mat_t  *  charm_mat_find_by_id(charm_ctx_t *ctx, int id);
-int             charm_mat_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index);
-charm_reg_t  *  charm_reg_find_by_id(charm_ctx_t *ctx, int id);
-charm_bnd_t  *  charm_bnd_find_by_face_type(charm_ctx_t *ctx, int type);
+charm_comp_t *      charm_get_comp(p4est_t * p4est, int i);
+size_t              charm_get_comp_count(p4est_t* p4est);
+charm_reaction_t *  charm_get_reaction(p4est_t * p4est, int i);
+size_t              charm_get_reactions_count(p4est_t* p4est);
+charm_comp_t *      charm_comp_find_by_id(charm_ctx_t *ctx, int id);
+int                 charm_comp_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index);
+charm_mat_t  *      charm_mat_find_by_id(charm_ctx_t *ctx, int id);
+int                 charm_mat_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index);
+charm_reg_t  *      charm_reg_find_by_id(charm_ctx_t *ctx, int id);
+charm_bnd_t  *      charm_bnd_find_by_face_type(charm_ctx_t *ctx, int type);
 
 charm_mesh_type_t charm_mesh_get_type_by_str(char*);
 

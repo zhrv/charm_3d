@@ -325,6 +325,21 @@ double charm_get_avg_re(charm_data_t* p)
 }
 
 
+double charm_get_avg_rc(charm_data_t* p, int j)
+{
+    double result = 0.;
+    int i;
+    double vol = charm_quad_get_volume(p);
+    double *x;
+
+    for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
+        x = p->par.g.quad_gp[i];
+        result += charm_get_field_rc(p, x, j)*p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
+    }
+    return result/vol;
+}
+
+
 void charm_get_visc_tau(charm_data_t *p, double* x, charm_tensor_t *tau)
 {
     int i;

@@ -490,6 +490,21 @@ size_t charm_get_comp_count(p4est_t* p4est)
 }
 
 
+charm_reaction_t * charm_get_reaction(p4est_t * p4est, int i)
+{
+    charm_ctx_t * ctx = charm_get_ctx(p4est);
+    charm_reaction_t * r = sc_array_index(ctx->reactions, i);
+    return r;
+}
+
+
+size_t charm_get_reactions_count(p4est_t* p4est)
+{
+    charm_ctx_t * ctx       = charm_get_ctx(p4est);
+    return ctx->reactions == NULL ? 0 : ctx->reactions->elem_count;
+}
+
+
 double charm_get_visc_lambda(p4est_t* p4est, charm_data_t* data)
 {
     return 0;

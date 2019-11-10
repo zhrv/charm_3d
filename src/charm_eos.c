@@ -7,6 +7,8 @@
 
 double gR = 8.31446261815324; // Дж/(моль К)
 
+double charm_eos_get_r() { return gR; }
+
 double charm_comp_calc_cp(p4est_t *p4est, charm_comp_t * comp, double t)
 {
     double *cp = sc_array_index(comp->cp, 0);
