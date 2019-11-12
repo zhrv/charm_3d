@@ -180,6 +180,44 @@ __attribute__ ((format (printf, 1, 2)));
 
 #define CHARM_ARR_SET_ZERO(A) {int i; for (i = 0; i < CHARM_BASE_FN_COUNT; i++) A[i] = 0.; }
 
+typedef enum {
+    COMP_CP_CONST,
+    COMP_CP_POLYNOM
+} charm_comp_cp_type_t;
+
+typedef enum {
+    COMP_KP_CONST,
+    COMP_KP_SATHERLAND,
+    COMP_KP_NV
+} charm_comp_kp_type_t;
+
+typedef enum {
+    COMP_ML_CONST,
+    COMP_ML_SATHERLAND,
+    COMP_ML_NV
+} charm_comp_ml_type_t;
+
+
+typedef struct charm_comp
+{
+    char    name[64];
+    int     id;
+    double  m;
+    double  ml0; //<! динамическая вязкость вещества при температуре T0
+    double  kp0; //<! теплопроводность вещества при температуре T0
+    double  t0;  //<! константа для формулы Сазерленда
+    double  ts;  //<! константа для формулы Сазерленда
+    double  sig; //<! параметры Леннарда-Джонса
+    double  ek;  //<! параметры Леннарда-Джонса
+    double  h0;  //<! энтальпия образования вещества
+    charm_comp_cp_type_t cp_type;
+    charm_comp_kp_type_t kp_type;
+    charm_comp_ml_type_t ml_type;
+    sc_array_t *cp;
+} charm_comp_t;
+
+
+
 
 typedef struct charm_prim
 {
@@ -221,24 +259,7 @@ typedef struct charm_tensor
 } charm_tensor_t;
 
 
-typedef enum {
-    COMP_CONST,
-    COMP_POLYNOM
-} charm_comp_cp_type_t;
-
 typedef void (*charm_eos_fn_t) (p4est_t * p4est, charm_prim_t * p, int flag);
-
-typedef struct charm_comp
-{
-    char    name[64];
-    int     id;
-    double  m;
-    double  ml;
-    double  lambda;
-    double  k;
-    charm_comp_cp_type_t cp_type;
-    sc_array_t *cp;
-} charm_comp_t;
 
 typedef struct charm_mat
 {
@@ -522,5 +543,12 @@ void charm_tensor_mul_scalar(charm_tensor_t * dest, double x);
 
 p4est_t * charm_get_p4est();
 void charm_set_p4est(p4est_t *);
+
+
+double charm_comp_calc_cp(charm_comp_t *comp, double t);
+double charm_comp_calc_cp_dt(charm_comp_t *comp, double t);
+double charm_comp_calc_ml(charm_comp_t *comp, double t);
+double charm_comp_calc_kp(charm_comp_t *comp, double t);
+
 
 #endif //CHAMR_3D_CHARM_GLOBALS_H

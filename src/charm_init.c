@@ -135,7 +135,7 @@ static void charm_init_bnd(charm_ctx_t *ctx, mxml_node_t *node)
 
 static void charm_init_fetch_comp(mxml_node_t* node, charm_comp_t *comp)
 {
-    mxml_node_t * n1;
+    mxml_node_t *n1, *n2;
     char str[32];
     double *tmp;
 
@@ -143,30 +143,55 @@ static void charm_init_fetch_comp(mxml_node_t* node, charm_comp_t *comp)
     charm_xml_node_attr_int(node, "id", &(comp->id));
     charm_xml_node_attr_str(node, "cp_type", str);
     if (strcmp(str, "CONST") == 0) {
-        comp->cp_type = COMP_CONST;
+        comp->cp_type = COMP_CP_CONST;
     }
     else if (strcmp(str, "POLYNOM") == 0) {
-        comp->cp_type = COMP_POLYNOM;
+        comp->cp_type = COMP_CP_POLYNOM;
     }
     else {
         CHARM_LERRORF("Unknown Cp type '%s'. Use: CONST, POLYNOM.", str);
+        charm_abort(NULL, 1);
+    }
+    charm_xml_node_attr_str(node, "kp_type", str);
+    if (strcmp(str, "CONST") == 0) {
+        comp->kp_type = COMP_KP_CONST;
+    }
+    else if (strcmp(str, "SATHERLAND") == 0) {
+        comp->kp_type = COMP_KP_SATHERLAND;
+    }
+    else {
+        CHARM_LERRORF("Unknown KP type '%s'. Use: CONST, SATHERLAND.", str);
+        charm_abort(NULL, 1);
+    }
+    charm_xml_node_attr_str(node, "ml_type", str);
+    if (strcmp(str, "CONST") == 0) {
+        comp->ml_type = COMP_ML_CONST;
+    }
+    else if (strcmp(str, "SATHERLAND") == 0) {
+        comp->ml_type = COMP_ML_SATHERLAND;
+    }
+    else {
+        CHARM_LERRORF("Unknown ML type '%s'. Use: CONST, SATHERLAND.", str);
         charm_abort(NULL, 1);
     }
     n1 = charm_xml_node_get_child(node, "name");
     charm_xml_node_value_str(n1, comp->name);
     //n1 = charm_xml_node_get_child(node, "parameters");
     charm_xml_node_child_param_dbl(node, "M", &(comp->m));
-    charm_xml_node_child_param_dbl(node, "ML", &(comp->ml));
-    charm_xml_node_child_param_dbl(node, "Lambda", &(comp->lambda));
-    charm_xml_node_child_param_dbl(node, "K", &(comp->k));
+    charm_xml_node_child_param_dbl(node, "ML0", &(comp->ml0));
+    charm_xml_node_child_param_dbl(node, "KP0", &(comp->kp0));
+    charm_xml_node_child_param_dbl(node, "T0", &(comp->t0));
+    charm_xml_node_child_param_dbl(node, "TS", &(comp->ts));
+    charm_xml_node_child_param_dbl(node, "Sig", &(comp->sig));
+    charm_xml_node_child_param_dbl(node, "ek", &(comp->ek));
+    charm_xml_node_child_param_dbl(node, "h0", &(comp->h0));
     comp->cp = sc_array_new(sizeof(double));
-    if (comp->cp_type == COMP_CONST) {
+    n1 = charm_xml_node_get_child(node, "Cp");
+    for (n2 = charm_xml_node_get_child(n1, "a");
+         n2 != NULL;
+         n2 = charm_xml_node_get_next_child(n2, n1, "a")) {
         tmp = sc_array_push(comp->cp);
-        charm_xml_node_child_param_dbl(node, "Cp", tmp);
-    }
-    else {
-        CHARM_LERROR("Cp type 'POLYNOM' is not released.\n");
-        charm_abort(NULL, 1);
+        charm_xml_node_value_dbl(n2, tmp);
     }
 }
 

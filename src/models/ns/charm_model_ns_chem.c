@@ -12,91 +12,102 @@
 #include "charm_eos.h"
 
 
-static double *chem_k, *chem_w, *chem_phi, *chem_psi, *chem_c;
-
-
-static void _charm_model_ns_chem_init_constants(p4est_t * p4est, charm_data_t *data)
-{
-    charm_ctx_t *ctx = charm_get_ctx(p4est);
-    size_t r_count = charm_get_reactions_count(p4est);
-}
+static double *chem_w, *chem_phi, *chem_psi, *chem_c, *chem_c_, *chem_c_hat;
 
 
 static void _charm_model_ns_chem_rhs(p4est_t * p4est, charm_data_t *data)
 {
     double       R   = charm_eos_get_r();
-    charm_ctx_t *ctx = charm_get_ctx(p4est);
-    size_t r_count = charm_get_reactions_count(p4est);
-    size_t c_count = charm_get_comp_count(p4est);
     charm_cons_t cons;
     charm_prim_t prim;
-    charm_comp_t *comp;
+    size_t r_count = charm_get_reactions_count(p4est);
+    size_t c_count = charm_get_comp_count(p4est);
     charm_reaction_t * r;
-    int i, j1, j2, m, n;
-    double c1, c2, c3;
+    charm_comp_t *comp;
+    int i, m, n;
+
+    charm_get_fields_avg(data, &cons);
+    charm_param_cons_to_prim(p4est, &prim, &cons);
+    for (n = 0; n < r_count; n++) {
+        r = charm_get_reaction(p4est, n);
+        chem_w[n] = r->a*exp(-r->e/prim.t/R);
+        for (m = 0; m < 3; m++) {
+            i = r->left_comps[m];
+            chem_w[n] *= (i < 0 ? 1. : chem_c_[i]);
+        }
+    }
 
     memset(chem_phi, 0, sizeof(double)*c_count);
     memset(chem_psi, 0, sizeof(double)*c_count);
     for (i = 0; i < c_count; i++) {
+        comp = charm_get_comp(p4est, i);
         chem_phi[i] = 0.;
         chem_psi[i] = 0.;
         for (n = 0; n < r_count; n++) {
             r = charm_get_reaction(p4est, n);
             for (m = 0; m < 3; m++) {
                 if (i == r->left_comps[m]) {
-                    j1 = (m + 1) % 3;
-                    j2 = (m + 2) % 3;
-                    c1 = r->left_comps[j1] == 0 ? 1 : chem_c[r->left_comps[j1]];
-                    c2 = r->left_comps[j2] == 0 ? 1 : chem_c[r->left_comps[j2]];
-                    chem_phi[i] += r->a*exp(-r->e/prim.t/R)*c1*c2;
+                    chem_phi[i] += chem_w[n];
+                }
+                if (i == r->right_comps[m]) {
+                    chem_psi[i] += chem_w[m];
                 }
             }
         }
+        chem_phi[i] *= comp->m;
+        chem_psi[i] *= comp->m;
+        if (chem_c_[i] == 0) {
+            chem_phi[i] = 0.;
+        }
+        else {
+            chem_phi[i] /= chem_c_[i];
+        }
+
+
     }
-}
-
-
-static void _charm_model_ns_chem_solve(p4est_t * p4est, charm_data_t *data)
-{
-    double       R   = charm_eos_get_r();
-    charm_ctx_t *ctx = charm_get_ctx(p4est);
-    size_t r_count = charm_get_reactions_count(p4est);
-    size_t c_count = charm_get_comp_count(p4est);
-    charm_cons_t cons;
-    charm_prim_t prim;
-    charm_comp_t *comp;
-    charm_reaction_t * r;
-    int i, j, m, n;
-    double ci;
-
-    charm_get_fields_avg(data, &cons);
-    charm_param_cons_to_prim(p4est, &prim, &cons);
-    for (i = 0; i < c_count; i++) {
-        comp = charm_get_comp(p4est, i);
-        chem_c[i] = (cons.rc[i]/comp->m);
-    }
-
-//    for (n = 0; n < r_count; n++) {
-//        r = charm_get_reaction(p4est, n);
-//        chem_w[n] = r->a*exp(-r->e/prim.t/R);
-//        for (m = 0; m < 3; m++) {
-//            i = r->left_comps[m];
-//            comp = charm_get_comp(p4est, i);
-//            chem_w[n] *= (cons.rc[i]/comp->m);
-//        }
-//    }
 }
 
 
 static void _charm_model_ns_chem_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
-    p4est_quadrant_t   *q = info->quad;
-    charm_data_t       *data = charm_get_quad_data(q);
-    int                 ibf, igp;
-    charm_reaction_t    r;
+    p4est_t *p4est = info->p4est;
+    charm_data_t *data = charm_get_quad_data(info->quad);
+    charm_ctx_t *ctx = charm_get_ctx(p4est);
+    size_t c_count = charm_get_comp_count(p4est);
+    charm_cons_t cons;
+    charm_prim_t prim;
+    charm_comp_t *comp;
+    charm_reaction_t *r;
+    int i, j;
 
-    _charm_model_ns_chem_init_constants(info->p4est, data);
-    _charm_model_ns_chem_solve(info->p4est, data);
+    charm_get_fields_avg(data, &cons);
+    charm_param_cons_to_prim(p4est, &prim, &cons);
+    for (i = 0; i < c_count; i++) {
+        comp = charm_get_comp(p4est, i);
+        chem_c[i] = (cons.rc[i] / comp->m);
+        chem_c_hat[i] = chem_c[i];
+    }
+
+    for (j = 0; j < 2; j++) {
+        for (i = 0; i < c_count; i++) {
+            chem_c_[i] = (chem_c_hat[i] + chem_c[i]) * 0.5;
+        }
+        _charm_model_ns_chem_rhs(p4est, data);
+
+        for (i = 0; i < c_count; i++) {
+            chem_c_hat[i] = (chem_c[i] + ctx->dt * chem_psi[i] * (1. + ctx->dt * chem_phi[i] * 0.5)) /
+                            (1. + ctx->dt * chem_phi[i] + _SQR_(ctx->dt * chem_phi[i]) * 0.5);
+        }
+    }
+
+    // TODO
+    for (i = 0; i < c_count; i++) {
+        comp = charm_get_comp(p4est, i);
+        memset(data->par.c.rc[i], 0, sizeof(double)*CHARM_BASE_FN_COUNT);
+        data->par.c.rc[i][0] = chem_c_hat[i] * comp->m;
+    }
+
+
 }
 
 void charm_model_ns_timestep_chem(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data)
@@ -104,27 +115,25 @@ void charm_model_ns_timestep_chem(p4est_t * p4est, p4est_ghost_t * ghost, charm_
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     if (!ctx->reactions) return;
 
-
-
-
     size_t c_count = charm_get_comp_count(p4est);
     size_t r_count = charm_get_reactions_count(p4est);
 
-    chem_k = CHARM_ALLOC(double, r_count);
-    chem_w = CHARM_ALLOC(double, r_count);
-    chem_phi = CHARM_ALLOC(double, c_count);
-    chem_psi = CHARM_ALLOC(double, c_count);
-    chem_c   = CHARM_ALLOC(double, c_count);
+    chem_w     = CHARM_ALLOC(double, r_count);
+    chem_phi   = CHARM_ALLOC(double, c_count);
+    chem_psi   = CHARM_ALLOC(double, c_count);
+    chem_c     = CHARM_ALLOC(double, c_count);
+    chem_c_    = CHARM_ALLOC(double, c_count);
+    chem_c_hat = CHARM_ALLOC(double, r_count);
 
     p4est_iterate (p4est,
-                   ghost,
-                   (void *) ghost_data,
+                   NULL, NULL,
                    _charm_model_ns_chem_iter_fn,
                    NULL, NULL, NULL);
 
 
     CHARM_FREE(chem_c);
-    CHARM_FREE(chem_k);
+    CHARM_FREE(chem_c_);
+    CHARM_FREE(chem_c_hat);
     CHARM_FREE(chem_w);
     CHARM_FREE(chem_phi);
     CHARM_FREE(chem_psi);
@@ -141,9 +150,9 @@ static void _charm_model_ns_chem_init_fetch_reaction(charm_ctx_t *ctx, mxml_node
     charm_xml_node_child_param_dbl(node, "e", &(r->e));
     r->a = pow(10., lg_a);
     left = charm_xml_node_get_child(node, "left");
-    for (n = charm_xml_node_get_child(left, "comp"), i = 0;
+    for (n = charm_xml_node_get_child(left, "c"), i = 0;
          n != NULL;
-         n = charm_xml_node_get_next_child(n, left, "comp"), i++) {
+         n = charm_xml_node_get_next_child(n, left, "c"), i++) {
         if (i >= 3) {
             CHARM_LERROR("More than 3 components in reaction!\n");
             charm_abort(NULL, 1);
@@ -157,9 +166,9 @@ static void _charm_model_ns_chem_init_fetch_reaction(charm_ctx_t *ctx, mxml_node
     }
 
     right = charm_xml_node_get_child(node, "right");
-    for (n = charm_xml_node_get_child(right, "comp"), i = 0;
+    for (n = charm_xml_node_get_child(right, "c"), i = 0;
          n != NULL;
-         n = charm_xml_node_get_next_child(n, right, "comp"), i++) {
+         n = charm_xml_node_get_next_child(n, right, "c"), i++) {
         if (i >= 3) {
             CHARM_LERROR("More than 3 components in reaction!\n");
             charm_abort(NULL, 1);

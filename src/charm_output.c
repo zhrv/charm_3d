@@ -38,10 +38,11 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     this_u[4] = prim.u;
     this_u[5] = prim.v;
     this_u[6] = prim.w;
+    this_u[7] = prim.t;
     for (j = 0; j < c_count; j++) {
-        this_u[7+j] = prim.c[j];
+        this_u[8+j] = prim.c[j];
     }
-    for (j = 0; j < 7 + c_count; j++) {
+    for (j = 0; j < 8 + c_count; j++) {
         this_u_ptr = (double *) sc_array_index (u_interp[j], (size_t)local_id);
         this_u_ptr[0] = this_u[j];
     }
@@ -59,7 +60,7 @@ void charm_write_solution (p4est_t * p4est)
     int                 num_cell_scalars;
     int                 num_cell_vectors;
     charm_ctx_t        *ctx;
-    char*         names7[] = {"R", "P", "E", "E_TOT", "U", "V", "W"};
+    char*               names8[] = {"R", "P", "E", "E_TOT", "U", "V", "W", "T"};
     charm_comp_t       *comp;
 
     ctx = charm_get_ctx(p4est);
@@ -69,21 +70,21 @@ void charm_write_solution (p4est_t * p4est)
     numquads = (size_t)p4est->local_num_quadrants;
 
     num_cell_vectors = 0;
-    num_cell_scalars = 7 + (int)ctx->comp->elem_count;
+    num_cell_scalars = 8 + (int)ctx->comp->elem_count;
     u_interp = CHARM_ALLOC(sc_array_t*, num_cell_scalars + num_cell_vectors);
     for (i = 0; i < num_cell_scalars + num_cell_vectors; i++) {
         u_interp[i] = sc_array_new_size (sizeof(double), numquads);
     }
 
     char** names = CHARM_ALLOC (char *, num_cell_scalars + num_cell_vectors);
-    for (i = 0; i < 7; i++) {
-        names[i] = names7[i];
+    for (i = 0; i < 8; i++) {
+        names[i] = names8[i];
     }
     for (i = 0; i < ctx->comp->elem_count; i++) {
         comp = charm_get_comp(p4est, i);
-        names[i+7] = CHARM_ALLOC (char, 128);
-        strcpy(names[i+7], "C_");
-        strcat(names[i+7], comp->name);
+        names[i+8] = CHARM_ALLOC (char, 128);
+        strcpy(names[i+8], "C_");
+        strcat(names[i+8], comp->name);
     }
 
     p4est_iterate (p4est, NULL,   /* we don't need any ghost quadrants for this loop */
@@ -112,12 +113,12 @@ void charm_write_solution (p4est_t * p4est)
 
     const int           retval = charm_vtk_write_footer (context);
     SC_CHECK_ABORT (!retval, CHARM_STRING "_vtk: Error writing footer");
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < num_cell_scalars + num_cell_vectors; i++) {
         sc_array_destroy(u_interp[i]);
     }
     CHARM_FREE(u_interp);
     for (i = 0; i < ctx->comp->elem_count; i++) {
-        CHARM_FREE (names[i+7]);
+        CHARM_FREE (names[i+8]);
     }
 
 }
