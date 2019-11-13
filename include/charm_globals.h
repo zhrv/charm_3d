@@ -519,6 +519,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree,
                                    p4est_quadrant_t * q);
 
 void charm_init_context(charm_ctx_t *ctx);
+void charm_init_context_yaml(charm_ctx_t *ctx);
 
 
 void charm_write_solution (p4est_t * p4est);

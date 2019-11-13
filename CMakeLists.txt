@@ -22,10 +22,14 @@ set(MXML_INCLUDE "${CONTRIB_DIR}/mxml/local/include")
 
 set(MXML_LIB "${CONTRIB_DIR}/mxml/local/lib")
 
+set(YAML_INCLUDE "${CONTRIB_DIR}/libyaml/local/include")
+
+set(YAML_LIB "${CONTRIB_DIR}/libyaml/local/lib")
+
 set(CHARM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
 
-include_directories(${CHARM_INCLUDE} ${P4EST_INCLUDE} ${MPI_INCLUDE} ${MXML_INCLUDE})
-link_directories(${P4EST_LIB} ${MXML_LIB})
+include_directories(${CHARM_INCLUDE} ${P4EST_INCLUDE} ${MPI_INCLUDE} ${MXML_INCLUDE} ${YAML_INCLUDE})
+link_directories(${P4EST_LIB} ${MXML_LIB} ${YAML_LIB})
 
 add_executable(	charm_3d
 
@@ -39,6 +43,7 @@ add_executable(	charm_3d
         include/charm_models.h
         include/charm_vtk.h
         include/charm_xml.h
+        include/charm_yaml.h
 
         src/charm_3d.c
         src/charm_connectivity.c
@@ -46,11 +51,13 @@ add_executable(	charm_3d
         src/charm_fluxes.c
         src/charm_amr.c
         src/charm_init.c
+        src/charm_init_yaml.c
         src/charm_output.c
         src/charm_globals.c
         src/charm_bnd_cond.c
         src/charm_geom.c
         src/charm_xml.c
+        src/charm_yaml.c
         src/charm_base_func.c
         src/limiters/charm_limiter.c
         src/charm_eos.c
@@ -68,5 +75,5 @@ add_executable(	charm_3d
         src/models/ns/charm_model_ns_chem.c
 )
 
-target_link_libraries(charm_3d p4est sc m mxml)
+target_link_libraries(charm_3d p4est sc m mxml yaml)
 set_property(TARGET charm_3d PROPERTY C_STANDARD 99)

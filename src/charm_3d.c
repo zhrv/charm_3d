@@ -20,7 +20,7 @@ int main (int argc, char **argv)
 
     CHARM_GLOBAL_ESSENTIAL("charm_3d started...\n");
 
-    charm_init_context(&ctx);
+    charm_init_context_yaml(&ctx);
 
     conn = charm_conn_create(&ctx);
     if (!conn) {
