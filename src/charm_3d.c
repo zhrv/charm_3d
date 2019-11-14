@@ -1,6 +1,7 @@
 #include "charm_globals.h"
 #include "charm_amr.h"
 
+void charm_init_context_yaml(charm_ctx_t *ctx);
 
 int main (int argc, char **argv)
 {

@@ -53,12 +53,12 @@ void                CHARM_GLOBAL_LOGF (int priority, const char *fmt, ...)
 __attribute__ ((format (printf, 2, 3)));
 void                CHARM_LOGF (int priority, const char *fmt, ...)
 __attribute__ ((format (printf, 2, 3)));
-#ifndef __cplusplus
+//#ifndef __cplusplus
 #define CHARM_GLOBAL_LOGF(p,f,...)                                      \
   SC_GEN_LOGF (charm_package_id, SC_LC_GLOBAL, (p), (f), __VA_ARGS__)
 #define CHARM_LOGF(p,f,...)                                             \
   SC_GEN_LOGF (charm_package_id, SC_LC_NORMAL, (p), (f), __VA_ARGS__)
-#endif
+//#endif
 
 /* convenience global log macros will only print if identifier <= 0 */
 #define CHARM_GLOBAL_TRACE(s) CHARM_GLOBAL_LOG (SC_LP_TRACE, (s))
@@ -85,7 +85,7 @@ void                CHARM_GLOBAL_ESSENTIALF (const char *fmt, ...)
 __attribute__ ((format (printf, 1, 2)));
 void                CHARM_GLOBAL_LERRORF (const char *fmt, ...)
 __attribute__ ((format (printf, 1, 2)));
-#ifndef __cplusplus
+//#ifndef __cplusplus
 #define CHARM_GLOBAL_TRACEF(f,...)                      \
   CHARM_GLOBAL_LOGF (SC_LP_TRACE, (f), __VA_ARGS__)
 #define CHARM_GLOBAL_LDEBUGF(f,...)                     \
@@ -102,7 +102,7 @@ __attribute__ ((format (printf, 1, 2)));
   CHARM_GLOBAL_LOGF (SC_LP_ESSENTIAL, (f), __VA_ARGS__)
 #define CHARM_GLOBAL_LERRORF(f,...)                     \
   CHARM_GLOBAL_LOGF (SC_LP_ERROR, (f), __VA_ARGS__)
-#endif
+//#endif
 #define CHARM_GLOBAL_NOTICE     CHARM_GLOBAL_STATISTICS
 #define CHARM_GLOBAL_NOTICEF    CHARM_GLOBAL_STATISTICSF
 
@@ -131,7 +131,7 @@ void                CHARM_ESSENTIALF (const char *fmt, ...)
 __attribute__ ((format (printf, 1, 2)));
 void                CHARM_LERRORF (const char *fmt, ...)
 __attribute__ ((format (printf, 1, 2)));
-#ifndef __cplusplus
+//#ifndef __cplusplus
 #define CHARM_TRACEF(f,...)                     \
   CHARM_LOGF (SC_LP_TRACE, (f), __VA_ARGS__)
 #define CHARM_LDEBUGF(f,...)                    \
@@ -148,7 +148,7 @@ __attribute__ ((format (printf, 1, 2)));
   CHARM_LOGF (SC_LP_ESSENTIAL, (f), __VA_ARGS__)
 #define CHARM_LERRORF(f,...)                    \
   CHARM_LOGF (SC_LP_ERROR, (f), __VA_ARGS__)
-#endif
+//#endif
 #define CHARM_NOTICE            CHARM_STATISTICS
 #define CHARM_NOTICEF           CHARM_STATISTICSF
 
@@ -461,51 +461,81 @@ typedef struct charm_tree_attr
     charm_reg_t        *reg;
 } charm_tree_attr_t;
 
+#ifdef __cplusplus
+    extern "C" {
+#endif
 
 double scalar_prod(double v1[CHARM_DIM], double v2[CHARM_DIM]);
+
 double vect_length(double v[CHARM_DIM]);
+
 void vect_prod(double v1[CHARM_DIM], double v2[CHARM_DIM], double res[CHARM_DIM]);
 
 
 double charm_face_get_area(charm_data_t *d, int8_t face);
-double charm_face_get_normal(charm_data_t *d, int8_t face, double* n);
-void charm_quad_get_center(charm_data_t *d, double* c);
-void charm_face_get_center(charm_data_t *d, int8_t face, double* c);
+
+double charm_face_get_normal(charm_data_t *d, int8_t face, double *n);
+
+void charm_quad_get_center(charm_data_t *d, double *c);
+
+void charm_face_get_center(charm_data_t *d, int8_t face, double *c);
+
 double charm_quad_get_volume(charm_data_t *d);
 
-charm_comp_t *      charm_get_comp(p4est_t * p4est, int i);
-size_t              charm_get_comp_count(p4est_t* p4est);
-charm_reaction_t *  charm_get_reaction(p4est_t * p4est, int i);
-size_t              charm_get_reactions_count(p4est_t* p4est);
-charm_comp_t *      charm_comp_find_by_id(charm_ctx_t *ctx, int id);
-int                 charm_comp_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index);
-charm_mat_t  *      charm_mat_find_by_id(charm_ctx_t *ctx, int id);
-int                 charm_mat_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index);
-charm_reg_t  *      charm_reg_find_by_id(charm_ctx_t *ctx, int id);
-charm_bnd_t  *      charm_bnd_find_by_face_type(charm_ctx_t *ctx, int type);
+charm_comp_t *charm_get_comp(p4est_t *p4est, int i);
 
-charm_mesh_type_t charm_mesh_get_type_by_str(char*);
+size_t charm_get_comp_count(p4est_t *p4est);
 
-charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tree);
+charm_reaction_t *charm_get_reaction(p4est_t *p4est, int i);
 
-charm_data_t * charm_get_quad_data(p4est_quadrant_t *q);
+size_t charm_get_reactions_count(p4est_t *p4est);
+
+charm_comp_t *charm_comp_find_by_id(charm_ctx_t *ctx, int id);
+
+int charm_comp_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index);
+
+charm_mat_t *charm_mat_find_by_id(charm_ctx_t *ctx, int id);
+
+int charm_mat_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index);
+
+charm_reg_t *charm_reg_find_by_id(charm_ctx_t *ctx, int id);
+
+charm_bnd_t *charm_bnd_find_by_face_type(charm_ctx_t *ctx, int type);
+
+charm_mesh_type_t charm_mesh_get_type_by_str(char *);
+
+charm_tree_attr_t *charm_get_tree_attr(p4est_t *p4est, p4est_topidx_t which_tree);
+
+charm_data_t *charm_get_quad_data(p4est_quadrant_t *q);
 
 
-void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * c);
-void charm_param_prim_to_cons(p4est_t * p4est, charm_cons_t * c, charm_prim_t * p);
+void charm_param_cons_to_prim(p4est_t *p4est, charm_prim_t *p, charm_cons_t *c);
 
-void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src);
+void charm_param_prim_to_cons(p4est_t *p4est, charm_cons_t *c, charm_prim_t *p);
+
+void charm_prim_cpy(charm_prim_t *dest, charm_prim_t *src);
 
 double charm_matr3_det(double a[3][3]);
-void   charm_matr3_inv(double a[3][3], double a_inv[3][3]);
-void   charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double am[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
-void   charm_matr_vect_mult(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT], double res[CHARM_BASE_FN_COUNT]);
-void   charm_matr_add(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
-void   charm_vect_add(double a[CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT]);
-void   charm_matr_zero(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
-void   charm_vect_zero(double a[CHARM_BASE_FN_COUNT]);
 
-charm_ctx_t* charm_get_ctx(p4est_t* p4est);
+void charm_matr3_inv(double a[3][3], double a_inv[3][3]);
+
+void charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT],
+                    double am[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
+
+void charm_matr_vect_mult(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT],
+                          double res[CHARM_BASE_FN_COUNT]);
+
+void
+charm_matr_add(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
+
+void charm_vect_add(double a[CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT]);
+
+void charm_matr_zero(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
+
+void charm_vect_zero(double a[CHARM_BASE_FN_COUNT]);
+
+charm_ctx_t *charm_get_ctx(p4est_t *p4est);
+
 void charm_abort(p4est_t *p4est, int err_code);
 
 void dbg_print_param(charm_param_t *);
@@ -513,43 +543,58 @@ void dbg_print_param(charm_param_t *);
 
 extern int charm_package_id;
 
-void charm_timesteps (p4est_t * p4est);
+void charm_timesteps(p4est_t *p4est);
 
-void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree,
-                                   p4est_quadrant_t * q);
+void charm_init_initial_condition(p4est_t *p4est, p4est_topidx_t which_tree,
+                                  p4est_quadrant_t *q);
 
 void charm_init_context(charm_ctx_t *ctx);
-void charm_init_context_yaml(charm_ctx_t *ctx);
 
 
-void charm_write_solution (p4est_t * p4est);
-void charm_log_statistics(p4est_t * p4est, int timestep, double time, double dt, double calc_time);
+void charm_write_solution(p4est_t *p4est);
+
+void charm_log_statistics(p4est_t *p4est, int timestep, double time, double dt, double calc_time);
 
 
-void charm_quad_get_vertices(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, double v[8][CHARM_DIM]);
-void charm_geom_quad_calc(p4est_t * p4est, p4est_quadrant_t* q, p4est_topidx_t treeid);
+void charm_quad_get_vertices(p4est_t *p4est, p4est_quadrant_t *q, p4est_topidx_t treeid, double v[8][CHARM_DIM]);
+
+void charm_geom_quad_calc(p4est_t *p4est, p4est_quadrant_t *q, p4est_topidx_t treeid);
 
 
-p4est_connectivity_t* charm_conn_create(charm_ctx_t *ctx);
+p4est_connectivity_t *charm_conn_create(charm_ctx_t *ctx);
 
-double charm_get_heat_k(p4est_t* p4est, double *x, charm_data_t* data);
+double charm_get_heat_k(p4est_t *p4est, double *x, charm_data_t *data);
 
-double charm_get_visc_lambda(p4est_t* p4est, charm_data_t* data);
-double charm_get_visc_mu(p4est_t* p4est, double *x, charm_data_t* data);
+double charm_get_visc_lambda(p4est_t *p4est, charm_data_t *data);
 
-void charm_tensor_zero(charm_tensor_t * t);
-void charm_tensor_add(charm_tensor_t * dest, charm_tensor_t *src);
-void charm_tensor_sum(charm_tensor_t * t1, charm_tensor_t *t2, charm_tensor_t * result);
-void charm_tensor_mul_scalar(charm_tensor_t * dest, double x);
+double charm_get_visc_mu(p4est_t *p4est, double *x, charm_data_t *data);
 
-p4est_t * charm_get_p4est();
+void charm_tensor_zero(charm_tensor_t *t);
+
+void charm_tensor_add(charm_tensor_t *dest, charm_tensor_t *src);
+
+void charm_tensor_sum(charm_tensor_t *t1, charm_tensor_t *t2, charm_tensor_t *result);
+
+void charm_tensor_mul_scalar(charm_tensor_t *dest, double x);
+
+p4est_t *charm_get_p4est();
+
 void charm_set_p4est(p4est_t *);
 
 
 double charm_comp_calc_cp(charm_comp_t *comp, double t);
+
 double charm_comp_calc_cp_dt(charm_comp_t *comp, double t);
+
 double charm_comp_calc_ml(charm_comp_t *comp, double t);
+
 double charm_comp_calc_kp(charm_comp_t *comp, double t);
 
 
+#ifdef __cplusplus
+}
+#endif
+
+
 #endif //CHAMR_3D_CHARM_GLOBALS_H
+
