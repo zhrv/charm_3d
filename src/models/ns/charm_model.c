@@ -15,6 +15,8 @@
 void charm_model_ns_timestep_conv(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 void charm_model_ns_timestep_diff(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 void charm_model_ns_timestep_chem(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
+void charm_model_ns_timestep_diffusion(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
+
 
 static void _charm_model_ns_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
@@ -200,6 +202,12 @@ void charm_model_ns_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t *
     charm_limiter(p4est, ghost, ghost_data);
 
     charm_model_ns_timestep_chem(p4est, ghost, ghost_data);
+
+    p4est_ghost_exchange_data (p4est, ghost, ghost_data); /* synchronize the ghost data */
+
+    charm_model_ns_timestep_diffusion(p4est, ghost, ghost_data);
+
+    p4est_ghost_exchange_data (p4est, ghost, ghost_data); /* synchronize the ghost data */
 
     *_ghost       = ghost;
     *_ghost_data  = ghost_data;
