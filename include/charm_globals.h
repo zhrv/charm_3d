@@ -22,6 +22,7 @@
 #define CHARM_REALLOC       P4EST_REALLOC
 #define CHARM_QUADRANT_LEN  P4EST_QUADRANT_LEN
 
+#define CHARM_CONFIG_YAML
 
 #ifdef POGGI
 #warning "POGGI!!!!!!!!!!!"

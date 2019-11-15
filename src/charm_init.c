@@ -74,6 +74,8 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
 }
 
 
+#ifndef CHARM_CONFIG_YAML
+
 void charm_init_fetch_bnd(mxml_node_t* node, charm_bnd_t *bnd)
 {
     mxml_node_t * n1, *n2, *n3;
@@ -441,3 +443,4 @@ void charm_init_context(charm_ctx_t *ctx)
 }
 
 
+#endif

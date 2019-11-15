@@ -5,8 +5,8 @@ set(CMAKE_C_COMPILER "mpicc")
 set(CMAKE_CXX_COMPILER "mpicxx")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O2") # for production
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -DCHARM_DEBUG") # for developing
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2") # for production
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -DCHARM_DEBUG") # for developing
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -std=c++14") # for production
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -DCHARM_DEBUG -std=c++14") # for developing
 
 if (DEFINED POGGI)
     message("\nWARNING: Building for Poggi's task for RMI\n")
@@ -66,8 +66,10 @@ add_executable(	charm_3d
         src/limiters/charm_limiter_bj.c
 
         src/models/euler/charm_model.c
+        src/models/euler/charm_model_euler_init.cpp
 
         src/models/ns/charm_model.c
+        src/models/ns/charm_model_ns_init.cpp
         src/models/ns/charm_model_ns_conv.c
         src/models/ns/charm_model_ns_diff.c
         src/models/ns/charm_model_ns_diff_grad.c
