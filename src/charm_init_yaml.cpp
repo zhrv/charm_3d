@@ -312,7 +312,7 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
         _charm_init_reg(       ctx, config["regions"]);
         _charm_init_mesh_info( ctx, config["mesh"]);
 
-        ctx->use_visc = 0;
+        ctx->model.ns.use_visc = 0;
         YAML::Node model = control["MODEL"];
         str = model["name"].as<std::string>();
         if (str == "EULER") {

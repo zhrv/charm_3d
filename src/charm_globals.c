@@ -508,8 +508,6 @@ size_t charm_get_reactions_count(p4est_t* p4est)
 double charm_get_visc_lambda(p4est_t* p4est, charm_data_t* data)
 {
     return 0;
-    charm_ctx_t *ctx = charm_get_ctx(p4est);
-    return ctx->visc_l;
 }
 
 

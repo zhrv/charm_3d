@@ -439,9 +439,16 @@ typedef struct charm_ctx
     double              time;               /**< the max time */
     int                 timestep;
 
-    int                 use_visc;
-    double              visc_m;
-    double              visc_l;
+    union {
+        struct {
+
+        } euler;
+        struct {
+            int                 use_visc;
+        } ns;
+    } model;
+//    double              visc_m;
+//    double              visc_l;
 
     sc_array_t         *bnd;
     sc_array_t         *mat;       /**< materials */
