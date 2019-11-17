@@ -674,3 +674,21 @@ double charm_comp_calc_kp(charm_comp_t * comp, double t)
     }
 }
 
+
+double charm_comp_calc_enthalpy(charm_comp_t * comp, double t)
+{
+    p4est_t *p4est = charm_get_p4est();
+    charm_ctx_t *ctx = charm_get_ctx(p4est);
+    double t1,t2, *cp;
+    double t_ref = ctx->model.ns.t_ref;
+    int i;
+    double h = comp->h0;
+    for (i = 0; i < comp->cp->elem_count; i++){
+        cp = (double*) sc_array_index(comp->cp, i);
+        t2 = pow(t, i+1)/(i+1);
+        t1 = pow(t_ref,(i+1))/(i+1);
+        h += (*cp)*(t2-t1);
+    }
+    return h;
+}
+

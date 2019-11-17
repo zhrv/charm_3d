@@ -259,6 +259,28 @@ typedef struct charm_tensor
     double yz;
 } charm_tensor_t;
 
+typedef struct charm_tensor_c
+{
+    double xx[CHARM_BASE_FN_COUNT];
+    double yy[CHARM_BASE_FN_COUNT];
+    double zz[CHARM_BASE_FN_COUNT];
+    double xy[CHARM_BASE_FN_COUNT];
+    double xz[CHARM_BASE_FN_COUNT];
+    double yz[CHARM_BASE_FN_COUNT];
+} charm_tensor_c_t;
+
+typedef struct charm_vec {
+    double x[CHARM_BASE_FN_COUNT];
+    double y[CHARM_BASE_FN_COUNT];
+    double z[CHARM_BASE_FN_COUNT];
+} charm_vec_t;
+
+typedef struct charm_vec_c {
+    double x[CHARM_BASE_FN_COUNT];
+    double y[CHARM_BASE_FN_COUNT];
+    double z[CHARM_BASE_FN_COUNT];
+} charm_vec_c_t;
+
 
 typedef void (*charm_eos_fn_t) (p4est_t * p4est, charm_prim_t * p, int flag);
 
@@ -281,16 +303,6 @@ typedef struct charm_reg
     double          grav[CHARM_DIM];
 } charm_reg_t;
 
-typedef struct charm_tensor_c
-{
-    double xx[CHARM_BASE_FN_COUNT];
-    double yy[CHARM_BASE_FN_COUNT];
-    double zz[CHARM_BASE_FN_COUNT];
-    double xy[CHARM_BASE_FN_COUNT];
-    double xz[CHARM_BASE_FN_COUNT];
-    double yz[CHARM_BASE_FN_COUNT];
-} charm_tensor_c_t;
-
 typedef struct charm_param
 {
     struct
@@ -303,14 +315,17 @@ typedef struct charm_param
         double          rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];             /**< the state variable */
     } c;
 
-    charm_tensor_c_t tau;
+    union {
+        struct {
 
-    struct
-    {
-        double x[CHARM_BASE_FN_COUNT];
-        double y[CHARM_BASE_FN_COUNT];
-        double z[CHARM_BASE_FN_COUNT];
-    } q;
+        } euler;
+        struct {
+            charm_tensor_c_t tau;
+            charm_vec_c_t q;
+            charm_vec_c_t d[CHARM_MAX_COMPONETS_COUNT];
+            double chem_rhs;
+        } ns;
+    } model;
 
     struct geom
     {
@@ -445,6 +460,7 @@ typedef struct charm_ctx
         } euler;
         struct {
             int                 use_visc;
+            double              t_ref;
         } ns;
     } model;
 //    double              visc_m;
@@ -597,6 +613,8 @@ double charm_comp_calc_cp_dt(charm_comp_t *comp, double t);
 double charm_comp_calc_ml(charm_comp_t *comp, double t);
 
 double charm_comp_calc_kp(charm_comp_t *comp, double t);
+
+double charm_comp_calc_enthalpy(charm_comp_t *comp, double t);
 
 
 #ifdef __cplusplus

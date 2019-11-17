@@ -406,16 +406,16 @@ static void _charm_model_ns_diff_grad_update_quad_iter_fn (p4est_iter_volume_inf
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
 
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xx, data->par.tau.xx);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_yy, data->par.tau.yy);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_zz, data->par.tau.zz);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xy, data->par.tau.xy);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xz, data->par.tau.xz);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_yz, data->par.tau.yz);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xx, data->par.model.ns.tau.xx);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_yy, data->par.model.ns.tau.yy);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_zz, data->par.model.ns.tau.zz);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xy, data->par.model.ns.tau.xy);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xz, data->par.model.ns.tau.xz);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_yz, data->par.model.ns.tau.yz);
 
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_x, data->par.q.x);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_y, data->par.q.y);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_z, data->par.q.z);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_x, data->par.model.ns.q.x);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_y, data->par.model.ns.q.y);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_z, data->par.model.ns.q.z);
 }
 
 

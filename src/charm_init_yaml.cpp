@@ -11,6 +11,7 @@
 #include "yaml-cpp/yaml.h"
 #include <cstring>
 #include <cstdlib>
+#include <iostream>
 
 #ifdef CHARM_CONFIG_YAML
 
@@ -46,7 +47,7 @@ static void _charm_init_fetch_bnd(YAML::Node node, charm_bnd_t *bnd)
             bnd->bnd_fn = charm_bnd_cond_fn_wall_no_slip;
             n2 = node["parameters"];
             bnd->params = CHARM_ALLOC(double, 1);
-            bnd->params[4] = n2["P"].as<double>();
+            bnd->params[0] = n2["T"].as<double>();
             break;
         default:
             CHARM_LERRORF("Unknown boundary type %d\n", bnd->type);

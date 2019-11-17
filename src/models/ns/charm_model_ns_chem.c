@@ -2,6 +2,7 @@
 // Created by zhrv on 08.11.19.
 //
 #include <p8est_iterate.h>
+#include <charm_globals.h>
 #include "charm_base_func.h"
 #include "charm_fluxes.h"
 #include "charm_bnd_cond.h"
@@ -39,8 +40,6 @@ static void _charm_model_ns_chem_rhs(p4est_t * p4est, charm_data_t *data)
         }
     }
 
-    memset(chem_phi, 0, sizeof(double)*c_count);
-    memset(chem_psi, 0, sizeof(double)*c_count);
     for (i = 0; i < c_count; i++) {
         chem_phi[i] = 0.;
         chem_psi[i] = 0.;
@@ -60,6 +59,52 @@ static void _charm_model_ns_chem_rhs(p4est_t * p4est, charm_data_t *data)
                 }
             }
         }
+    }
+
+}
+
+
+static void _charm_model_ns_chem_rhs_save(p4est_t * p4est, charm_data_t *data)
+{
+    double       R   = charm_eos_get_r();
+    charm_cons_t cons;
+    charm_prim_t prim;
+    size_t r_count = charm_get_reactions_count(p4est);
+    size_t c_count = charm_get_comp_count(p4est);
+    charm_reaction_t * r;
+    charm_comp_t *comp;
+    int i, j, m, n, ic;
+    double w, h;
+
+    charm_get_fields_avg(data, &cons);
+    charm_param_cons_to_prim(p4est, &prim, &cons);
+    for (n = 0; n < r_count; n++) {
+        r = charm_get_reaction(p4est, n);
+        chem_k[n] = r->a*exp(-r->e/prim.t/R);
+        chem_w[n] = chem_k[n];
+        for (m = 0; m < 3; m++) {
+            i = r->left_comps[m];
+            chem_w[n] *= (i < 0 ? 1. : chem_c_[i]);
+        }
+    }
+
+    data->par.model.ns.chem_rhs = 0.;
+    for (i = 0; i < c_count; i++) {
+        w = 0.;
+        for (n = 0; n < r_count; n++) {
+            r = charm_get_reaction(p4est, n);
+            for (m = 0; m < 3; m++) {
+                if (i == r->left_comps[m]) {
+                    w -= chem_w[i];
+                }
+                if (i == r->right_comps[m]) {
+                    w += chem_w[n];
+                }
+            }
+        }
+        comp = charm_get_comp(p4est, i);
+        h = charm_comp_calc_enthalpy(comp, i);
+        data->par.model.ns.chem_rhs += w*h;
     }
 
 }
@@ -96,6 +141,11 @@ static void _charm_model_ns_chem_iter_fn(p4est_iter_volume_info_t * info, void *
             chem_c_hat[i] /= (1. + ctx->dt * chem_phi[i] + _SQR_(ctx->dt * chem_phi[i]) * 0.5);
         }
     }
+
+    for (i = 0; i < c_count; i++) {
+        chem_c_[i] = chem_c_hat[i];
+    }
+    _charm_model_ns_chem_rhs_save(p4est, data);
 
     // TODO
     for (i = 0; i < c_count; i++) {

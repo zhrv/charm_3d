@@ -347,12 +347,12 @@ void charm_get_visc_tau(charm_data_t *p, double* x, charm_tensor_t *tau)
     memset(tau, 0, sizeof(charm_tensor_t));
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        tau->xx += p->par.tau.xx[i]*charm_base_func(x, i, p);
-        tau->xy += p->par.tau.xy[i]*charm_base_func(x, i, p);
-        tau->xz += p->par.tau.xz[i]*charm_base_func(x, i, p);
-        tau->yy += p->par.tau.yy[i]*charm_base_func(x, i, p);
-        tau->yz += p->par.tau.yz[i]*charm_base_func(x, i, p);
-        tau->zz += p->par.tau.zz[i]*charm_base_func(x, i, p);
+        tau->xx += p->par.model.ns.tau.xx[i]*charm_base_func(x, i, p);
+        tau->xy += p->par.model.ns.tau.xy[i]*charm_base_func(x, i, p);
+        tau->xz += p->par.model.ns.tau.xz[i]*charm_base_func(x, i, p);
+        tau->yy += p->par.model.ns.tau.yy[i]*charm_base_func(x, i, p);
+        tau->yz += p->par.model.ns.tau.yz[i]*charm_base_func(x, i, p);
+        tau->zz += p->par.model.ns.tau.zz[i]*charm_base_func(x, i, p);
     }
 }
 
@@ -364,8 +364,8 @@ void charm_get_heat_q(charm_data_t *p, double* x, double *q)
     memset(q, 0, sizeof(double)*3);
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        q[0] += p->par.q.x[i]*charm_base_func(x, i, p);
-        q[1] += p->par.q.y[i]*charm_base_func(x, i, p);
-        q[2] += p->par.q.z[i]*charm_base_func(x, i, p);
+        q[0] += p->par.model.ns.q.x[i]*charm_base_func(x, i, p);
+        q[1] += p->par.model.ns.q.y[i]*charm_base_func(x, i, p);
+        q[2] += p->par.model.ns.q.z[i]*charm_base_func(x, i, p);
     }
 }
