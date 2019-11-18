@@ -322,7 +322,7 @@ typedef struct charm_param
         struct {
             charm_tensor_c_t tau;
             charm_vec_c_t q;
-            charm_vec_c_t d[CHARM_MAX_COMPONETS_COUNT];
+            double d[CHARM_MAX_COMPONETS_COUNT];
             double chem_rhs;
         } ns;
     } model;

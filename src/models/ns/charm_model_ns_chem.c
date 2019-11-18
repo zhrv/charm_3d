@@ -103,8 +103,7 @@ static void _charm_model_ns_chem_rhs_save(p4est_t * p4est, charm_data_t *data)
             }
         }
         comp = charm_get_comp(p4est, i);
-        h = charm_comp_calc_enthalpy(comp, i);
-        data->par.model.ns.chem_rhs += w*h;
+        data->par.model.ns.chem_rhs += w*charm_comp_calc_enthalpy(comp, prim.t);
     }
 
 }

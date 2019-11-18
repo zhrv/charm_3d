@@ -211,6 +211,9 @@ void charm_model_ns_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t *
                    charm_model_ns_timestep_zero_quad_iter_fn,
                    NULL, NULL, NULL);
 
+
+    charm_model_ns_timestep_diffusion(p4est, ghost, ghost_data);
+
     charm_model_ns_timestep_conv(p4est, ghost, ghost_data);
     charm_model_ns_timestep_diff(p4est, ghost, ghost_data);
 
@@ -224,7 +227,6 @@ void charm_model_ns_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t *
 
     charm_limiter(p4est, ghost, ghost_data);
 
-    charm_model_ns_timestep_diffusion(p4est, ghost, ghost_data);
 
     p4est_ghost_exchange_data (p4est, ghost, ghost_data); /* synchronize the ghost data */
 
