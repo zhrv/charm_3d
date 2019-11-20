@@ -156,10 +156,24 @@ static void _charm_model_ns_chem_iter_fn(p4est_iter_volume_info_t * info, void *
 
 }
 
+static void _charm_model_ns_chem_zero_rhs_quad_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
+{
+    charm_get_quad_data(info->quad)->par.model.ns.chem_rhs = 0.;
+}
+
+
 void charm_model_ns_timestep_chem(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data)
 {
     charm_ctx_t *ctx = charm_get_ctx(p4est);
-    if (!ctx->reactions) return;
+    if (!ctx->reactions) {
+        p4est_iterate (p4est,
+                       ghost,
+                       (void *) ghost_data,
+                       _charm_model_ns_chem_zero_rhs_quad_iter_fn,
+                       NULL, NULL, NULL);
+
+        return;
+    }
 
     size_t c_count = charm_get_comp_count(p4est);
     size_t r_count = charm_get_reactions_count(p4est);

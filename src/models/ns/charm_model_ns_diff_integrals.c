@@ -40,6 +40,8 @@ static void _charm_model_ns_diff_integrals_volume_int_iter_fn (p4est_iter_volume
             phi_y = charm_base_func_dy(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
             phi_z = charm_base_func_dz(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
 
+            phi = charm_base_func(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
+
             data->int_ru[ibf] += (tau.xx*phi_x+tau.xy*phi_y+tau.xz*phi_z);
             data->int_rv[ibf] += (tau.xy*phi_x+tau.yy*phi_y+tau.yz*phi_z);
             data->int_rw[ibf] += (tau.xz*phi_x+tau.yz*phi_y+tau.zz*phi_z);
@@ -47,6 +49,7 @@ static void _charm_model_ns_diff_integrals_volume_int_iter_fn (p4est_iter_volume
             data->int_re[ibf] += (tau.xx*p.u+tau.xy*p.v+tau.xz*p.w)*phi_x;
             data->int_re[ibf] += (tau.xy*p.u+tau.yy*p.v+tau.yz*p.w)*phi_y;
             data->int_re[ibf] += (tau.xz*p.u+tau.yz*p.v+tau.zz*p.w)*phi_z;
+            data->int_re[ibf] += data->par.model.ns.chem_rhs*phi;
         }
     }
 }

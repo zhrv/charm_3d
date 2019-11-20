@@ -212,10 +212,9 @@ void charm_model_ns_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t *
                    NULL, NULL, NULL);
 
 
-    charm_model_ns_timestep_diffusion(p4est, ghost, ghost_data);
 
-    charm_model_ns_timestep_conv(p4est, ghost, ghost_data);
     charm_model_ns_timestep_diff(p4est, ghost, ghost_data);
+    charm_model_ns_timestep_conv(p4est, ghost, ghost_data);
 
     p4est_iterate (p4est, NULL,
                    (void *) dt,
