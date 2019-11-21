@@ -24,32 +24,34 @@ static void _charm_model_ns_chem_init_fetch_reaction(charm_ctx_t *ctx, YAML::Nod
 
     left = node["left"];
     i = 0;
-    for (auto it = left.begin(); it != left.end(); it++, i++) {
+    for (auto it : left) {
         if (i >= 3) {
             CHARM_LERROR("More than 3 components in reaction!\n");
             charm_abort(nullptr, 1);
         }
-        comp = it->as<int>();
+        comp = it.as<int>();
         if (!( -1 <= comp && comp < c_count )) {
             CHARM_LERRORF("Wrong component number in reaction: %d, but total components count: %d\n", comp, c_count);
             charm_abort(nullptr, 1);
         }
         r->left_comps[i] = comp;
+        ++i;
     }
 
     right = node["right"];
     i = 0;
-    for (auto it = right.begin(); it != right.end(); it++, i++) {
+    for (auto it : right) {
         if (i >= 3) {
             CHARM_LERROR("More than 3 components in reaction!\n");
             charm_abort(nullptr, 1);
         }
-        comp = it->as<int>();
+        comp = it.as<int>();
         if (!( -1 <= comp && comp < c_count )) {
             CHARM_LERRORF("Wrong component number in reaction: %d, but total components count: %d\n", comp, c_count);
             charm_abort(nullptr, 1);
         }
         r->right_comps[i] = comp;
+        ++i;
     }
 
 }
@@ -67,9 +69,9 @@ static void _charm_model_ns_chem_init(charm_ctx_t *ctx, YAML::Node yaml)
     charm_reaction_t *r;
     ctx->reactions = sc_array_new(sizeof(charm_reaction_t));
 
-    for (auto it = r_node.begin(); it != r_node.end(); it++) {
+    for (auto it : r_node) {
         r = (charm_reaction_t *) sc_array_push(ctx->reactions);
-        _charm_model_ns_chem_init_fetch_reaction(ctx, *it, r);
+        _charm_model_ns_chem_init_fetch_reaction(ctx, it, r);
     }
 }
 

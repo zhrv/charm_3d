@@ -61,9 +61,9 @@ static void _charm_init_fetch_bnd(YAML::Node node, charm_bnd_t *bnd)
 static void _charm_init_bnd(charm_ctx_t *ctx, YAML::Node node)
 {
     ctx->bnd = sc_array_new(sizeof(charm_bnd_t));
-    for (auto it = node.begin(); it != node.end(); it++) {
-        charm_bnd_t *bnd = (charm_bnd_t *) sc_array_push(ctx->bnd);
-        _charm_init_fetch_bnd(*it, bnd);
+    for (auto it : node) {
+        auto bnd = (charm_bnd_t *) sc_array_push(ctx->bnd);
+        _charm_init_fetch_bnd(it, bnd);
     }
 
 }
@@ -122,9 +122,9 @@ static void _charm_init_fetch_comp(YAML::Node node, charm_comp_t *comp)
 
     comp->cp = sc_array_new(sizeof(double));
     YAML::Node cp = node["Cp"];
-    for (auto it = cp.begin(); it != cp.end(); it++) {
-        auto *tmp = (double*)sc_array_push(comp->cp);
-        *tmp = it->as<double>();
+    for (auto it : cp) {
+        auto tmp = (double*)sc_array_push(comp->cp);
+        *tmp = it.as<double>();
     }
 }
 
@@ -132,9 +132,9 @@ static void _charm_init_fetch_comp(YAML::Node node, charm_comp_t *comp)
 static void _charm_init_comps(charm_ctx_t *ctx, YAML::Node node)
 {
     ctx->comp = sc_array_new(sizeof(charm_comp_t));
-    for (auto it = node.begin(); it != node.end(); it++) {
-        charm_comp_t *comp = (charm_comp_t *) sc_array_push(ctx->comp);
-        _charm_init_fetch_comp(*it, comp);
+    for (auto c : node) {
+        auto comp = (charm_comp_t *) sc_array_push(ctx->comp);
+        _charm_init_fetch_comp(c, comp);
     }
 }
 
@@ -168,9 +168,9 @@ static void _charm_init_fetch_mat(charm_ctx_t *ctx, YAML::Node node, charm_mat_t
 static void _charm_init_mat(charm_ctx_t *ctx, YAML::Node node)
 {
     ctx->mat = sc_array_new(sizeof(charm_mat_t));
-    for (auto it = node.begin(); it != node.end(); it++) {
-        auto *mat = (charm_mat_t *) sc_array_push(ctx->mat);
-        _charm_init_fetch_mat(ctx, *it, mat);
+    for (auto it : node) {
+        auto mat = (charm_mat_t *) sc_array_push(ctx->mat);
+        _charm_init_fetch_mat(ctx, it, mat);
     }
 }
 
@@ -201,9 +201,9 @@ static void _charm_init_fetch_reg(charm_ctx_t *ctx, YAML::Node node, charm_reg_t
 
     memset(reg->c, 0, CHARM_MAX_COMPONETS_COUNT*sizeof(double));
     n1 = node["components"];
-    for (auto it = n1.begin(); it != n1.end(); it++) {
-        id = (*it)["id"].as<int>();
-        c  = (*it)["concentration"].as<double>();
+    for (auto it : n1) {
+        id = it["id"].as<int>();
+        c  = it["concentration"].as<double>();
         if (charm_comp_index_find_by_id(ctx, id, &idx)) {
             reg->c[idx] = c;
         }
@@ -227,9 +227,9 @@ static void _charm_init_fetch_reg(charm_ctx_t *ctx, YAML::Node node, charm_reg_t
 static void _charm_init_reg(charm_ctx_t *ctx, YAML::Node node)
 {
     ctx->reg = sc_array_new(sizeof(charm_reg_t));
-    for (auto it = node.begin(); it != node.end(); it++) {
-        auto *reg = (charm_reg_t *) sc_array_push(ctx->reg);
-        _charm_init_fetch_reg(ctx, *it, reg);
+    for (auto it : node) {
+        auto reg = (charm_reg_t *) sc_array_push(ctx->reg);
+        _charm_init_fetch_reg(ctx, it, reg);
     }
 }
 
