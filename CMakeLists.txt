@@ -28,11 +28,12 @@ set(MXML_LIB "${CONTRIB_DIR}/mxml/local/lib")
 set(YAML_INCLUDE "${CONTRIB_DIR}/yaml-cpp/local/include")
 
 set(YAML_LIB "${CONTRIB_DIR}/yaml-cpp/local/lib")
+set(YAML_LIB64 "${CONTRIB_DIR}/yaml-cpp/local/lib64")
 
 set(CHARM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
 
 include_directories(${CHARM_INCLUDE} ${P4EST_INCLUDE} ${MPI_INCLUDE} ${MXML_INCLUDE} ${YAML_INCLUDE})
-link_directories(${P4EST_LIB} ${MXML_LIB} ${YAML_LIB})
+link_directories(${P4EST_LIB} ${MXML_LIB} ${YAML_LIB} ${YAML_LIB64})
 
 add_executable(	charm_3d
 
@@ -79,3 +80,4 @@ add_executable(	charm_3d
 
 target_link_libraries(charm_3d p4est sc m mxml yaml-cpp)
 set_property(TARGET charm_3d PROPERTY C_STANDARD 99)
+set_property(TARGET charm_3d PROPERTY CXX_STANDARD 14)
