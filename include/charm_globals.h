@@ -160,15 +160,19 @@ __attribute__ ((format (printf, 1, 2)));
 
 #define CHARM_EPS 1.e-12
 
-//#define FLD_COUNT 5
+#define CHARM_NO_NORM_ZEROS
 
-#define GAM         1.4
+#ifndef CHARM_NO_NORM_ZEROS
+#define _NORM_(X) ( (fabs(X) <= CHARM_EPS) ? 0. : (X) )
+#else
+#define _NORM_(X) ( (X) )
+#endif
 
 #define _MAX_(X,Y) ((X)>(Y) ? (X) : (Y))
 #define _MIN_(X,Y) ((X)<(Y) ? (X) : (Y))
 #define _SQR_(X) ((X)*(X))
 #define _MAG_(X,Y,Z) (_SQR_(X)+_SQR_(Y)+_SQR_(Z))
-#define _NORM_(X) ( (fabs(X) <= CHARM_EPS) ? 0. : (X) )
+
 
 #define CHARM_FACE_TYPE_INNER 0
 #define CHARM_BND_MAX 128

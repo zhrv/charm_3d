@@ -156,6 +156,7 @@ static void _charm_model_ns_chem_iter_fn(p4est_iter_volume_info_t * info, void *
 
 }
 
+
 static void _charm_model_ns_chem_zero_rhs_quad_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_get_quad_data(info->quad)->par.model.ns.chem_rhs = 0.;

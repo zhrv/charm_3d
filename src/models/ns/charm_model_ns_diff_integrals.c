@@ -107,32 +107,32 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
             }
         }
 
-//        x  = udata->par.g.fc[face];
-//        gw = 1.;
-//        gj = udata->par.g.area[face];
-//        mu = charm_get_visc_mu(p4est, x, udata);
-//        charm_get_fields_avg(udata, &cons);
-//        charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
-//        charm_get_heat_q(udata, x, qt);
-//        charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
-//        double vv[3] = {prim[0].u, prim[0].v, prim[0].w};
-//        double un = scalar_prod(vv, n);
-//        double vn[3] = {un*n[0], un*n[1], un*n[2]};
-//        double vt[3] = {vv[0]-vn[0], vv[1]-vn[1], vv[2]-vn[2]};
-//        double ll = vect_length(l);
-//        qu = -mu*vt[0]/ll;
-//        qv = -mu*vt[1]/ll;
-//        qw = -mu*vt[2]/ll;
-//        qe = -qt[0]*n[0]-qt[1]*n[1]-qt[2]*n[2];
-//        for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
-//            if (!side[0]->is.full.is_ghost) {
-//                bfv = charm_base_func(x, ibf, udata) * gw * gj;
-//                udata->int_ru[ibf] -= qu * bfv;
-//                udata->int_rv[ibf] -= qv * bfv;
-//                udata->int_rw[ibf] -= qw * bfv;
-//                udata->int_re[ibf] -= qe * bfv;
-//            }
-//        }
+        x  = udata->par.g.fc[face];
+        gw = 1.;
+        gj = udata->par.g.area[face];
+        mu = charm_get_visc_mu(p4est, x, udata);
+        charm_get_fields_avg(udata, &cons);
+        charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
+        charm_get_heat_q(udata, x, qt);
+        charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
+        double vv[3] = {prim[0].u, prim[0].v, prim[0].w};
+        double un = scalar_prod(vv, n);
+        double vn[3] = {un*n[0], un*n[1], un*n[2]};
+        double vt[3] = {vv[0]-vn[0], vv[1]-vn[1], vv[2]-vn[2]};
+        double ll = vect_length(l);
+        qu = -mu*vt[0]/ll;
+        qv = -mu*vt[1]/ll;
+        qw = -mu*vt[2]/ll;
+        qe = -qt[0]*n[0]-qt[1]*n[1]-qt[2]*n[2];
+        for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
+            if (!side[0]->is.full.is_ghost) {
+                bfv = charm_base_func(x, ibf, udata) * gw * gj;
+                udata->int_ru[ibf] -= qu * bfv;
+                udata->int_rv[ibf] -= qv * bfv;
+                udata->int_rw[ibf] -= qw * bfv;
+                udata->int_re[ibf] -= qe * bfv;
+            }
+        }
 //        for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
 //            x  = udata->par.g.face_gp[face][igp];
 //            gw = udata->par.g.face_gw[face][igp];

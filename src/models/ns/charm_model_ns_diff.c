@@ -67,12 +67,10 @@ void charm_model_ns_timestep_diffusion(p4est_t * p4est, p4est_ghost_t * ghost, c
 {
     size_t c_count = charm_get_comp_count(p4est);
     if (c_count < 2) return;
-
-
     p4est_iterate (p4est, NULL, NULL,
                    _charm_model_ns_timestep_diffusion_quad_iter_fn,
                    NULL, NULL, NULL);
-
+    p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 }
 
 

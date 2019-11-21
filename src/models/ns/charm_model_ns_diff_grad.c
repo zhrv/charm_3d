@@ -158,9 +158,8 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
             fv = (prim[0].v+prim[1].v)*0.5;
             fw = (prim[0].w+prim[1].w)*0.5;
             ft = (prim[0].t+prim[1].t)*0.5;
-            fr = (prim[0].t+prim[1].t)*0.5;
         }
-        fr = (prim[0].t+prim[1].t)*0.5;
+        fr = (prim[0].r+prim[1].r)*0.5;
         qxx = lp*fu*n[0] + lm*fv*n[1] + lm*fw*n[2];
         qyy = lm*fu*n[0] + lp*fv*n[1] + lm*fw*n[2];
         qzz = lm*fu*n[0] + lm*fv*n[1] + lp*fw*n[2];

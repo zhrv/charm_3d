@@ -82,7 +82,7 @@ void charm_bnd_cond_fn_wall_no_slip(charm_prim_t *par_in, charm_prim_t *par_out,
     double   vv[3] = {n[0]*svn, n[1]*svn, n[2]*svn};
     for (i = 0; i < 3; i++) {
         v[i] -= vv[i];
-        v[i] -= vv[i];
+       // v[i] -= vv[i];
     }
     par_out->u = v[0];
     par_out->v = v[1];

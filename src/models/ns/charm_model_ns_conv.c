@@ -93,7 +93,6 @@ static void _charm_model_ns_conv_volume_int_iter_fn (p4est_iter_volume_info_t * 
  * Surface integrals
  */
 
-
 static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * info, void *user_data) {
     int i, ibf, igp;
     p4est_t *p4est = info->p4est;
@@ -330,6 +329,7 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
     }
     CHARM_FREE(qc);
 }
+
 
 static void _charm_model_ns_conv_surface_int_iter_fn (p4est_iter_face_info_t * info, void *user_data)
 {
