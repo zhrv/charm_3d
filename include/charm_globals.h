@@ -238,6 +238,7 @@ typedef struct charm_prim
     double          gam;
     double          cp;
     double          cv;
+    double          m;
     int             mat_id;
     double          c[CHARM_MAX_COMPONETS_COUNT]; // concentrations
 } charm_prim_t;
@@ -464,6 +465,7 @@ typedef struct charm_ctx
         } euler;
         struct {
             int                 use_visc;
+            int                 use_diff;
             double              t_ref;
         } ns;
     } model;

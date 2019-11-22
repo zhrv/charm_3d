@@ -653,7 +653,7 @@ double charm_comp_calc_ml(charm_comp_t * comp, double t)
         return comp->ml0;
     }
     else if (comp->ml_type == COMP_ML_SATHERLAND) {
-        comp->ml0 * sqrt( pow( t / comp->t0, 3 ) ) * ( comp->t0 + comp->ts ) / ( t + comp->ts );
+        return comp->ml0 * sqrt( pow( t / comp->t0, 3 ) ) * ( comp->t0 + comp->ts ) / ( t + comp->ts );
     }
     else {
         return comp->ml0;
@@ -667,7 +667,7 @@ double charm_comp_calc_kp(charm_comp_t * comp, double t)
         return comp->kp0;
     }
     else if (comp->kp_type == COMP_KP_SATHERLAND) {
-        comp->kp0 * sqrt( pow( t / comp->t0, 3 ) ) * ( comp->t0 + comp->ts ) / ( t + comp->ts );
+        return comp->kp0 * sqrt( pow( t / comp->t0, 3 ) ) * ( comp->t0 + comp->ts ) / ( t + comp->ts );
     }
     else {
         return comp->kp0;

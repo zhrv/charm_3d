@@ -54,7 +54,46 @@ static void _calc_t( p4est_t * p4est, charm_prim_t * p )
 } // Newton_Method
 
 
+static void _charm_mat_eos_switch(charm_prim_t * p, int flag) {
+    switch (flag)
+    {
+        case 0:		// p=p(r,e)
+            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
+            p->p = p->r*p->e*(p->gam-1);
+            p->cz = sqrt(p->gam*p->p/p->r);
+            break;
 
+        case 1:		// e=e(r,p)
+            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
+            if (p->p < CHARM_EPS) p->p = CHARM_EPS;
+            p->e = p->p/(p->r*(p->gam-1));
+            p->t = p->e/p->cv;
+            break;
+
+        case 2:		// r=r(T,p)
+            if (p->p < CHARM_EPS) p->p = CHARM_EPS;
+            p->r = p->p*p->m/(p->t*gR);
+            p->cz = sqrt(p->gam*p->p/p->r);
+            break;
+
+        case 3: // (T,p) => (r, cz, e)
+            if (p->p < CHARM_EPS) p->p = CHARM_EPS;
+            p->r  = p->p*p->m/(p->t*gR);
+            p->cz = sqrt(p->gam*p->p/p->r);
+            p->e  = p->p/(p->r*(p->gam-1));
+            break;
+
+        case 4: // (r,e) => (p, cz, T)
+            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
+            p->p  = p->r*p->e*(p->gam-1);
+            p->cz = sqrt(p->gam*p->p/p->r);
+            p->t  = p->e/p->cv;
+            break;
+
+        default:
+                    CHARM_ASSERT(flag < 5);
+    }
+}
 
 void charm_mat_eos_ideal(p4est_t * p4est, charm_prim_t * p, int flag)
 {
@@ -71,52 +110,11 @@ void charm_mat_eos_ideal(p4est_t * p4est, charm_prim_t * p, int flag)
         t = p->t;
     }
 
-    double Cp = charm_comp_calc_cp(comp, t);
-    double M  = comp->m;
-    double Cv = Cp-gR/M;
-    double gam = Cp/Cv;
-    p->gam = gam;
-    p->cp = Cp;
-    p->cv = Cv;
-    switch (flag)
-    {
-        case 0:		// p=p(r,e)
-            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
-            p->p = p->r*p->e*(gam-1);
-            p->cz = sqrt(gam*p->p/p->r);
-            break;
-
-        case 1:		// e=e(r,p)
-            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
-            if (p->p < CHARM_EPS) p->p = CHARM_EPS;
-            p->e = p->p/(p->r*(gam-1));
-            p->t = p->e/Cv;
-            break;
-
-        case 2:		// r=r(T,p)
-            if (p->p < CHARM_EPS) p->p = CHARM_EPS;
-            p->r = p->p*M/(p->t*gR);
-            p->cz = sqrt(gam*p->p/p->r);
-            break;
-
-        case 3: // (T,p) => (r, cz, e)
-            if (p->p < CHARM_EPS) p->p = CHARM_EPS;
-            p->r  = p->p*M/(p->t*gR);
-            p->cz = sqrt(gam*p->p/p->r);
-            p->e  = p->p/(p->r*(gam-1));
-            break;
-
-        case 4: // (r,e) => (p, cz, T)
-            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
-            p->p  = p->r*p->e*(gam-1);
-            p->cz = sqrt(gam*p->p/p->r);
-            p->t  = p->e/Cv;
-            break;
-
-        default:
-            CHARM_ASSERT(flag < 5);
-    }
-
+    p->cp  = charm_comp_calc_cp(comp, t);
+    p->m   = comp->m;
+    p->cv  = p->cp-gR/p->m;
+    p->gam = p->cp/p->cv;
+    _charm_mat_eos_switch(p, flag);
 }
 
 void charm_mat_eos_mix(p4est_t * p4est, charm_prim_t * p, int flag)
@@ -136,57 +134,17 @@ void charm_mat_eos_mix(p4est_t * p4est, charm_prim_t * p, int flag)
         t = p->t;
     }
 
-    double Cp  = 0.;
+    p->cp  = 0.;
     double M_  = 0.;
     for (i = 0; i < c_count; i++) {
         comp = charm_get_comp(p4est, i);
         M_ += p->c[i]/comp->m;
-        Cp += p->c[i]*charm_comp_calc_cp(comp, t);
+        p->cp += p->c[i]*charm_comp_calc_cp(comp, t);
     }
-    double M   = 1./M_;
-    double Cv  = Cp-gR/M;
-    double gam = Cp/Cv;
-    p->gam     = gam;
-    p->cp      = Cp;
-    p->cv      = Cv;
-    switch (flag)
-    {
-        case 0:		// p=p(r,e)
-            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
-            p->p = p->r*p->e*(gam-1);
-            p->cz = sqrt(gam*p->p/p->r);
-            break;
-
-        case 1:		// e=e(r,p)
-            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
-            if (p->p < CHARM_EPS) p->p = CHARM_EPS;
-            p->e = p->p/(p->r*(gam-1));
-            p->t = p->e/Cv;
-            break;
-
-        case 2:		// r=r(T,p)
-            if (p->p < CHARM_EPS) p->p = CHARM_EPS;
-            p->r = p->p*M/(p->t*gR);
-            p->cz = sqrt(gam*p->p/p->r);
-            break;
-
-        case 3: // (T,p) => (r, cz, e)
-            if (p->p < CHARM_EPS) p->p = CHARM_EPS;
-            p->r  = p->p*M/(p->t*gR);
-            p->cz = sqrt(gam*p->p/p->r);
-            p->e  = p->p/(p->r*(gam-1));
-            break;
-
-        case 4: // (r,e) => (p, cz, T)
-            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
-            p->p  = p->r*p->e*(gam-1);
-            p->cz = sqrt(gam*p->p/p->r);
-            p->t  = p->e/Cv;
-            break;
-
-        default:
-            CHARM_ASSERT(flag < 5);
-    }
+    p->m   = 1./M_;
+    p->cv  = p->cp-gR/p->m;
+    p->gam = p->cp/p->cv;
+    _charm_mat_eos_switch(p, flag);
 }
 
 void charm_mat_eos_table(p4est_t * p4est, charm_prim_t * p, int flag)

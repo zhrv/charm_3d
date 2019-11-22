@@ -3,6 +3,7 @@
 //
 
 #include <p8est_iterate.h>
+#include <charm_globals.h>
 #include "charm_base_func.h"
 #include "charm_fluxes.h"
 #include "charm_bnd_cond.h"
@@ -20,6 +21,7 @@ static void _charm_model_ns_timestep_diffusion_quad_iter_fn(p4est_iter_volume_in
     charm_cons_t        cons;
     charm_prim_t        prim;
     charm_comp_t       *ci, *cj;
+    charm_ctx_t        *ctx = charm_get_ctx(info->p4est);
     int                 c_count = charm_get_comp_count(info->p4est);
     int                 i, j;
     double              s_xd, dij, pabs, td, wd, *x, s;
@@ -29,6 +31,10 @@ static void _charm_model_ns_timestep_diffusion_quad_iter_fn(p4est_iter_volume_in
     charm_param_cons_to_prim(info->p4est, &prim, &cons);
     pabs = prim.p/101325.0;
     memset(data->par.model.ns.d, 0, sizeof(double)*CHARM_MAX_COMPONETS_COUNT);
+
+    if (!ctx->model.ns.use_diff) {
+        return;
+    }
 
     s = 0.;
     for (i = 0; i < c_count; i++) {

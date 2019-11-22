@@ -81,6 +81,7 @@ void charm_model_ns_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yam
     ctx->get_dt_fn              = charm_model_ns_get_dt;
     ctx->timestep_single_fn     = charm_model_ns_timestep_single;
     ctx->model.ns.use_visc = model_node["use_visc"].as<int>();
+    ctx->model.ns.use_diff = model_node["use_diffusion"].as<int>();
     ctx->model.ns.t_ref    = model_node["t_ref"].as<double>();
 
     _charm_model_ns_chem_init(ctx, yaml);
