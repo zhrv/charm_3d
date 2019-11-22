@@ -17,7 +17,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     p4est_locidx_t      local_id = info->quadid;  /* this is the index of q *within its tree's numbering*.  We want to convert it its index for all the quadrants on this process, which we do below */
     p4est_tree_t       *tree;
     charm_data_t       *data = (charm_data_t *) q->p.user_data;
-    double              this_u[9];
+    double             *this_u;
     double             *this_u_ptr;
     int                 j;
     charm_cons_t        cons;
@@ -31,6 +31,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     charm_get_fields(data, data->par.g.c, &cons);
     charm_param_cons_to_prim(p4est, &prim, &cons);
 
+    this_u = CHARM_ALLOC(double, 8+c_count);
     this_u[0] = prim.r;
     this_u[1] = prim.p;
     this_u[2] = prim.e;
@@ -46,6 +47,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
         this_u_ptr = (double *) sc_array_index (u_interp[j], (size_t)local_id);
         this_u_ptr[0] = this_u[j];
     }
+    CHARM_FREE(this_u);
 }
 
 
@@ -91,7 +93,7 @@ void charm_write_solution (p4est_t * p4est)
                    (void *) u_interp,     /* pass in u_interp so that we can fill it */
                    charm_interpolate_cell_solution,    /* callback function that interpolates from the cell center to the cell corners, defined above */
                    NULL,          /* there is no callback for the faces between quadrants */
-                    NULL,          /* there is no callback for the edges between quadrants */
+                   NULL,          /* there is no callback for the edges between quadrants */
                    NULL);         /* there is no callback for the corners between quadrants */
 
     charm_vtk_context_t *context = charm_vtk_context_new (p4est, filename);
