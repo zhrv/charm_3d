@@ -9,7 +9,6 @@
 #include "charm_globals.h"
 #include "charm_limiter.h"
 #include "charm_amr.h"
-#include "charm_xml.h"
 #include "charm_eos.h"
 
 

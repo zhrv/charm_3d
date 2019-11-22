@@ -208,7 +208,7 @@ static void _charm_init_fetch_reg(charm_ctx_t *ctx, YAML::Node node, charm_reg_t
             reg->c[idx] = c;
         }
         else {
-            CHARM_LERRORF("Unknown component id %d for region '%s' in file 'task.xml'\n", id, reg->name);
+            CHARM_LERRORF("Unknown component id %d for region '%s' in file 'task.yaml'\n", id, reg->name);
             charm_abort(nullptr, 1);
         }
     }

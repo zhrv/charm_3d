@@ -21,10 +21,6 @@ set(P4EST_LIB "${P4EST_INSTALL}/lib")
 
 set(MPI_INCLUDE "/usr/include/openmpi")
 
-set(MXML_INCLUDE "${CONTRIB_DIR}/mxml/local/include")
-
-set(MXML_LIB "${CONTRIB_DIR}/mxml/local/lib")
-
 set(YAML_INCLUDE "${CONTRIB_DIR}/yaml-cpp/local/include")
 
 set(YAML_LIB "${CONTRIB_DIR}/yaml-cpp/local/lib")
@@ -32,8 +28,8 @@ set(YAML_LIB64 "${CONTRIB_DIR}/yaml-cpp/local/lib64")
 
 set(CHARM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
 
-include_directories(${CHARM_INCLUDE} ${P4EST_INCLUDE} ${MPI_INCLUDE} ${MXML_INCLUDE} ${YAML_INCLUDE})
-link_directories(${P4EST_LIB} ${MXML_LIB} ${YAML_LIB} ${YAML_LIB64})
+include_directories(${CHARM_INCLUDE} ${P4EST_INCLUDE} ${MPI_INCLUDE} ${YAML_INCLUDE})
+link_directories(${P4EST_LIB} ${YAML_LIB} ${YAML_LIB64})
 
 add_executable(	charm_3d
 
@@ -59,7 +55,6 @@ add_executable(	charm_3d
         src/charm_globals.c
         src/charm_bnd_cond.c
         src/charm_geom.c
-        src/charm_xml.c
         src/charm_base_func.c
         src/limiters/charm_limiter.c
         src/charm_eos.c
@@ -78,6 +73,6 @@ add_executable(	charm_3d
         src/models/ns/charm_model_ns_chem.c
 )
 
-target_link_libraries(charm_3d p4est sc m mxml yaml-cpp)
+target_link_libraries(charm_3d p4est sc m yaml-cpp)
 set_property(TARGET charm_3d PROPERTY C_STANDARD 99)
 set_property(TARGET charm_3d PROPERTY CXX_STANDARD 14)

@@ -10,7 +10,6 @@
 #include "charm_globals.h"
 #include "charm_limiter.h"
 #include "charm_amr.h"
-#include "charm_xml.h"
 
 
 void charm_model_ns_timestep_conv(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
