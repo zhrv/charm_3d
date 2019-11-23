@@ -18,9 +18,9 @@ static void _charm_model_ns_chem_init_fetch_reaction(charm_ctx_t *ctx, YAML::Nod
     int c_count = ctx->comp->elem_count;
 
     YAML::Node left, right, n;
-    auto lg_a = node["lg_a"].as<double>();
-    r->a = pow(10., lg_a);
+    r->a = node["a"].as<double>();
     r->e = node["e"].as<double>();
+    r->n = node["n"].as<double>();
 
     left = node["left"];
     i = 0;

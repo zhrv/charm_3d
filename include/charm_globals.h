@@ -442,6 +442,7 @@ typedef struct charm_reaction
     int     right_comps[3];      /**< номера компонент реакции слева  (int)*/
     double  a;                   /**< предэкспоненциальный множитель */
     double  e;                   /**< энергия активации */
+    double  n;                   /**< степень температуры */
 } charm_reaction_t;
 
 typedef struct charm_ctx

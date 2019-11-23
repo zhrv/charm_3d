@@ -31,7 +31,7 @@ static void _charm_model_ns_chem_rhs(p4est_t * p4est, charm_data_t *data)
     charm_param_cons_to_prim(p4est, &prim, &cons);
     for (n = 0; n < r_count; n++) {
         r = charm_get_reaction(p4est, n);
-        chem_k[n] = r->a*exp(-r->e/prim.t/R);
+        chem_k[n] = r->a*pow(prim.t, r->n)*exp(-r->e/prim.t/R);
         chem_w[n] = chem_k[n];
         for (m = 0; m < 3; m++) {
             i = r->left_comps[m];
@@ -65,7 +65,7 @@ static void _charm_model_ns_chem_rhs(p4est_t * p4est, charm_data_t *data)
 
 static void _charm_model_ns_chem_rhs_save(p4est_t * p4est, charm_data_t *data)
 {
-    double       R   = charm_eos_get_r();
+    double R = charm_eos_get_r();
     charm_cons_t cons;
     charm_prim_t prim;
     size_t r_count = charm_get_reactions_count(p4est);
@@ -79,7 +79,7 @@ static void _charm_model_ns_chem_rhs_save(p4est_t * p4est, charm_data_t *data)
     charm_param_cons_to_prim(p4est, &prim, &cons);
     for (n = 0; n < r_count; n++) {
         r = charm_get_reaction(p4est, n);
-        chem_k[n] = r->a*exp(-r->e/prim.t/R);
+        chem_k[n] = r->a*pow(prim.t, r->n)*exp(-r->e/prim.t/R);
         chem_w[n] = chem_k[n];
         for (m = 0; m < 3; m++) {
             i = r->left_comps[m];
