@@ -4,6 +4,7 @@
 
 
 #include <p8est_iterate.h>
+#include <charm_globals.h>
 #include "charm_base_func.h"
 #include "charm_fluxes.h"
 #include "charm_bnd_cond.h"
@@ -79,7 +80,7 @@ static void _charm_model_ns_conv_volume_int_iter_fn (p4est_iter_volume_info_t * 
             data->int_ru[ibf] -= ((fu*phi_x+gu*phi_y+hu*phi_z) + p.r*data->par.grav[0]*phi);
             data->int_rv[ibf] -= ((fv*phi_x+gv*phi_y+hv*phi_z) + p.r*data->par.grav[1]*phi);
             data->int_rw[ibf] -= ((fw*phi_x+gw*phi_y+hw*phi_z) + p.r*data->par.grav[2]*phi);
-            data->int_re[ibf] -= (fe*phi_x+ge*phi_y+he*phi_z);
+            data->int_re[ibf] -= ((fe*phi_x+ge*phi_y+he*phi_z));
         }
     }
     CHARM_FREE(fc);
@@ -91,7 +92,6 @@ static void _charm_model_ns_conv_volume_int_iter_fn (p4est_iter_volume_info_t * 
 /*
  * Surface integrals
  */
-
 
 static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * info, void *user_data) {
     int i, ibf, igp;
@@ -329,6 +329,7 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
     }
     CHARM_FREE(qc);
 }
+
 
 static void _charm_model_ns_conv_surface_int_iter_fn (p4est_iter_face_info_t * info, void *user_data)
 {

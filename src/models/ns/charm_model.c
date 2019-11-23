@@ -3,17 +3,19 @@
 //
 
 #include <p8est_iterate.h>
+#include <charm_globals.h>
 #include "charm_base_func.h"
 #include "charm_fluxes.h"
 #include "charm_bnd_cond.h"
 #include "charm_globals.h"
 #include "charm_limiter.h"
 #include "charm_amr.h"
-#include "charm_xml.h"
 
 
 void charm_model_ns_timestep_conv(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 void charm_model_ns_timestep_diff(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
+void charm_model_ns_timestep_chem(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
+void charm_model_ns_timestep_diffusion(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 
 
 static void _charm_model_ns_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
@@ -114,6 +116,16 @@ static void charm_model_ns_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t 
 }
 
 
+static void _charm_model_ns_timestep_alloc_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
+{
+}
+
+
+static void _charm_model_ns_timestep_free_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
+{
+}
+
+
 
 void charm_model_ns_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data)
 {
@@ -179,6 +191,18 @@ void charm_model_ns_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t *
         ghost_data = CHARM_ALLOC (charm_data_t, ghost->ghosts.elem_count);
         p4est_ghost_exchange_data (p4est, ghost, ghost_data);
     }
+    if (charm_get_reactions_count(p4est) > 0)  {
+        p4est_iterate (p4est,
+                       ghost,
+                       (void *) ghost_data,
+                       _charm_model_ns_timestep_alloc_iter_fn,
+                       NULL, NULL, NULL);
+
+    }
+
+    charm_model_ns_timestep_chem(p4est, ghost, ghost_data);
+
+    p4est_ghost_exchange_data (p4est, ghost, ghost_data); /* synchronize the ghost data */
 
     p4est_iterate (p4est,
                    ghost,
@@ -186,8 +210,10 @@ void charm_model_ns_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t *
                    charm_model_ns_timestep_zero_quad_iter_fn,
                    NULL, NULL, NULL);
 
-    charm_model_ns_timestep_conv(p4est, ghost, ghost_data);
+
+
     charm_model_ns_timestep_diff(p4est, ghost, ghost_data);
+    charm_model_ns_timestep_conv(p4est, ghost, ghost_data);
 
     p4est_iterate (p4est, NULL,
                    (void *) dt,
@@ -199,16 +225,21 @@ void charm_model_ns_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t *
 
     charm_limiter(p4est, ghost, ghost_data);
 
+
+    p4est_ghost_exchange_data (p4est, ghost, ghost_data); /* synchronize the ghost data */
+
+    if (charm_get_reactions_count(p4est) > 0)  {
+        p4est_iterate (p4est,
+                       ghost,
+                       (void *) ghost_data,
+                       _charm_model_ns_timestep_free_iter_fn,
+                       NULL, NULL, NULL);
+
+    }
+
     *_ghost       = ghost;
     *_ghost_data  = ghost_data;
 
 }
 
-
-void charm_model_ns_init(charm_ctx_t *ctx, mxml_node_t *node)
-{
-    ctx->get_dt_fn              = charm_model_ns_get_dt;
-    ctx->timestep_single_fn     = charm_model_ns_timestep_single;
-    charm_xml_node_child_param_int(node, "use_visc", &(ctx->use_visc));
-}
 

@@ -25,13 +25,12 @@ static void _charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info
     int                 ibf, igp;
     charm_cons_t        c;
     charm_prim_t        p;
-    double              phi_x, phi_y, phi_z, phi;
+    double              phi_x, phi_y, phi_z, phi, tmp_qx, tmp_qy, tmp_qz;
     double             *x;
-    double              lambda;
-    double              mu;
-    double              kt;
-    double              lp;
-    double              lm;
+    double              lambda, mu, kt, lp, lm, h;
+    int                 i;
+    size_t              c_count = charm_get_comp_count(info->p4est);
+    charm_comp_t       *comp;
 
     for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
         for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
@@ -57,9 +56,19 @@ static void _charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info
             data->int_tau_xz[ibf] -= mu*(p.w*phi_x+p.u*phi_z);
             data->int_tau_yz[ibf] -= mu*(p.w*phi_y+p.v*phi_z);
 
-            data->int_q_x[ibf] += kt*p.t*phi_x;
-            data->int_q_y[ibf] += kt*p.t*phi_y;
-            data->int_q_z[ibf] += kt*p.t*phi_z;
+            tmp_qx = kt*p.t*phi_x;
+            tmp_qy = kt*p.t*phi_y;
+            tmp_qz = kt*p.t*phi_z;
+            for (i = 0; i < c_count; i++) {
+                comp = charm_get_comp(info->p4est, i);
+                h = charm_comp_calc_enthalpy(comp, p.t);
+                tmp_qx += h*p.r*data->par.model.ns.d[i]*p.c[i]*phi_x;
+                tmp_qy += h*p.r*data->par.model.ns.d[i]*p.c[i]*phi_y;
+                tmp_qz += h*p.r*data->par.model.ns.d[i]*p.c[i]*phi_z;
+            }
+            data->int_q_x[ibf] += tmp_qx;
+            data->int_q_y[ibf] += tmp_qy;
+            data->int_q_z[ibf] += tmp_qz;
         }
     }
 }
@@ -90,8 +99,9 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
     double r_[2], p_[2], u_[2], v_[2], w_[2], e_[2];
     charm_cons_t cons;
     charm_prim_t prim[2];
+    charm_comp_t *comp;
     double *x, gw, gj;
-    double lambda, mu, lp, lm, kt;
+    double lambda, mu, lp, lm, kt, fr, fc, h;
     int j;
 
 
@@ -149,6 +159,7 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
             fw = (prim[0].w+prim[1].w)*0.5;
             ft = (prim[0].t+prim[1].t)*0.5;
         }
+        fr = (prim[0].r+prim[1].r)*0.5;
         qxx = lp*fu*n[0] + lm*fv*n[1] + lm*fw*n[2];
         qyy = lm*fu*n[0] + lp*fv*n[1] + lm*fw*n[2];
         qzz = lm*fu*n[0] + lm*fv*n[1] + lp*fw*n[2];
@@ -158,6 +169,14 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
         qtx = kt*ft*n[0];
         qty = kt*ft*n[1];
         qtz = kt*ft*n[2];
+        for (i = 0; i < c_count; i++) {
+            comp = charm_get_comp(p4est, i);
+            h = charm_comp_calc_enthalpy(comp, ft);
+            fc = (prim[0].c[i]+prim[1].c[i])*0.5;
+            qtx += h*fr*udata->par.model.ns.d[i]*fc*n[0];
+            qty += h*fr*udata->par.model.ns.d[i]*fc*n[1];
+            qtz += h*fr*udata->par.model.ns.d[i]*fc*n[2];
+        }
         for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
             if (!side[0]->is.full.is_ghost) {
                 bfv = charm_base_func(x, ibf, udata) * gw * gj;
@@ -187,17 +206,19 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
     charm_data_t           *udata[2];
     double                  n[3];
     double                  qxx, qyy, qzz, qxy, qxz, qyz, qtx, qty, qtz;
-    double                  fu, fv, fw, ft;
+    double                  fu, fv, fw, ft, fr, fc, h;
     p4est_iter_face_side_t *side[2];
     sc_array_t             *sides = &(info->sides);
     charm_cons_t            cons[2];
     charm_prim_t            prim[2];
+    charm_comp_t           *comp;
     double                 *x, gw, gj;
     double                  bfv;
     double                  c[2][3];
     double                  l[3];
     int8_t                  face[2];
-    double                  lambda[2], mu[2], flambda, fmu, lp, lm, kt;
+    double                  lambda[2], mu[2], flambda, fmu, lp, lm, kt, dm;
+    size_t                  c_count = charm_get_comp_count(p4est);
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     side[1] = p4est_iter_fside_array_index_int(sides, 1);
@@ -261,6 +282,7 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                 lm = (flambda-2.*fmu/3.);
                 kt *= 0.5;
 
+                fr = (prim[0].r+prim[1].r)*0.5;
                 ft = (prim[0].t+prim[1].t)*0.5;
                 fu = (prim[0].u+prim[1].u)*0.5;
                 fv = (prim[0].v+prim[1].v)*0.5;
@@ -274,6 +296,15 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
                 qtx = kt*ft*n[0];
                 qty = kt*ft*n[1];
                 qtz = kt*ft*n[2];
+                for (i = 0; i < c_count; i++) {
+                    comp = charm_get_comp(p4est, i);
+                    h = charm_comp_calc_enthalpy(comp, ft);
+                    fc = (prim[0].c[i]+prim[1].c[i])*0.5;
+                    dm = (udata[0]->par.model.ns.d[i]+udata[1]->par.model.ns.d[i])*0.5;
+                    qtx += h*fr*dm*fc*n[0];
+                    qty += h*fr*dm*fc*n[1];
+                    qtz += h*fr*dm*fc*n[2];
+                }
                 for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                     for (i = 0; i < 2; i++) {
                         if (i == h_side) {
@@ -354,6 +385,7 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
             lm = (flambda-2.*fmu/3.);
             kt *= 0.5;
 
+            fr = (prim[0].r+prim[1].r)*0.5;
             ft = (prim[0].t+prim[1].t)*0.5;
             fu = (prim[0].u+prim[1].u)*0.5;
             fv = (prim[0].v+prim[1].v)*0.5;
@@ -367,6 +399,15 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
             qtx = kt*ft*n[0];
             qty = kt*ft*n[1];
             qtz = kt*ft*n[2];
+            for (i = 0; i < c_count; i++) {
+                comp = charm_get_comp(p4est, i);
+                h = charm_comp_calc_enthalpy(comp, ft);
+                fc = (prim[0].c[i]+prim[1].c[i])*0.5;
+                dm = (udata[0]->par.model.ns.d[i]+udata[1]->par.model.ns.d[i])*0.5;
+                qtx += h*fr*dm*fc*n[0];
+                qty += h*fr*dm*fc*n[1];
+                qtz += h*fr*dm*fc*n[2];
+            }
             for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                 for (i = 0; i < 2; i++) {
                     if (!side[i]->is.full.is_ghost) {
@@ -406,16 +447,16 @@ static void _charm_model_ns_diff_grad_update_quad_iter_fn (p4est_iter_volume_inf
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
 
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xx, data->par.tau.xx);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_yy, data->par.tau.yy);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_zz, data->par.tau.zz);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xy, data->par.tau.xy);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xz, data->par.tau.xz);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_yz, data->par.tau.yz);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xx, data->par.model.ns.tau.xx);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_yy, data->par.model.ns.tau.yy);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_zz, data->par.model.ns.tau.zz);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xy, data->par.model.ns.tau.xy);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xz, data->par.model.ns.tau.xz);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_yz, data->par.model.ns.tau.yz);
 
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_x, data->par.q.x);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_y, data->par.q.y);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_z, data->par.q.z);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_x, data->par.model.ns.q.x);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_y, data->par.model.ns.q.y);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_z, data->par.model.ns.q.z);
 }
 
 

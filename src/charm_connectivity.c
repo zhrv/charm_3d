@@ -199,7 +199,7 @@ charm_bnd_t * charm_conn_bnd_find_by_id(charm_ctx_t* ctx, int id)
             return bnd;
         }
     }
-    CHARM_LERRORF("Patch (id=%d, name='%s') is nod defined in task.xml\n", id, name);
+    CHARM_LERRORF("Patch (id=%d, name='%s') is nod defined in task.yaml\n", id, name);
     return NULL;
 }
 
@@ -230,7 +230,7 @@ charm_reg_t * charm_conn_reg_find_by_id(charm_ctx_t* ctx, int id)
             return reg;
         }
     }
-    CHARM_LERRORF("Region (id=%d, name='%s') is nod defined in task.xml\n", id, name);
+    CHARM_LERRORF("Region (id=%d, name='%s') is nod defined in task.yaml\n", id, name);
     return NULL;
 }
 

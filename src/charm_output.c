@@ -17,7 +17,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     p4est_locidx_t      local_id = info->quadid;  /* this is the index of q *within its tree's numbering*.  We want to convert it its index for all the quadrants on this process, which we do below */
     p4est_tree_t       *tree;
     charm_data_t       *data = (charm_data_t *) q->p.user_data;
-    double              this_u[9];
+    double             *this_u;
     double             *this_u_ptr;
     int                 j;
     charm_cons_t        cons;
@@ -31,6 +31,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     charm_get_fields(data, data->par.g.c, &cons);
     charm_param_cons_to_prim(p4est, &prim, &cons);
 
+    this_u = CHARM_ALLOC(double, 8+c_count);
     this_u[0] = prim.r;
     this_u[1] = prim.p;
     this_u[2] = prim.e;
@@ -38,13 +39,15 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     this_u[4] = prim.u;
     this_u[5] = prim.v;
     this_u[6] = prim.w;
+    this_u[7] = prim.t;
     for (j = 0; j < c_count; j++) {
-        this_u[7+j] = prim.c[j];
+        this_u[8+j] = prim.c[j];
     }
-    for (j = 0; j < 7 + c_count; j++) {
+    for (j = 0; j < 8 + c_count; j++) {
         this_u_ptr = (double *) sc_array_index (u_interp[j], (size_t)local_id);
         this_u_ptr[0] = this_u[j];
     }
+    CHARM_FREE(this_u);
 }
 
 
@@ -59,7 +62,7 @@ void charm_write_solution (p4est_t * p4est)
     int                 num_cell_scalars;
     int                 num_cell_vectors;
     charm_ctx_t        *ctx;
-    char*         names7[] = {"R", "P", "E", "E_TOT", "U", "V", "W"};
+    char*               names8[] = {"R", "P", "E", "E_TOT", "U", "V", "W", "T"};
     charm_comp_t       *comp;
 
     ctx = charm_get_ctx(p4est);
@@ -69,28 +72,28 @@ void charm_write_solution (p4est_t * p4est)
     numquads = (size_t)p4est->local_num_quadrants;
 
     num_cell_vectors = 0;
-    num_cell_scalars = 7 + (int)ctx->comp->elem_count;
+    num_cell_scalars = 8 + (int)ctx->comp->elem_count;
     u_interp = CHARM_ALLOC(sc_array_t*, num_cell_scalars + num_cell_vectors);
     for (i = 0; i < num_cell_scalars + num_cell_vectors; i++) {
         u_interp[i] = sc_array_new_size (sizeof(double), numquads);
     }
 
     char** names = CHARM_ALLOC (char *, num_cell_scalars + num_cell_vectors);
-    for (i = 0; i < 7; i++) {
-        names[i] = names7[i];
+    for (i = 0; i < 8; i++) {
+        names[i] = names8[i];
     }
     for (i = 0; i < ctx->comp->elem_count; i++) {
         comp = charm_get_comp(p4est, i);
-        names[i+7] = CHARM_ALLOC (char, 128);
-        strcpy(names[i+7], "C_");
-        strcat(names[i+7], comp->name);
+        names[i+8] = CHARM_ALLOC (char, 128);
+        strcpy(names[i+8], "C_");
+        strcat(names[i+8], comp->name);
     }
 
     p4est_iterate (p4est, NULL,   /* we don't need any ghost quadrants for this loop */
                    (void *) u_interp,     /* pass in u_interp so that we can fill it */
                    charm_interpolate_cell_solution,    /* callback function that interpolates from the cell center to the cell corners, defined above */
                    NULL,          /* there is no callback for the faces between quadrants */
-                    NULL,          /* there is no callback for the edges between quadrants */
+                   NULL,          /* there is no callback for the edges between quadrants */
                    NULL);         /* there is no callback for the corners between quadrants */
 
     charm_vtk_context_t *context = charm_vtk_context_new (p4est, filename);
@@ -112,12 +115,12 @@ void charm_write_solution (p4est_t * p4est)
 
     const int           retval = charm_vtk_write_footer (context);
     SC_CHECK_ABORT (!retval, CHARM_STRING "_vtk: Error writing footer");
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < num_cell_scalars + num_cell_vectors; i++) {
         sc_array_destroy(u_interp[i]);
     }
     CHARM_FREE(u_interp);
     for (i = 0; i < ctx->comp->elem_count; i++) {
-        CHARM_FREE (names[i+7]);
+        CHARM_FREE (names[i+8]);
     }
 
 }

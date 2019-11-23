@@ -325,6 +325,21 @@ double charm_get_avg_re(charm_data_t* p)
 }
 
 
+double charm_get_avg_rc(charm_data_t* p, int j)
+{
+    double result = 0.;
+    int i;
+    double vol = charm_quad_get_volume(p);
+    double *x;
+
+    for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
+        x = p->par.g.quad_gp[i];
+        result += charm_get_field_rc(p, x, j)*p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
+    }
+    return result/vol;
+}
+
+
 void charm_get_visc_tau(charm_data_t *p, double* x, charm_tensor_t *tau)
 {
     int i;
@@ -332,12 +347,12 @@ void charm_get_visc_tau(charm_data_t *p, double* x, charm_tensor_t *tau)
     memset(tau, 0, sizeof(charm_tensor_t));
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        tau->xx += p->par.tau.xx[i]*charm_base_func(x, i, p);
-        tau->xy += p->par.tau.xy[i]*charm_base_func(x, i, p);
-        tau->xz += p->par.tau.xz[i]*charm_base_func(x, i, p);
-        tau->yy += p->par.tau.yy[i]*charm_base_func(x, i, p);
-        tau->yz += p->par.tau.yz[i]*charm_base_func(x, i, p);
-        tau->zz += p->par.tau.zz[i]*charm_base_func(x, i, p);
+        tau->xx += p->par.model.ns.tau.xx[i]*charm_base_func(x, i, p);
+        tau->xy += p->par.model.ns.tau.xy[i]*charm_base_func(x, i, p);
+        tau->xz += p->par.model.ns.tau.xz[i]*charm_base_func(x, i, p);
+        tau->yy += p->par.model.ns.tau.yy[i]*charm_base_func(x, i, p);
+        tau->yz += p->par.model.ns.tau.yz[i]*charm_base_func(x, i, p);
+        tau->zz += p->par.model.ns.tau.zz[i]*charm_base_func(x, i, p);
     }
 }
 
@@ -349,8 +364,8 @@ void charm_get_heat_q(charm_data_t *p, double* x, double *q)
     memset(q, 0, sizeof(double)*3);
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        q[0] += p->par.q.x[i]*charm_base_func(x, i, p);
-        q[1] += p->par.q.y[i]*charm_base_func(x, i, p);
-        q[2] += p->par.q.z[i]*charm_base_func(x, i, p);
+        q[0] += p->par.model.ns.q.x[i]*charm_base_func(x, i, p);
+        q[1] += p->par.model.ns.q.y[i]*charm_base_func(x, i, p);
+        q[2] += p->par.model.ns.q.z[i]*charm_base_func(x, i, p);
     }
 }

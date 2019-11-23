@@ -7,7 +7,7 @@
 #include "charm_globals.h"
 
 
-
+p4est_t * g_p4est = NULL;
 int charm_package_id = -1;
 
 const char *charm_bnd_types[] ={
@@ -17,6 +17,11 @@ const char *charm_bnd_types[] ={
         "BOUND_WALL_NO_SLIP",
         NULL
 };
+
+
+p4est_t * charm_get_p4est() { return g_p4est; }
+void charm_set_p4est(p4est_t *p4est) { g_p4est = p4est; }
+
 
 
 double scalar_prod(double v1[CHARM_DIM], double v2[CHARM_DIM])
@@ -485,11 +490,24 @@ size_t charm_get_comp_count(p4est_t* p4est)
 }
 
 
+charm_reaction_t * charm_get_reaction(p4est_t * p4est, int i)
+{
+    charm_ctx_t * ctx = charm_get_ctx(p4est);
+    charm_reaction_t * r = sc_array_index(ctx->reactions, i);
+    return r;
+}
+
+
+size_t charm_get_reactions_count(p4est_t* p4est)
+{
+    charm_ctx_t * ctx       = charm_get_ctx(p4est);
+    return ctx->reactions == NULL ? 0 : ctx->reactions->elem_count;
+}
+
+
 double charm_get_visc_lambda(p4est_t* p4est, charm_data_t* data)
 {
     return 0;
-    charm_ctx_t *ctx = charm_get_ctx(p4est);
-    return ctx->visc_l;
 }
 
 
@@ -511,7 +529,7 @@ double charm_get_visc_mu(p4est_t* p4est, double *x, charm_data_t* data)
         comp = charm_get_comp(p4est, i);
         cm = prim.c[i]/comp->m;
         s += cm;
-        mu += cm*comp->ml;  // @todo Sutherland
+        mu += cm*charm_comp_calc_ml(comp, prim.t);
     }
     return mu/s;
 
@@ -534,7 +552,7 @@ double charm_get_heat_k(p4est_t* p4est, double *x, charm_data_t* data)
     kt = 0.;
     for (i = 0; i < c_count; i++) {
         comp = charm_get_comp(p4est, i);
-        kt = prim.c[i]*comp->k;  // @todo Sutherland
+        kt += prim.c[i]*charm_comp_calc_kp(comp, prim.t);
     }
     return kt;
 
@@ -581,6 +599,96 @@ void charm_tensor_zero(charm_tensor_t * t)
 }
 
 
+double charm_comp_calc_cp(charm_comp_t * comp, double t)
+{
+    int i;
+    double res = 0.;
+    double tt  = 1.;
+    double *cp;
+    if (comp->cp_type == COMP_ML_CONST) {
+        cp = sc_array_index(comp->cp, 0);
+        return *cp;
+    }
+    else if (comp->ml_type == COMP_CP_POLYNOM) {
+        for (i= 0; i < comp->cp->elem_count; i++) {
+            cp = sc_array_index(comp->cp, i);
+            res += tt*(*cp);
+            tt *= t;
+        }
+        return res;
+    }
+    else {
+        cp = sc_array_index(comp->cp, 0);
+        return *cp;
+    }
+}
 
 
+double charm_comp_calc_cp_dt(charm_comp_t * comp, double t)
+{
+    CHARM_ASSERT(comp->cp_type == COMP_CP_POLYNOM);
+
+    int i;
+    double res = 0.;
+    double tt  = 1.;
+    double *cp;
+    if (comp->cp_type == COMP_CP_POLYNOM) {
+        for (i= 1; i < comp->cp->elem_count; i++) {
+            cp = sc_array_index(comp->cp, i);
+            res += tt*(*cp)*i;
+            tt *= t;
+        }
+        return res;
+    }
+    else {
+        CHARM_GLOBAL_LERROR("Wrong call of function 'CALC_CP_DT'\n");
+        charm_abort(NULL, 1);
+    }
+}
+
+
+double charm_comp_calc_ml(charm_comp_t * comp, double t)
+{
+    if (comp->ml_type == COMP_ML_CONST) {
+        return comp->ml0;
+    }
+    else if (comp->ml_type == COMP_ML_SATHERLAND) {
+        return comp->ml0 * sqrt( pow( t / comp->t0, 3 ) ) * ( comp->t0 + comp->ts ) / ( t + comp->ts );
+    }
+    else {
+        return comp->ml0;
+    }
+}
+
+
+double charm_comp_calc_kp(charm_comp_t * comp, double t)
+{
+    if (comp->kp_type == COMP_KP_CONST) {
+        return comp->kp0;
+    }
+    else if (comp->kp_type == COMP_KP_SATHERLAND) {
+        return comp->kp0 * sqrt( pow( t / comp->t0, 3 ) ) * ( comp->t0 + comp->ts ) / ( t + comp->ts );
+    }
+    else {
+        return comp->kp0;
+    }
+}
+
+
+double charm_comp_calc_enthalpy(charm_comp_t * comp, double t)
+{
+    p4est_t *p4est = charm_get_p4est();
+    charm_ctx_t *ctx = charm_get_ctx(p4est);
+    double t1,t2, *cp;
+    double t_ref = ctx->model.ns.t_ref;
+    int i;
+    double h = comp->h0;
+    for (i = 0; i < comp->cp->elem_count; i++){
+        cp = (double*) sc_array_index(comp->cp, i);
+        t2 = pow(t, i+1)/(i+1);
+        t1 = pow(t_ref,(i+1))/(i+1);
+        h += (*cp)*(t2-t1);
+    }
+    return h;
+}
 

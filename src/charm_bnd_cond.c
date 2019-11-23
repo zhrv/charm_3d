@@ -44,10 +44,12 @@ void charm_bnd_cond_fn_inlet(charm_prim_t *par_in, charm_prim_t *par_out, int8_t
     par_out->p = param[4];
 }
 
+
 void charm_bnd_cond_fn_outlet(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double n[CHARM_DIM])
 {
     charm_prim_cpy(par_out, par_in);
 }
+
 
 void charm_bnd_cond_fn_wall_slip(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double n[CHARM_DIM])
 {
@@ -71,9 +73,19 @@ void charm_bnd_cond_fn_wall_slip(charm_prim_t *par_in, charm_prim_t *par_out, in
 // @todo
 void charm_bnd_cond_fn_wall_no_slip(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, double* param, double n[CHARM_DIM])
 {
+    int i;
+    double  v[3] = {par_in->u, par_in->v, par_in->w};
+
     charm_prim_cpy(par_out, par_in);
-    par_out->u = 0.;
-    par_out->v = 0.;
-    par_out->w = 0.;
+
+    double   svn = scalar_prod( v, n );
+    double   vv[3] = {n[0]*svn, n[1]*svn, n[2]*svn};
+    for (i = 0; i < 3; i++) {
+        v[i] -= vv[i];
+       // v[i] -= vv[i];
+    }
+    par_out->u = v[0];
+    par_out->v = v[1];
+    par_out->w = v[2];
     par_out->t = param[0];
 }

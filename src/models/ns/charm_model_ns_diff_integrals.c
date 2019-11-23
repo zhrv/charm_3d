@@ -40,6 +40,8 @@ static void _charm_model_ns_diff_integrals_volume_int_iter_fn (p4est_iter_volume
             phi_y = charm_base_func_dy(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
             phi_z = charm_base_func_dz(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
 
+            phi = charm_base_func(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
+
             data->int_ru[ibf] += (tau.xx*phi_x+tau.xy*phi_y+tau.xz*phi_z);
             data->int_rv[ibf] += (tau.xy*phi_x+tau.yy*phi_y+tau.yz*phi_z);
             data->int_rw[ibf] += (tau.xz*phi_x+tau.yz*phi_y+tau.zz*phi_z);
@@ -47,6 +49,7 @@ static void _charm_model_ns_diff_integrals_volume_int_iter_fn (p4est_iter_volume
             data->int_re[ibf] += (tau.xx*p.u+tau.xy*p.v+tau.xz*p.w)*phi_x;
             data->int_re[ibf] += (tau.xy*p.u+tau.yy*p.v+tau.yz*p.w)*phi_y;
             data->int_re[ibf] += (tau.xz*p.u+tau.yz*p.v+tau.zz*p.w)*phi_z;
+            data->int_re[ibf] += data->par.model.ns.chem_rhs*phi;
         }
     }
 }
@@ -104,68 +107,68 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
             }
         }
 
-//        x  = udata->par.g.fc[face];
-//        gw = 1.;
-//        gj = udata->par.g.area[face];
-//        mu = charm_get_visc_mu(p4est, x, udata);
-//        charm_get_fields_avg(udata, &cons);
-//        charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
-//        charm_get_heat_q(udata, x, qt);
-//        charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
-//        double vv[3] = {prim[0].u, prim[0].v, prim[0].w};
-//        double un = scalar_prod(vv, n);
-//        double vn[3] = {un*n[0], un*n[1], un*n[2]};
-//        double vt[3] = {vv[0]-vn[0], vv[1]-vn[1], vv[2]-vn[2]};
-//        double ll = vect_length(l);
-//        qu = -mu*vt[0]/ll;
-//        qv = -mu*vt[1]/ll;
-//        qw = -mu*vt[2]/ll;
-//        qe = -qt[0]*n[0]-qt[1]*n[1]-qt[2]*n[2];
-//        for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
-//            if (!side[0]->is.full.is_ghost) {
-//                bfv = charm_base_func(x, ibf, udata) * gw * gj;
-//                udata->int_ru[ibf] -= qu * bfv;
-//                udata->int_rv[ibf] -= qv * bfv;
-//                udata->int_rw[ibf] -= qw * bfv;
-//                udata->int_re[ibf] -= qe * bfv;
-//            }
-//        }
-        for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
-            x  = udata->par.g.face_gp[face][igp];
-            gw = udata->par.g.face_gw[face][igp];
-            gj = udata->par.g.face_gj[face][igp];
-            charm_tensor_zero(&ftau);
-            fu = fv = fw = ft = 0.;
-            for (i = 0; i < 2; i++) {
-                charm_get_fields(udata, x, &(cons));
-                charm_param_cons_to_prim(p4est, &(prim[i]), &(cons));
-                charm_get_heat_q(udata, x, qt);
-                charm_get_visc_tau(udata, x, &(tau[i]));
-                charm_tensor_add(&ftau, &(tau[i]));
-                fu += prim[i].u*tau[i].xx + prim[i].v*tau[i].xy + prim[i].w*tau[i].xz;
-                fv += prim[i].u*tau[i].xy + prim[i].v*tau[i].yy + prim[i].w*tau[i].yz;
-                fw += prim[i].u*tau[i].xz + prim[i].v*tau[i].yz + prim[i].w*tau[i].zz;
-                ft += qt[0]*n[0] + qt[1]*n[1] + qt[2]*n[2];
-            }
-            charm_tensor_mul_scalar(&ftau, 0.5);
-            fu *= 0.5;
-            fv *= 0.5;
-            fw *= 0.5;
-            ft *= 0.5;
-            qu = ftau.xx*n[0] + ftau.xy*n[1] + ftau.xz*n[2];
-            qv = ftau.xy*n[0] + ftau.yy*n[1] + ftau.yz*n[2];
-            qw = ftau.xz*n[0] + ftau.yz*n[1] + ftau.zz*n[2];
-            qe = fu*n[0] + fv*n[1] + fw*n[2] - ft;
-            for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
-                if (!side[0]->is.full.is_ghost) {
-                    bfv = charm_base_func(x, ibf, udata) * gw * gj;
-                    udata->int_ru[ibf] -= qu * bfv;
-                    udata->int_rv[ibf] -= qv * bfv;
-                    udata->int_rw[ibf] -= qw * bfv;
-                    udata->int_re[ibf] -= qe * bfv;
-                }
+        x  = udata->par.g.fc[face];
+        gw = 1.;
+        gj = udata->par.g.area[face];
+        mu = charm_get_visc_mu(p4est, x, udata);
+        charm_get_fields_avg(udata, &cons);
+        charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
+        charm_get_heat_q(udata, x, qt);
+        charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
+        double vv[3] = {prim[0].u, prim[0].v, prim[0].w};
+        double un = scalar_prod(vv, n);
+        double vn[3] = {un*n[0], un*n[1], un*n[2]};
+        double vt[3] = {vv[0]-vn[0], vv[1]-vn[1], vv[2]-vn[2]};
+        double ll = vect_length(l);
+        qu = -mu*vt[0]/ll;
+        qv = -mu*vt[1]/ll;
+        qw = -mu*vt[2]/ll;
+        qe = -qt[0]*n[0]-qt[1]*n[1]-qt[2]*n[2];
+        for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
+            if (!side[0]->is.full.is_ghost) {
+                bfv = charm_base_func(x, ibf, udata) * gw * gj;
+                udata->int_ru[ibf] -= qu * bfv;
+                udata->int_rv[ibf] -= qv * bfv;
+                udata->int_rw[ibf] -= qw * bfv;
+                udata->int_re[ibf] -= qe * bfv;
             }
         }
+//        for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
+//            x  = udata->par.g.face_gp[face][igp];
+//            gw = udata->par.g.face_gw[face][igp];
+//            gj = udata->par.g.face_gj[face][igp];
+//            charm_tensor_zero(&ftau);
+//            fu = fv = fw = ft = 0.;
+//            for (i = 0; i < 2; i++) {
+//                charm_get_fields(udata, x, &(cons));
+//                charm_param_cons_to_prim(p4est, &(prim[i]), &(cons));
+//                charm_get_heat_q(udata, x, qt);
+//                charm_get_visc_tau(udata, x, &(tau[i]));
+//                charm_tensor_add(&ftau, &(tau[i]));
+//                fu += prim[i].u*tau[i].xx + prim[i].v*tau[i].xy + prim[i].w*tau[i].xz;
+//                fv += prim[i].u*tau[i].xy + prim[i].v*tau[i].yy + prim[i].w*tau[i].yz;
+//                fw += prim[i].u*tau[i].xz + prim[i].v*tau[i].yz + prim[i].w*tau[i].zz;
+//                ft += qt[0]*n[0] + qt[1]*n[1] + qt[2]*n[2];
+//            }
+//            charm_tensor_mul_scalar(&ftau, 0.5);
+//            fu *= 0.5;
+//            fv *= 0.5;
+//            fw *= 0.5;
+//            ft *= 0.5;
+//            qu = ftau.xx*n[0] + ftau.xy*n[1] + ftau.xz*n[2];
+//            qv = ftau.xy*n[0] + ftau.yy*n[1] + ftau.yz*n[2];
+//            qw = ftau.xz*n[0] + ftau.yz*n[1] + ftau.zz*n[2];
+//            qe = fu*n[0] + fv*n[1] + fw*n[2] - ft;
+//            for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
+//                if (!side[0]->is.full.is_ghost) {
+//                    bfv = charm_base_func(x, ibf, udata) * gw * gj;
+//                    udata->int_ru[ibf] -= qu * bfv;
+//                    udata->int_rv[ibf] -= qv * bfv;
+//                    udata->int_rw[ibf] -= qw * bfv;
+//                    udata->int_re[ibf] -= qe * bfv;
+//                }
+//            }
+//        }
 //        for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
 //            x = udata->par.g.face_gp[face][igp];
 //            gw = udata->par.g.face_gw[face][igp];
