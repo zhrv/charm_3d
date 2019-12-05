@@ -312,13 +312,21 @@ typedef struct charm_param
 {
     struct
     {
-//        double          ro[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          ru[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          rv[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          rw[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          re[CHARM_BASE_FN_COUNT];             /**< the state variable */
         double          rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];             /**< the state variable */
     } c;
+
+    struct
+    {
+        double          ru[CHARM_BASE_FN_COUNT];             /**< the state variable */
+        double          rv[CHARM_BASE_FN_COUNT];             /**< the state variable */
+        double          rw[CHARM_BASE_FN_COUNT];             /**< the state variable */
+        double          re[CHARM_BASE_FN_COUNT];             /**< the state variable */
+        double          rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];             /**< the state variable */
+    } c_old;
 
     union {
         struct {

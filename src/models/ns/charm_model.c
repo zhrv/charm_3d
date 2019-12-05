@@ -116,15 +116,72 @@ static void charm_model_ns_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t 
 }
 
 
-static void _charm_model_ns_timestep_alloc_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
+static void _charm_model_ns_timestep_rk_0(p4est_iter_volume_info_t * info, void *user_data)
 {
+    charm_data_t       *data = charm_get_quad_data(info->quad);
+    int                 i, j;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        data->par.c_old.ru[i] = data->par.c.ru[i];
+        data->par.c_old.rv[i] = data->par.c.rv[i];
+        data->par.c_old.rw[i] = data->par.c.rw[i];
+        data->par.c_old.re[i] = data->par.c.re[i];
+        for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
+            data->par.c_old.rc[j][i] = data->par.c.rc[j][i];
+        }
+    }
 }
 
 
-static void _charm_model_ns_timestep_free_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
+static void _charm_model_ns_timestep_rk_1(p4est_iter_volume_info_t * info, void *user_data)
 {
+    charm_data_t       *data = charm_get_quad_data(info->quad);
+    int                 i, j;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        data->par.c.ru[i] *= 0.25;
+        data->par.c.rv[i] *= 0.25;
+        data->par.c.rw[i] *= 0.25;
+        data->par.c.re[i] *= 0.25;
+
+        data->par.c.ru[i] += 0.75*data->par.c_old.ru[i];
+        data->par.c.rv[i] += 0.75*data->par.c_old.rv[i];
+        data->par.c.rw[i] += 0.75*data->par.c_old.rw[i];
+        data->par.c.re[i] += 0.75*data->par.c_old.re[i];
+
+        for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
+            data->par.c.rc[j][i] *= 0.25;
+            data->par.c.rc[j][i] += 0.75*data->par.c_old.rc[j][i];
+        }
+    }
 }
 
+
+static void _charm_model_ns_timestep_rk_2(p4est_iter_volume_info_t * info, void *user_data)
+{
+    charm_data_t       *data = charm_get_quad_data(info->quad);
+    int                 i, j;
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        data->par.c.ru[i] *= 2.;
+        data->par.c.rv[i] *= 2.;
+        data->par.c.rw[i] *= 2.;
+        data->par.c.re[i] *= 2.;
+        data->par.c.ru[i] /= 3.;
+        data->par.c.rv[i] /= 3.;
+        data->par.c.rw[i] /= 3.;
+        data->par.c.re[i] /= 3.;
+        data->par.c.ru[i] += data->par.c_old.ru[i] / 3.;
+        data->par.c.rv[i] += data->par.c_old.rv[i] / 3.;
+        data->par.c.rw[i] += data->par.c_old.rw[i] / 3.;
+        data->par.c.re[i] += data->par.c_old.re[i] / 3.;
+        for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
+            data->par.c.rc[j][i] *= 2.;
+            data->par.c.rc[j][i] /= 3.;
+            data->par.c.rc[j][i] += data->par.c_old.rc[j][i] / 3.;
+        }
+    }
+}
 
 
 void charm_model_ns_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data)
@@ -134,15 +191,9 @@ void charm_model_ns_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t *
     int                 repartition_period = ctx->repartition_period;
     int                 write_period = ctx->write_period;
     int                 allowcoarsening = 1;
-    int                 mpiret;
-    double              orig_max_err = ctx->max_err;
-    double              umax, global_umax;
-    int                 ref_flag = 0;
     p4est_ghost_t      *ghost       = *_ghost;
     charm_data_t       *ghost_data  = *_ghost_data;
 
-    /* refine */
-    ref_flag = 0;
     if (refine_period) {
         if (!(ctx->timestep % refine_period)) {
             if (ctx->timestep) {
@@ -153,8 +204,6 @@ void charm_model_ns_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t *
                     ghost = NULL;
                     ghost_data = NULL;
                 }
-
-                ref_flag = 1;
             }
             *dt = ctx->get_dt_fn(p4est);
 
@@ -191,51 +240,32 @@ void charm_model_ns_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t *
         ghost_data = CHARM_ALLOC (charm_data_t, ghost->ghosts.elem_count);
         p4est_ghost_exchange_data (p4est, ghost, ghost_data);
     }
-    if (charm_get_reactions_count(p4est) > 0)  {
-        p4est_iterate (p4est,
-                       ghost,
-                       (void *) ghost_data,
-                       _charm_model_ns_timestep_alloc_iter_fn,
-                       NULL, NULL, NULL);
 
-    }
+#define CHARM_RUNGE_KUTTA_STEP()                                                    \
+                    p4est_ghost_exchange_data (p4est, ghost, ghost_data);           \
+                    charm_model_ns_timestep_chem(p4est, ghost, ghost_data);         \
+                    p4est_ghost_exchange_data (p4est, ghost, ghost_data);           \
+                    p4est_iterate (p4est, ghost, (void *) ghost_data,               \
+                            charm_model_ns_timestep_zero_quad_iter_fn,              \
+                            NULL, NULL, NULL);                                      \
+                    charm_model_ns_timestep_diff(p4est, ghost, ghost_data);         \
+                    charm_model_ns_timestep_conv(p4est, ghost, ghost_data);         \
+                    p4est_iterate (p4est, NULL, (void *) dt,                        \
+                            charm_model_ns_timestep_update_quad_iter_fn,            \
+                            NULL, NULL, NULL);                                      \
+                    p4est_ghost_exchange_data (p4est, ghost, ghost_data);           \
+                    charm_limiter(p4est, ghost, ghost_data);
 
-    charm_model_ns_timestep_chem(p4est, ghost, ghost_data);
+    p4est_iterate (p4est, NULL, NULL, _charm_model_ns_timestep_rk_0, NULL, NULL, NULL);
+    CHARM_RUNGE_KUTTA_STEP()
+    p4est_ghost_exchange_data (p4est, ghost, ghost_data);
+    CHARM_RUNGE_KUTTA_STEP()
+    p4est_iterate (p4est, NULL, NULL, _charm_model_ns_timestep_rk_1, NULL, NULL, NULL);
+    CHARM_RUNGE_KUTTA_STEP()
+    p4est_iterate (p4est, NULL, NULL, _charm_model_ns_timestep_rk_2, NULL, NULL, NULL);
+    p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 
-    p4est_ghost_exchange_data (p4est, ghost, ghost_data); /* synchronize the ghost data */
-
-    p4est_iterate (p4est,
-                   ghost,
-                   (void *) ghost_data,
-                   charm_model_ns_timestep_zero_quad_iter_fn,
-                   NULL, NULL, NULL);
-
-
-
-    charm_model_ns_timestep_diff(p4est, ghost, ghost_data);
-    charm_model_ns_timestep_conv(p4est, ghost, ghost_data);
-
-    p4est_iterate (p4est, NULL,
-                   (void *) dt,
-                   charm_model_ns_timestep_update_quad_iter_fn,
-                   NULL, NULL, NULL);
-
-
-    p4est_ghost_exchange_data (p4est, ghost, ghost_data); /* synchronize the ghost data */
-
-    charm_limiter(p4est, ghost, ghost_data);
-
-
-    p4est_ghost_exchange_data (p4est, ghost, ghost_data); /* synchronize the ghost data */
-
-    if (charm_get_reactions_count(p4est) > 0)  {
-        p4est_iterate (p4est,
-                       ghost,
-                       (void *) ghost_data,
-                       _charm_model_ns_timestep_free_iter_fn,
-                       NULL, NULL, NULL);
-
-    }
+#undef CHARM_RUNGE_KUTTA_STEP
 
     *_ghost       = ghost;
     *_ghost_data  = ghost_data;
