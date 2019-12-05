@@ -184,7 +184,7 @@ void charm_model_ns_timestep_chem(p4est_t * p4est, p4est_ghost_t * ghost, charm_
     chem_psi   = CHARM_ALLOC(double, c_count);
     chem_c     = CHARM_ALLOC(double, c_count);
     chem_c_    = CHARM_ALLOC(double, c_count);
-    chem_c_hat = CHARM_ALLOC(double, r_count);
+    chem_c_hat = CHARM_ALLOC(double, c_count);
 
     p4est_iterate (p4est,
                    NULL, NULL,
