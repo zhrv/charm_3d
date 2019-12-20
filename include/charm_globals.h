@@ -338,6 +338,12 @@ typedef struct charm_param
             double d[CHARM_MAX_COMPONETS_COUNT];
             double chem_rhs;
         } ns;
+        struct {
+            charm_tensor_c_t tau;
+            charm_vec_c_t q;
+            double d[CHARM_MAX_COMPONETS_COUNT];
+            double chem_rhs;
+        } ns_li;
     } model;
 
     struct geom
@@ -477,6 +483,12 @@ typedef struct charm_ctx
             int                 use_diff;
             double              t_ref;
         } ns;
+        struct {
+            int                 use_visc;
+            int                 use_diff;
+            double              t_ref;
+            sc_array_t         *li_sigma;
+        } ns_li;
     } model;
 //    double              visc_m;
 //    double              visc_l;
@@ -564,10 +576,15 @@ void charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT],
 void charm_matr_vect_mult(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT],
                           double res[CHARM_BASE_FN_COUNT]);
 
-void
-charm_matr_add(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
+void charm_matr_add(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
 
 void charm_vect_add(double a[CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT]);
+
+void charm_vect_sub(double a[CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT]);
+
+void charm_vect_copy(double a[CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT]);
+
+void charm_vect_scalar_mult(double a[CHARM_BASE_FN_COUNT], double b);
 
 void charm_matr_zero(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
 

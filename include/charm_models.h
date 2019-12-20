@@ -23,6 +23,12 @@ void charm_model_ns_timestep_single(p4est_t *p4est, double *dt, p4est_ghost_t **
 double charm_model_ns_get_dt(p4est_t *p4est);
 
 
+/** MODEL NAVIER-STOKES IMPLICIT */
+void charm_model_ns_li_timestep_single(p4est_t *p4est, double *dt, p4est_ghost_t **_ghost, charm_data_t **_ghost_data);
+
+double charm_model_ns_li_get_dt(p4est_t *p4est);
+
+
 #ifdef __cplusplus
 }
 #endif

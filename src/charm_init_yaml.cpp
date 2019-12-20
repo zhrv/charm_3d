@@ -16,6 +16,7 @@
 #ifdef CHARM_CONFIG_YAML
 
 void charm_model_ns_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yaml);
+void charm_model_ns_li_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yaml);
 void charm_model_euler_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yaml);
 
 static void _charm_init_fetch_bnd(YAML::Node node, charm_bnd_t *bnd)
@@ -321,6 +322,9 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
         }
         else if (str == "NS") {
             charm_model_ns_init(ctx, model, config);
+        }
+        else if (str == "NS_LI") {
+            charm_model_ns_li_init(ctx, model, config);
         }
         else {
             CHARM_LERRORF("Unknown model type '%s'. Use: EULER.\n", str.c_str());

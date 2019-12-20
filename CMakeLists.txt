@@ -70,6 +70,14 @@ add_executable(	charm_3d
         src/models/ns/charm_model_ns_diff_grad.c
         src/models/ns/charm_model_ns_diff_integrals.c
         src/models/ns/charm_model_ns_chem.c
+
+        src/models/ns_li/charm_model.c
+        src/models/ns_li/charm_model_ns_li_init.cpp
+        src/models/ns_li/charm_model_ns_li_conv.c
+        src/models/ns_li/charm_model_ns_li_diff.c
+        src/models/ns_li/charm_model_ns_li_diff_grad.c
+        src/models/ns_li/charm_model_ns_li_diff_integrals.c
+        src/models/ns_li/charm_model_ns_li_chem.c
 )
 
 target_link_libraries(charm_3d p4est sc m yaml-cpp)

@@ -439,11 +439,41 @@ void charm_vect_add(double a[CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT]
 }
 
 
+void charm_vect_sub(double a[CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT])
+{
+    int i, j;
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        a[i] -= b[i];
+    }
+
+}
+
+
+void charm_vect_copy(double dest[CHARM_BASE_FN_COUNT], double src[CHARM_BASE_FN_COUNT])
+{
+    int i, j;
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        dest[i] = src[i];
+    }
+
+}
+
+
 void charm_vect_zero(double a[CHARM_BASE_FN_COUNT])
 {
     int i;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
         a[i] = 0.;
+    }
+
+}
+
+
+void charm_vect_scalar_mult(double a[CHARM_BASE_FN_COUNT], double b)
+{
+    int i;
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        a[i] *= b;
     }
 
 }
