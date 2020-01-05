@@ -24,13 +24,13 @@ static void _charm_model_ns_timestep_diffusion_quad_iter_fn(p4est_iter_volume_in
     charm_ctx_t        *ctx = charm_get_ctx(info->p4est);
     int                 c_count = charm_get_comp_count(info->p4est);
     int                 i, j;
-    double              s_xd, dij, pabs, td, wd, *x, s;
+    charm_real_t              s_xd, dij, pabs, td, wd, *x, s;
 
-    x = CHARM_ALLOC(double, c_count);
+    x = CHARM_ALLOC(charm_real_t, c_count);
     charm_get_fields(data, data->par.g.c, &cons);
     charm_param_cons_to_prim(info->p4est, &prim, &cons);
     pabs = prim.p/101325.0;
-    memset(data->par.model.ns.d, 0, sizeof(double)*CHARM_MAX_COMPONETS_COUNT);
+    memset(data->par.model.ns.d, 0, sizeof(charm_real_t)*CHARM_MAX_COMPONETS_COUNT);
 
     if (!ctx->model.ns.use_diff) {
         return;

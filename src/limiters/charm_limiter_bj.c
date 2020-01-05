@@ -34,20 +34,20 @@ static void _charm_limiter_bj_neigh_iter_bnd(p4est_iter_face_info_t * info, void
     charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
     size_t c_count = charm_get_comp_count(info->p4est);
-    double n[3];
-    double qr, qu, qv, qw, qe;
-    double bfv;
+    charm_real_t n[3];
+    charm_real_t qr, qu, qv, qw, qe;
+    charm_real_t bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
 
 
     int8_t face;
-    double c[2][3], l[3];
-    double r_[2], p_[2], u_[2], v_[2], w_[2], e_[2];
+    charm_real_t c[2][3], l[3];
+    charm_real_t r_[2], p_[2], u_[2], v_[2], w_[2], e_[2];
     charm_cons_t cons[2];
     charm_prim_t prim[2];
-    double *x, gw, gj;
-    double intg[2][5];
+    charm_real_t *x, gw, gj;
+    charm_real_t intg[2][5];
 
 
     CHARM_ASSERT(info->tree_boundary);
@@ -101,9 +101,9 @@ static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, vo
     p4est_iter_face_side_t *side[2];
     sc_array_t             *sides = &(info->sides);
     charm_cons_t            cons[2], cons_j;
-    double                  c[3];
+    charm_real_t                  c[3];
     int8_t                  face[2];
-    double                  vol, svol;
+    charm_real_t                  vol, svol;
     size_t                  c_count = charm_get_comp_count(info->p4est);
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
@@ -241,20 +241,20 @@ static void _charm_limiter_bj_neigh_iter_fn(p4est_iter_face_info_t * info, void 
 static void _charm_limiter_bj_calc_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t *p = charm_get_quad_data(info->quad);
-    double **u, *f;
-    double *u_min, *u_max, *psi, psi_tmp;
+    charm_real_t **u, *f;
+    charm_real_t *u_min, *u_max, *psi, psi_tmp;
     int i,j;
-    double v[8][CHARM_DIM];
+    charm_real_t v[8][CHARM_DIM];
     charm_cons_t cons;
     size_t                  c_count = charm_get_comp_count(info->p4est);
     size_t                  f_count = c_count+4;
     CHARM_ASSERT(p->par.l.count == 7);
 
-    u_min = CHARM_ALLOC(double, f_count);
-    u_max = CHARM_ALLOC(double, f_count);
-    psi = CHARM_ALLOC(double, f_count);
-    u = CHARM_ALLOC(double*, f_count);
-    f = CHARM_ALLOC(double, f_count);
+    u_min = CHARM_ALLOC(charm_real_t, f_count);
+    u_max = CHARM_ALLOC(charm_real_t, f_count);
+    psi = CHARM_ALLOC(charm_real_t, f_count);
+    u = CHARM_ALLOC(charm_real_t*, f_count);
+    f = CHARM_ALLOC(charm_real_t, f_count);
 
     u[0] = p->par.l.ru;
     u[1] = p->par.l.rv;

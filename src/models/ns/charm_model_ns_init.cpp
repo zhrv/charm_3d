@@ -18,9 +18,9 @@ static void _charm_model_ns_chem_init_fetch_reaction(charm_ctx_t *ctx, YAML::Nod
     int c_count = ctx->comp->elem_count;
 
     YAML::Node left, right, n;
-    r->a = node["a"].as<double>();
-    r->e = node["e"].as<double>();
-    r->n = node["n"].as<double>();
+    r->a = node["a"].as<charm_real_t>();
+    r->e = node["e"].as<charm_real_t>();
+    r->n = node["n"].as<charm_real_t>();
 
     left = node["left"];
     i = 0;
@@ -82,7 +82,7 @@ void charm_model_ns_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yam
     ctx->timestep_single_fn     = charm_model_ns_timestep_single;
     ctx->model.ns.use_visc = model_node["use_visc"].as<int>();
     ctx->model.ns.use_diff = model_node["use_diffusion"].as<int>();
-    ctx->model.ns.t_ref    = model_node["t_ref"].as<double>();
+    ctx->model.ns.t_ref    = model_node["t_ref"].as<charm_real_t>();
 
     _charm_model_ns_chem_init(ctx, yaml);
 }

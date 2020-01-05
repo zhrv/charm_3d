@@ -322,7 +322,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
     char                *line;
 
     long long int       node, type;
-    double              x, y, z;
+    charm_real_t              x, y, z;
 
     p4est_connectivity_t *conn = NULL;
     FILE                 *fid  = NULL;
@@ -349,7 +349,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
         goto dead;
     }
 
-    double          *vert;
+    charm_real_t          *vert;
     p4est_topidx_t  *trees;
 
     while(1) {
@@ -376,7 +376,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
                 CHARM_FREE(line);
                 line = charm_connectivity_getline_upper (fid);
                 sscanf(line, "%d", &num_vertices);
-                vert = CHARM_ALLOC(double, num_vertices*3);
+                vert = CHARM_ALLOC(charm_real_t, num_vertices*3);
                 for (i = 0; i < num_vertices; i++) {
                     CHARM_FREE(line);
                     line = charm_connectivity_getline_upper (fid);
@@ -444,7 +444,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
     }
 
     conn = p4est_connectivity_new(num_vertices, num_trees_real, 0, 0, 0, 0);
-    memcpy(conn->vertices, vert, conn->num_vertices*3*sizeof(double));
+    memcpy(conn->vertices, vert, conn->num_vertices*3*sizeof(charm_real_t));
     memcpy(conn->tree_to_vertex, trees, conn->num_trees*CHARM_CHILDREN*sizeof(p4est_topidx_t));
 
     CHARM_FREE(vert);
@@ -530,7 +530,7 @@ int
 charm_connectivity_read_inp_stream (FILE * stream,
                                     p4est_topidx_t * num_vertices,
                                     p4est_topidx_t * num_trees,
-                                    double *vertices,
+                                    charm_real_t *vertices,
                                     p4est_topidx_t * tree_to_vertex)
 {
     int                 reading_nodes = 0, reading_elements = 0;
@@ -582,7 +582,7 @@ charm_connectivity_read_inp_stream (FILE * stream,
         if (reading_nodes) {
             if (fill_trees_and_vertices) {
                 long long int       node;
-                double              x, y, z;
+                charm_real_t              x, y, z;
                 int                 retval;
 
                 retval = sscanf (line, "%lld, %lf, %lf, %lf", &node, &x, &y, &z);

@@ -25,8 +25,8 @@ static void _charm_model_ns_diff_integrals_volume_int_iter_fn (p4est_iter_volume
     int                 ibf, igp;
     charm_cons_t        c;
     charm_prim_t        p;
-    double              phi_x, phi_y, phi_z, phi;
-    double             *x;
+    charm_real_t              phi_x, phi_y, phi_z, phi;
+    charm_real_t             *x;
     charm_tensor_t      tau;
 
     for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
@@ -63,19 +63,19 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
     p4est_t *p4est = info->p4est;
     charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
-    double n[3];
-    double qu, qv, qw, qe, qt[3];
-    double                  fu, fv, fw, ft;
-    double bfv;
+    charm_real_t n[3];
+    charm_real_t qu, qv, qw, qe, qt[3];
+    charm_real_t                  fu, fv, fw, ft;
+    charm_real_t bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
     charm_tensor_t          tau[2], ftau;
     int8_t face;
-    double c[2][3], l[3];
+    charm_real_t c[2][3], l[3];
     charm_cons_t cons;
     charm_prim_t prim[2];
-    double *x, gw, gj;
-    double mu;
+    charm_real_t *x, gw, gj;
+    charm_real_t mu;
 
 
     CHARM_ASSERT(info->tree_boundary);
@@ -115,11 +115,11 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
         charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
         charm_get_heat_q(udata, x, qt);
         charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
-        double vv[3] = {prim[0].u, prim[0].v, prim[0].w};
-        double un = scalar_prod(vv, n);
-        double vn[3] = {un*n[0], un*n[1], un*n[2]};
-        double vt[3] = {vv[0]-vn[0], vv[1]-vn[1], vv[2]-vn[2]};
-        double ll = vect_length(l);
+        charm_real_t vv[3] = {prim[0].u, prim[0].v, prim[0].w};
+        charm_real_t un = scalar_prod(vv, n);
+        charm_real_t vn[3] = {un*n[0], un*n[1], un*n[2]};
+        charm_real_t vt[3] = {vv[0]-vn[0], vv[1]-vn[1], vv[2]-vn[2]};
+        charm_real_t ll = vect_length(l);
         qu = -mu*vt[0]/ll;
         qv = -mu*vt[1]/ll;
         qw = -mu*vt[2]/ll;
@@ -176,11 +176,11 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
 //            charm_get_fields(udata, x, &cons);
 //            charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
 //            charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
-//            double vv[3] = {prim[0].u, prim[0].v, prim[0].w};
-//            double un = scalar_prod(vv, n);
-//            double vn[3] = {un*n[0], un*n[1], un*n[2]};
-//            double vt[3] = {vv[0]-vn[0], vv[1]-vn[1], vv[2]-vn[2]};
-//            double ll = sqrt(scalar_prod(l,l));
+//            charm_real_t vv[3] = {prim[0].u, prim[0].v, prim[0].w};
+//            charm_real_t un = scalar_prod(vv, n);
+//            charm_real_t vn[3] = {un*n[0], un*n[1], un*n[2]};
+//            charm_real_t vt[3] = {vv[0]-vn[0], vv[1]-vn[1], vv[2]-vn[2]};
+//            charm_real_t ll = sqrt(scalar_prod(l,l));
 //            qu = -mu*vt[0]/ll;
 //            qv = -mu*vt[1]/ll;
 //            qw = -mu*vt[2]/ll;
@@ -206,18 +206,18 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
     charm_ctx_t            *ctx = charm_get_ctx(p4est);
     charm_data_t           *ghost_data = (charm_data_t *) user_data;
     charm_data_t           *udata[2];
-    double                  n[3];
-    double                  qu, qv, qw, qe, qt[3];
-    double                  fu, fv, fw, ft;
+    charm_real_t                  n[3];
+    charm_real_t                  qu, qv, qw, qe, qt[3];
+    charm_real_t                  fu, fv, fw, ft;
     p4est_iter_face_side_t *side[2];
     sc_array_t             *sides = &(info->sides);
     charm_cons_t            cons[2];
     charm_prim_t            prim[2];
     charm_tensor_t          tau[2], ftau;
-    double                 *x, gw, gj;
-    double                  bfv;
-    double                  c[2][3];
-    double                  l[3];
+    charm_real_t                 *x, gw, gj;
+    charm_real_t                  bfv;
+    charm_real_t                  c[2][3];
+    charm_real_t                  l[3];
     int8_t                  face[2];
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);

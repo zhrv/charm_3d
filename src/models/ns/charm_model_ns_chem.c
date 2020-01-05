@@ -12,12 +12,12 @@
 #include "charm_eos.h"
 
 
-static double *chem_k, *chem_w, *chem_phi, *chem_psi, *chem_c, *chem_c_, *chem_c_hat;
+static charm_real_t *chem_k, *chem_w, *chem_phi, *chem_psi, *chem_c, *chem_c_, *chem_c_hat;
 
 
 static void _charm_model_ns_chem_rhs(p4est_t * p4est, charm_data_t *data)
 {
-    double       R   = charm_eos_get_r();
+    charm_real_t       R   = charm_eos_get_r();
     charm_cons_t cons;
     charm_prim_t prim;
     size_t r_count = charm_get_reactions_count(p4est);
@@ -25,7 +25,7 @@ static void _charm_model_ns_chem_rhs(p4est_t * p4est, charm_data_t *data)
     charm_reaction_t * r;
     charm_comp_t *comp;
     int i, j, m, n, ic;
-    double w;
+    charm_real_t w;
 
     charm_get_fields_avg(data, &cons);
     charm_param_cons_to_prim(p4est, &prim, &cons);
@@ -65,7 +65,7 @@ static void _charm_model_ns_chem_rhs(p4est_t * p4est, charm_data_t *data)
 
 static void _charm_model_ns_chem_rhs_save(p4est_t * p4est, charm_data_t *data)
 {
-    double R = charm_eos_get_r();
+    charm_real_t R = charm_eos_get_r();
     charm_cons_t cons;
     charm_prim_t prim;
     size_t r_count = charm_get_reactions_count(p4est);
@@ -73,7 +73,7 @@ static void _charm_model_ns_chem_rhs_save(p4est_t * p4est, charm_data_t *data)
     charm_reaction_t * r;
     charm_comp_t *comp;
     int i, j, m, n, ic;
-    double w, h;
+    charm_real_t w, h;
 
     charm_get_fields_avg(data, &cons);
     charm_param_cons_to_prim(p4est, &prim, &cons);
@@ -148,7 +148,7 @@ static void _charm_model_ns_chem_iter_fn(p4est_iter_volume_info_t * info, void *
     // TODO
     for (i = 0; i < c_count; i++) {
         comp = charm_get_comp(p4est, i);
-        memset(data->par.c.rc[i], 0, sizeof(double)*CHARM_BASE_FN_COUNT);
+        memset(data->par.c.rc[i], 0, sizeof(charm_real_t)*CHARM_BASE_FN_COUNT);
         data->par.c.rc[i][0] = chem_c_hat[i] * comp->m;
     }
 
@@ -178,13 +178,13 @@ void charm_model_ns_timestep_chem(p4est_t * p4est, p4est_ghost_t * ghost, charm_
     size_t c_count = charm_get_comp_count(p4est);
     size_t r_count = charm_get_reactions_count(p4est);
 
-    chem_k     = CHARM_ALLOC(double, r_count);
-    chem_w     = CHARM_ALLOC(double, r_count);
-    chem_phi   = CHARM_ALLOC(double, c_count);
-    chem_psi   = CHARM_ALLOC(double, c_count);
-    chem_c     = CHARM_ALLOC(double, c_count);
-    chem_c_    = CHARM_ALLOC(double, c_count);
-    chem_c_hat = CHARM_ALLOC(double, c_count);
+    chem_k     = CHARM_ALLOC(charm_real_t, r_count);
+    chem_w     = CHARM_ALLOC(charm_real_t, r_count);
+    chem_phi   = CHARM_ALLOC(charm_real_t, c_count);
+    chem_psi   = CHARM_ALLOC(charm_real_t, c_count);
+    chem_c     = CHARM_ALLOC(charm_real_t, c_count);
+    chem_c_    = CHARM_ALLOC(charm_real_t, c_count);
+    chem_c_hat = CHARM_ALLOC(charm_real_t, c_count);
 
     p4est_iterate (p4est,
                    NULL, NULL,

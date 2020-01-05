@@ -27,11 +27,11 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     attr = charm_get_tree_attr(p4est, which_tree);
     reg = attr->reg;
 #ifdef POGGI
-    double *x   = data->par.g.c;
-    double pi   = 4.*atan(1.);
-    double pi2  = pi*2.;
-    double a0 = 0.5e-3;
-    double lambda = 1.e-3;
+    charm_real_t *x   = data->par.g.c;
+    charm_real_t pi   = 4.*atan(1.);
+    charm_real_t pi2  = pi*2.;
+    charm_real_t a0 = 0.5e-3;
+    charm_real_t lambda = 1.e-3;
 
     if (x[2] < -5.1e-3) {
         reg = charm_reg_find_by_id(ctx, 0);

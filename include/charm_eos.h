@@ -17,7 +17,7 @@ void charm_mat_eos_mix(p4est_t *p4est, charm_prim_t *p, int flag);
 
 void charm_mat_eos_table(p4est_t *p4est, charm_prim_t *p, int flag);
 
-double charm_eos_get_r();
+charm_real_t charm_eos_get_r();
 
 #ifdef __cplusplus
 }

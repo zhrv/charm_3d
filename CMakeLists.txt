@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
 project(charm_3d)
 
+if(NOT CMAKE_BUILD_TYPE)
+   set(CMAKE_BUILD_TYPE "Release")
+   message(STATUS "Build type not specified: Use Release by default")
+endif(NOT CMAKE_BUILD_TYPE)
+
+
 set(CMAKE_C_COMPILER "mpicc")
 set(CMAKE_CXX_COMPILER "mpicxx")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O2") # for production
@@ -70,7 +76,7 @@ add_executable(	charm_3d
         src/models/ns/charm_model_ns_diff_grad.c
         src/models/ns/charm_model_ns_diff_integrals.c
         src/models/ns/charm_model_ns_chem.c
-)
+        include/charm_def.h)
 
 target_link_libraries(charm_3d p4est sc m yaml-cpp)
 set_property(TARGET charm_3d PROPERTY C_STANDARD 99)

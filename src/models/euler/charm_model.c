@@ -14,10 +14,10 @@
 
 static void _charm_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
-    double         *dt = (double*) user_data;
+    charm_real_t         *dt = (charm_real_t*) user_data;
     charm_data_t   *data = charm_get_quad_data(info->quad);
     charm_ctx_t    *ctx = (charm_ctx_t*) info->p4est->user_pointer;
-    double          dt_loc;
+    charm_real_t          dt_loc;
     charm_cons_t    cons;
     charm_prim_t    prim;
 
@@ -34,10 +34,10 @@ static void _charm_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info
  * \param [in] p4est the forest
  * \return the timestep.
  */
-double charm_model_euler_get_dt (p4est_t * p4est)
+charm_real_t charm_model_euler_get_dt (p4est_t * p4est)
 {
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
-    double              loc_dt, glob_dt;
+    charm_real_t              loc_dt, glob_dt;
     int                 mpiret, i;
 
     return ctx->dt;
@@ -70,17 +70,17 @@ static void _charm_convect_volume_int_iter_fn(p4est_iter_volume_info_t * info, v
     int                 ibf, igp;
     charm_cons_t        c;
     charm_prim_t        p;
-    double              fu, fv, fw, fe, *fc;
-    double              gu, gv, gw, ge, *gc;
-    double              hu, hv, hw, he, *hc;
-    double              phi_x, phi_y, phi_z, phi;
-    double             *x;
+    charm_real_t              fu, fv, fw, fe, *fc;
+    charm_real_t              gu, gv, gw, ge, *gc;
+    charm_real_t              hu, hv, hw, he, *hc;
+    charm_real_t              phi_x, phi_y, phi_z, phi;
+    charm_real_t             *x;
     size_t              c_count = charm_get_comp_count(info->p4est);
     size_t              cj;
 
-    fc = CHARM_ALLOC(double, c_count);
-    gc = CHARM_ALLOC(double, c_count);
-    hc = CHARM_ALLOC(double, c_count);
+    fc = CHARM_ALLOC(charm_real_t, c_count);
+    gc = CHARM_ALLOC(charm_real_t, c_count);
+    hc = CHARM_ALLOC(charm_real_t, c_count);
 
     for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
         for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
@@ -143,27 +143,27 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
     charm_ctx_t * ctx = charm_get_ctx(p4est);
     charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
-    double n[3];
-    double qu, qv, qw, qe, *qc;
-    double bfv;
+    charm_real_t n[3];
+    charm_real_t qu, qv, qw, qe, *qc;
+    charm_real_t bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
     size_t              c_count = charm_get_comp_count(info->p4est);
 
 
     int8_t face;
-    double c[2][3], l[3];
-    double r_[2], p_[2], u_[2], v_[2], w_[2], e_[2];
+    charm_real_t c[2][3], l[3];
+    charm_real_t r_[2], p_[2], u_[2], v_[2], w_[2], e_[2];
     charm_cons_t cons;
     charm_prim_t prim[2];
-    double *x, gw, gj;
-    double intg[2][5];
+    charm_real_t *x, gw, gj;
+    charm_real_t intg[2][5];
     int j;
 
 
     CHARM_ASSERT(info->tree_boundary);
 
-    qc = CHARM_ALLOC(double, c_count);
+    qc = CHARM_ALLOC(charm_real_t, c_count);
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     CHARM_ASSERT(!side[0]->is_hanging);
@@ -219,21 +219,21 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
     charm_ctx_t            *ctx = charm_get_ctx(p4est);
     charm_data_t           *ghost_data = (charm_data_t *) user_data;
     charm_data_t           *udata[2];
-    double                  n[3];
-    double                  qu, qv, qw, qe, *qc;
+    charm_real_t                  n[3];
+    charm_real_t                  qu, qv, qw, qe, *qc;
     p4est_iter_face_side_t *side[2];
     sc_array_t             *sides = &(info->sides);
     charm_cons_t            cons[2];
     charm_prim_t            prim[2];
-    double                 *x, gw, gj;
-    double                  bfv;
-    double                  c[2][3];
-    double                  l[3];
+    charm_real_t                 *x, gw, gj;
+    charm_real_t                  bfv;
+    charm_real_t                  c[2][3];
+    charm_real_t                  l[3];
     int8_t                  face[2];
     size_t                  c_count = charm_get_comp_count(info->p4est);
 
 
-    qc = CHARM_ALLOC(double, c_count);
+    qc = CHARM_ALLOC(charm_real_t, c_count);
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     side[1] = p4est_iter_fside_array_index_int(sides, 1);
@@ -403,12 +403,12 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
-    double              dt = *((double *) user_data);
-    double              rhs_ru[CHARM_BASE_FN_COUNT];
-    double              rhs_rv[CHARM_BASE_FN_COUNT];
-    double              rhs_rw[CHARM_BASE_FN_COUNT];
-    double              rhs_re[CHARM_BASE_FN_COUNT];
-    double              rhs_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];
+    charm_real_t              dt = *((charm_real_t *) user_data);
+    charm_real_t              rhs_ru[CHARM_BASE_FN_COUNT];
+    charm_real_t              rhs_rv[CHARM_BASE_FN_COUNT];
+    charm_real_t              rhs_rw[CHARM_BASE_FN_COUNT];
+    charm_real_t              rhs_re[CHARM_BASE_FN_COUNT];
+    charm_real_t              rhs_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];
     size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
@@ -451,7 +451,7 @@ static void charm_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, v
 
 
 
-void charm_model_euler_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data)
+void charm_model_euler_timestep_single(p4est_t * p4est, charm_real_t *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data)
 {
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
     int                 refine_period = ctx->refine_period;
@@ -459,8 +459,8 @@ void charm_model_euler_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_
     int                 write_period = ctx->write_period;
     int                 allowcoarsening = 1;
     int                 mpiret;
-    double              orig_max_err = ctx->max_err;
-    double              umax, global_umax;
+    charm_real_t              orig_max_err = ctx->max_err;
+    charm_real_t              umax, global_umax;
     int                 ref_flag = 0;
     p4est_ghost_t      *ghost       = *_ghost;
     charm_data_t       *ghost_data  = *_ghost_data;
