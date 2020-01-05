@@ -5,20 +5,20 @@
 #include "charm_eos.h"
 
 
-double gR = 8.31446261815324; // Дж/(моль К)
+charm_real_t gR = 8.31446261815324; // Дж/(моль К)
 
-double charm_eos_get_r() { return gR; }
+charm_real_t charm_eos_get_r() { return gR; }
 
 static void _calc_t( p4est_t * p4est, charm_prim_t * p )
 {
     charm_comp_t * comp;
-    double tt = 1.0;		// начальное приближение для температуры
-    double e  = p->e;		// энергия
+    charm_real_t tt = 1.0;		// начальное приближение для температуры
+    charm_real_t e  = p->e;		// энергия
     int c_count = charm_get_comp_count(p4est);
     int i, j;
-    double rm, cp, cp_dt, ft, ft_dt, tt1;
+    charm_real_t rm, cp, cp_dt, ft, ft_dt, tt1;
 
-    double m_ = 0.0;		//  формулы   M_ = 1 / M   где   M = 1 / SUM( Ci / Mi )
+    charm_real_t m_ = 0.0;		//  формулы   M_ = 1 / M   где   M = 1 / SUM( Ci / Mi )
 
 
     for (i=0; i<c_count; i++)	{
@@ -100,7 +100,7 @@ void charm_mat_eos_ideal(p4est_t * p4est, charm_prim_t * p, int flag)
     int id;
     charm_ctx_t  *ctx = (charm_ctx_t *)p4est->user_pointer;
     charm_comp_t *comp = sc_array_index(ctx->comp, 0);
-    double t;
+    charm_real_t t;
 
     if (comp->cp_type == COMP_CP_POLYNOM && (flag == 1 || flag == 4)) {
         _calc_t(p4est, p);
@@ -124,7 +124,7 @@ void charm_mat_eos_mix(p4est_t * p4est, charm_prim_t * p, int flag)
     size_t c_count   = charm_get_comp_count(p4est);
     int i;
     charm_comp_t *comp = charm_get_comp(p4est, 0);
-    double t;
+    charm_real_t t;
 
     if (comp->cp_type == COMP_CP_POLYNOM && (flag == 1 || flag == 4)) {
         _calc_t(p4est, p);
@@ -135,7 +135,7 @@ void charm_mat_eos_mix(p4est_t * p4est, charm_prim_t * p, int flag)
     }
 
     p->cp  = 0.;
-    double M_  = 0.;
+    charm_real_t M_  = 0.;
     for (i = 0; i < c_count; i++) {
         comp = charm_get_comp(p4est, i);
         M_ += p->c[i]/comp->m;

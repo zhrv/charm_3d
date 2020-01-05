@@ -25,9 +25,9 @@ static void _charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info
     int                 ibf, igp;
     charm_cons_t        c;
     charm_prim_t        p;
-    double              phi_x, phi_y, phi_z, phi, tmp_qx, tmp_qy, tmp_qz;
-    double             *x;
-    double              lambda, mu, kt, lp, lm, h;
+    charm_real_t              phi_x, phi_y, phi_z, phi, tmp_qx, tmp_qy, tmp_qz;
+    charm_real_t             *x;
+    charm_real_t              lambda, mu, kt, lp, lm, h;
     int                 i;
     size_t              c_count = charm_get_comp_count(info->p4est);
     charm_comp_t       *comp;
@@ -85,23 +85,23 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
     charm_ctx_t * ctx = charm_get_ctx(p4est);
     charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
-    double n[3];
-    double qxx, qyy, qzz, qxy, qxz, qyz, qtx, qty, qtz;
-    double fu, fv, fw, ft;
-    double bfv;
+    charm_real_t n[3];
+    charm_real_t qxx, qyy, qzz, qxy, qxz, qyz, qtx, qty, qtz;
+    charm_real_t fu, fv, fw, ft;
+    charm_real_t bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
     size_t              c_count = charm_get_comp_count(info->p4est);
 
 
     int8_t face;
-    double c[2][3], l[3];
-    double r_[2], p_[2], u_[2], v_[2], w_[2], e_[2];
+    charm_real_t c[2][3], l[3];
+    charm_real_t r_[2], p_[2], u_[2], v_[2], w_[2], e_[2];
     charm_cons_t cons;
     charm_prim_t prim[2];
     charm_comp_t *comp;
-    double *x, gw, gj;
-    double lambda, mu, lp, lm, kt, fr, fc, h;
+    charm_real_t *x, gw, gj;
+    charm_real_t lambda, mu, lp, lm, kt, fr, fc, h;
     int j;
 
 
@@ -204,20 +204,20 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
     charm_ctx_t            *ctx = charm_get_ctx(p4est);
     charm_data_t           *ghost_data = (charm_data_t *) user_data;
     charm_data_t           *udata[2];
-    double                  n[3];
-    double                  qxx, qyy, qzz, qxy, qxz, qyz, qtx, qty, qtz;
-    double                  fu, fv, fw, ft, fr, fc, h;
+    charm_real_t                  n[3];
+    charm_real_t                  qxx, qyy, qzz, qxy, qxz, qyz, qtx, qty, qtz;
+    charm_real_t                  fu, fv, fw, ft, fr, fc, h;
     p4est_iter_face_side_t *side[2];
     sc_array_t             *sides = &(info->sides);
     charm_cons_t            cons[2];
     charm_prim_t            prim[2];
     charm_comp_t           *comp;
-    double                 *x, gw, gj;
-    double                  bfv;
-    double                  c[2][3];
-    double                  l[3];
+    charm_real_t                 *x, gw, gj;
+    charm_real_t                  bfv;
+    charm_real_t                  c[2][3];
+    charm_real_t                  l[3];
     int8_t                  face[2];
-    double                  lambda[2], mu[2], flambda, fmu, lp, lm, kt, dm;
+    charm_real_t                  lambda[2], mu[2], flambda, fmu, lp, lm, kt, dm;
     size_t                  c_count = charm_get_comp_count(p4est);
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);

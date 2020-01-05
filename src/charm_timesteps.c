@@ -22,11 +22,11 @@
  */
 void charm_timesteps(p4est_t * p4est)
 {
-    double              dt;
+    charm_real_t              dt;
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
     charm_data_t       *ghost_data;
     p4est_ghost_t      *ghost;
-    double              calc_time;
+    charm_real_t              calc_time;
 
 
     ghost = p4est_ghost_new (p4est, CHARM_CONNECT_FULL);

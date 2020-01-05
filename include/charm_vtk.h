@@ -107,7 +107,7 @@ void                charm_vtk_context_set_geom (charm_vtk_context_t * cont,
  * \param [in] scale            Scale parameter must be in (0, 1].
  */
 void                charm_vtk_context_set_scale (charm_vtk_context_t * cont,
-                                                 double scale);
+                                                 charm_real_t scale);
 
 /** Modify the context parameter for expecting continuous point data.
  * If set to true, the point data is understood as a continuous field.
@@ -183,8 +183,8 @@ charm_vtk_context_t *charm_vtk_write_header (charm_vtk_context_t * cont);
  * The cell scalar pairs come first, followed by the cell vector pairs, then cont.
  * Each 'fieldname' argument shall be a char string containing the name of the data
  * contained in the following 'fieldvalues'. Each of the 'fieldvalues'
- * arguments shall be an sc_array_t * holding double variables.  The number of
- * doubles in each sc_array must be exactly \a p4est->local_num_quadrants for
+ * arguments shall be an sc_array_t * holding charm_real_t variables.  The number of
+ * charm_real_ts in each sc_array must be exactly \a p4est->local_num_quadrants for
  * scalar data and \a 3*p4est->local_num_quadrants for vector data.
  *
  * \note The current charm_vtk_context_t structure, \a cont, must be the first
@@ -231,8 +231,8 @@ charm_vtk_context_t *charm_vtk_write_cell_data (charm_vtk_context_t * cont,
  * the point scalar pairs come first, followed by the point vector pairs.  Each
  * 'fieldname' argument shall be a char string containing the name of the data
  * contained in the following 'fieldvalues'. Each of the 'fieldvalues'
- * arguments shall be an sc_array_t * holding double variables. The number of
- * doubles in each sc_array must be exactly the number of components (1 for
+ * arguments shall be an sc_array_t * holding charm_real_t variables. The number of
+ * charm_real_ts in each sc_array must be exactly the number of components (1 for
  * scalar and 3 for vector) times 4 times number of elements.
  *
  * \note The current

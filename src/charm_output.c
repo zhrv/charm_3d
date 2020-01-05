@@ -17,8 +17,8 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     p4est_locidx_t      local_id = info->quadid;  /* this is the index of q *within its tree's numbering*.  We want to convert it its index for all the quadrants on this process, which we do below */
     p4est_tree_t       *tree;
     charm_data_t       *data = (charm_data_t *) q->p.user_data;
-    double             *this_u;
-    double             *this_u_ptr;
+    charm_real_t             *this_u;
+    charm_real_t             *this_u_ptr;
     int                 j;
     charm_cons_t        cons;
     charm_prim_t        prim;
@@ -31,7 +31,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     charm_get_fields(data, data->par.g.c, &cons);
     charm_param_cons_to_prim(p4est, &prim, &cons);
 
-    this_u = CHARM_ALLOC(double, 8+c_count);
+    this_u = CHARM_ALLOC(charm_real_t, 8+c_count);
     this_u[0] = prim.r;
     this_u[1] = prim.p;
     this_u[2] = prim.e;
@@ -44,7 +44,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
         this_u[8+j] = prim.c[j];
     }
     for (j = 0; j < 8 + c_count; j++) {
-        this_u_ptr = (double *) sc_array_index (u_interp[j], (size_t)local_id);
+        this_u_ptr = (charm_real_t *) sc_array_index (u_interp[j], (size_t)local_id);
         this_u_ptr[0] = this_u[j];
     }
     CHARM_FREE(this_u);
@@ -75,7 +75,7 @@ void charm_write_solution (p4est_t * p4est)
     num_cell_scalars = 8 + (int)ctx->comp->elem_count;
     u_interp = CHARM_ALLOC(sc_array_t*, num_cell_scalars + num_cell_vectors);
     for (i = 0; i < num_cell_scalars + num_cell_vectors; i++) {
-        u_interp[i] = sc_array_new_size (sizeof(double), numquads);
+        u_interp[i] = sc_array_new_size (sizeof(charm_real_t), numquads);
     }
 
     char** names = CHARM_ALLOC (char *, num_cell_scalars + num_cell_vectors);
@@ -126,7 +126,7 @@ void charm_write_solution (p4est_t * p4est)
 }
 
 
-void charm_log_statistics(p4est_t * p4est, int timestep, double time, double dt, double calc_time)
+void charm_log_statistics(p4est_t * p4est, int timestep, charm_real_t time, charm_real_t dt, charm_real_t calc_time)
 {
     CHARM_GLOBAL_ESSENTIALF(" STEP = %8d, TIME = %16.8e , DT = %16.8e, ELAPSED_TIME = %16.6e \n", timestep, time, dt, calc_time);
 }

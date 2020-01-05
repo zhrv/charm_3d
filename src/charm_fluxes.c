@@ -5,35 +5,35 @@
 #include "charm_fluxes.h"
 
 
-void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, double* WI,
-                double RB, double PB, double UB, double VB, double WB,
-                double RE, double PE, double UE, double VE, double WE, double gam) {
+void rim_orig(  charm_real_t* RI, charm_real_t* EI, charm_real_t* PI, charm_real_t* UI, charm_real_t* VI, charm_real_t* WI,
+                charm_real_t RB, charm_real_t PB, charm_real_t UB, charm_real_t VB, charm_real_t WB,
+                charm_real_t RE, charm_real_t PE, charm_real_t UE, charm_real_t VE, charm_real_t WE, charm_real_t gam) {
     int    step;
-    double AGAM = (gam - 1.0);
-    double BGAM = (2.0 * sqrt(gam / AGAM));
-    double CGAM = (1.0 / gam);
-    double DGAM = (2.0 / AGAM);
-    double EGAM = (AGAM / (gam + 1.0));
-    double GGAM = (sqrt(gam * AGAM));
-    double HGAM = (AGAM / 2.0);
-    double FGAM = (3.0 * gam - 1.0);
-    double OGAM = (AGAM / (2.0 * gam));
-    double QGAM = (gam + 1.0);
-    double PGAM = (QGAM / (2.0 * gam));
-    double RGAM = (4.0 * gam);
-    double SGAM = (gam * AGAM);
-    double TGAM = (QGAM / 2.0);
-    double UGAM = (sqrt(AGAM / gam));
+    charm_real_t AGAM = (gam - 1.0);
+    charm_real_t BGAM = (2.0 * sqrt(gam / AGAM));
+    charm_real_t CGAM = (1.0 / gam);
+    charm_real_t DGAM = (2.0 / AGAM);
+    charm_real_t EGAM = (AGAM / (gam + 1.0));
+    charm_real_t GGAM = (sqrt(gam * AGAM));
+    charm_real_t HGAM = (AGAM / 2.0);
+    charm_real_t FGAM = (3.0 * gam - 1.0);
+    charm_real_t OGAM = (AGAM / (2.0 * gam));
+    charm_real_t QGAM = (gam + 1.0);
+    charm_real_t PGAM = (QGAM / (2.0 * gam));
+    charm_real_t RGAM = (4.0 * gam);
+    charm_real_t SGAM = (gam * AGAM);
+    charm_real_t TGAM = (QGAM / 2.0);
+    charm_real_t UGAM = (sqrt(AGAM / gam));
 
-    double RF, RS, EF, ES, SBL, SFL, SSL, SEL, D, FS1, F1, ZNB, PKB, ZFB, PKE, ZNE, F2, FS2, ZFE, DP, UBD, RUBD, UF, UED, RUED, US, PPE, PPB, P;
-    double eps = CHARM_RIM_EPS;
-    double CB = sqrt(gam * PB / RB);
-    double CE = sqrt(gam * PE / RE);
-    double EB = CB * CB / SGAM;
-    double EE = CE * CE / SGAM;
-    double RCB = RB * CB;
-    double RCE = RE * CE;
-    double DU = UB - UE;
+    charm_real_t RF, RS, EF, ES, SBL, SFL, SSL, SEL, D, FS1, F1, ZNB, PKB, ZFB, PKE, ZNE, F2, FS2, ZFE, DP, UBD, RUBD, UF, UED, RUED, US, PPE, PPB, P;
+    charm_real_t eps = CHARM_RIM_EPS;
+    charm_real_t CB = sqrt(gam * PB / RB);
+    charm_real_t CE = sqrt(gam * PE / RE);
+    charm_real_t EB = CB * CB / SGAM;
+    charm_real_t EE = CE * CE / SGAM;
+    charm_real_t RCB = RB * CB;
+    charm_real_t RCE = RE * CE;
+    charm_real_t DU = UB - UE;
     if (DU < -2.0 * (CB + CE) / AGAM) {
         CHARM_GLOBAL_ESSENTIALF ("%s\n", " RIEMANN PROBLEM SOLVER: ATTENTION!!!  VACUUM!!!");
         RF = 0.0;
@@ -179,12 +179,12 @@ void rim_orig(  double* RI, double* EI, double* PI, double* UI, double* VI, doub
     *PI= AGAM*(*EI)*(*RI);
 }
 
-void charm_calc_flux_godunov(p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double* qc, double n[3])
+void charm_calc_flux_godunov(p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu, charm_real_t* qv, charm_real_t* qw, charm_real_t* qe, charm_real_t* qc, charm_real_t n[3])
 {
 //    int i,j;
-//    double ri, ei, pi, uu[3], uv[3];
-//    double nt[3][3], vv[2][3], vn[2][3];
-//    double r_[2], u_[2], v_[2], w_[2], p_[2];
+//    charm_real_t ri, ei, pi, uu[3], uv[3];
+//    charm_real_t nt[3][3], vv[2][3], vn[2][3];
+//    charm_real_t r_[2], u_[2], v_[2], w_[2], p_[2];
 //
 //    for (i = 0; i < 2; i++) {
 //        r_[i] = prim[i].r;
@@ -252,24 +252,24 @@ void charm_calc_flux_godunov(p4est_t *p4est, charm_prim_t prim[2], double* qu, d
 //    *qe = (ri*(ei+0.5*(uv[0]*uv[0]+uv[1]*uv[1]+uv[2]*uv[2]))+pi)*uu[0];
 }
 
-void charm_calc_flux_lf(p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[], double n[3])
+void charm_calc_flux_lf(p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu, charm_real_t* qv, charm_real_t* qw, charm_real_t* qe, charm_real_t qc[], charm_real_t n[3])
 {
     int      i, j;
-    double   alpha;
-    double   vn[2], **ff/*[5][2]*/, **uu/*[5][2]*/, fc;
-    double **q;
+    charm_real_t   alpha;
+    charm_real_t   vn[2], **ff/*[5][2]*/, **uu/*[5][2]*/, fc;
+    charm_real_t **q;
     size_t   f_count;
-    double   rs[2], rs_, rr, ur, vr, wr, vrn;
+    charm_real_t   rs[2], rs_, rr, ur, vr, wr, vrn;
 
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     f_count = 4+ctx->comp->elem_count;
 
-    q  = CHARM_ALLOC(double*, f_count);
-    ff = CHARM_ALLOC(double*, f_count);
-    uu = CHARM_ALLOC(double*, f_count);
+    q  = CHARM_ALLOC(charm_real_t*, f_count);
+    ff = CHARM_ALLOC(charm_real_t*, f_count);
+    uu = CHARM_ALLOC(charm_real_t*, f_count);
     for (i = 0; i < f_count; i++) {
-        ff[i] = CHARM_ALLOC(double, 2);
-        uu[i] = CHARM_ALLOC(double, 2);
+        ff[i] = CHARM_ALLOC(charm_real_t, 2);
+        uu[i] = CHARM_ALLOC(charm_real_t, 2);
     }
     q[0] = qu;
     q[1] = qv;
@@ -321,11 +321,11 @@ void charm_calc_flux_lf(p4est_t *p4est, charm_prim_t prim[2], double* qu, double
 #define F_HLLC_E(UK, FK, SK, SS, PK, RK, VK) (((SS)*((SK)*(UK)-(FK)) + (SK)*( (PK)+(RK)*((SK)-(VK))*((SS)-(VK)) )*(SS)) / ((SK)-(SS)))
 
 
-static void _charm_calc_flux_hllc_x_1(p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[])
+static void _charm_calc_flux_hllc_x_1(p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu, charm_real_t* qv, charm_real_t* qw, charm_real_t* qe, charm_real_t qc[])
 {
     int             i;
     size_t          c_count = charm_get_comp_count(p4est);
-    double          sl, sr, p_star, s_star, p_pvrs, ql, qr, tmp;
+    charm_real_t          sl, sr, p_star, s_star, p_pvrs, ql, qr, tmp;
 
     p_pvrs = 0.5*(prim[0].p+prim[1].p)-0.5*(prim[1].u-prim[0].u)*0.25*(prim[0].r+prim[1].r)*(prim[0].cz+prim[1].cz);
     p_star = (p_pvrs > 0.) ? p_pvrs : 0.;
@@ -436,14 +436,14 @@ static void _charm_calc_flux_hllc_x_1(p4est_t *p4est, charm_prim_t prim[2], doub
     }
 }
 
-void charm_calc_flux_hllc(p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[], double n[3])
+void charm_calc_flux_hllc(p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu, charm_real_t* qv, charm_real_t* qw, charm_real_t* qe, charm_real_t qc[], charm_real_t n[3])
 {
     int i,j;
-    double ri, ei, pi, uu[3], uv[3];
-    double nt[3][3], vv[2][3], vn[2][3];
-    double r_[2], u_[2], v_[2], w_[2], p_[2];
+    charm_real_t ri, ei, pi, uu[3], uv[3];
+    charm_real_t nt[3][3], vv[2][3], vn[2][3];
+    charm_real_t r_[2], u_[2], v_[2], w_[2], p_[2];
     size_t          c_count = charm_get_comp_count(p4est);
-    double _qu, _qv, _qw;
+    charm_real_t _qu, _qv, _qw;
 
     charm_prim_t prim_[2];
 
@@ -510,21 +510,21 @@ void charm_calc_flux_hllc(p4est_t *p4est, charm_prim_t prim[2], double* qu, doub
 }
 
 
-void charm_calc_flux_cd(p4est_t *p4est, charm_prim_t prim[2], double* qu, double* qv, double* qw, double* qe, double qc[], double n[3])
+void charm_calc_flux_cd(p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu, charm_real_t* qv, charm_real_t* qw, charm_real_t* qe, charm_real_t qc[], charm_real_t n[3])
 {
     int      i, j;
-    double   alpha;
-    double   vn[2], **ff/*[5][2]*/;
-    double **q;
+    charm_real_t   alpha;
+    charm_real_t   vn[2], **ff/*[5][2]*/;
+    charm_real_t **q;
     size_t   f_count;
 
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     f_count = 4+ctx->comp->elem_count;
 
-    q  = CHARM_ALLOC(double*, f_count);
-    ff = CHARM_ALLOC(double*, f_count);
+    q  = CHARM_ALLOC(charm_real_t*, f_count);
+    ff = CHARM_ALLOC(charm_real_t*, f_count);
     for (i = 0; i < f_count; i++) {
-        ff[i] = CHARM_ALLOC(double, 2);
+        ff[i] = CHARM_ALLOC(charm_real_t, 2);
     }
     q[0] = qu;
     q[1] = qv;

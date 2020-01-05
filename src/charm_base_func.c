@@ -5,9 +5,9 @@
 #include "charm_base_func.h"
 
 
-double charm_base_func(double* x, int k, charm_data_t *p) {
+charm_real_t charm_base_func(charm_real_t* x, int k, charm_data_t *p) {
     CHARM_ASSERT(k < CHARM_BASE_FN_COUNT);
-    double * c = p->par.g.c;
+    charm_real_t * c = p->par.g.c;
     switch (k) {
         case 0:
             return 1.;
@@ -35,9 +35,9 @@ double charm_base_func(double* x, int k, charm_data_t *p) {
 }
 
 
-double charm_base_func_dx(double* x, int k, charm_data_t *p) {
+charm_real_t charm_base_func_dx(charm_real_t* x, int k, charm_data_t *p) {
     CHARM_ASSERT(k < CHARM_BASE_FN_COUNT);
-    double * c = p->par.g.c;
+    charm_real_t * c = p->par.g.c;
     switch (k) {
         case 0:
             return 0.;
@@ -65,9 +65,9 @@ double charm_base_func_dx(double* x, int k, charm_data_t *p) {
 }
 
 
-double charm_base_func_dy(double* x, int k, charm_data_t *p) {
+charm_real_t charm_base_func_dy(charm_real_t* x, int k, charm_data_t *p) {
     CHARM_ASSERT(k < CHARM_BASE_FN_COUNT);
-    double * c = p->par.g.c;
+    charm_real_t * c = p->par.g.c;
     switch (k) {
         case 0:
             return 0.;
@@ -95,9 +95,9 @@ double charm_base_func_dy(double* x, int k, charm_data_t *p) {
 }
 
 
-double charm_base_func_dz(double* x, int k, charm_data_t *p) {
+charm_real_t charm_base_func_dz(charm_real_t* x, int k, charm_data_t *p) {
     CHARM_ASSERT(k < CHARM_BASE_FN_COUNT);
-    double * c = p->par.g.c;
+    charm_real_t * c = p->par.g.c;
     switch (k) {
         case 0:
             return 0.;
@@ -124,9 +124,9 @@ double charm_base_func_dz(double* x, int k, charm_data_t *p) {
     }
 }
 
-//double charm_get_field_ro(charm_data_t* p, double* x)
+//charm_real_t charm_get_field_ro(charm_data_t* p, charm_real_t* x)
 //{
-//    double result = 0.;
+//    charm_real_t result = 0.;
 //    int i;
 //
 //    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -136,9 +136,9 @@ double charm_base_func_dz(double* x, int k, charm_data_t *p) {
 //}
 
 
-double charm_get_field_ru(charm_data_t* p, double* x)
+charm_real_t charm_get_field_ru(charm_data_t* p, charm_real_t* x)
 {
-    double result = 0.;
+    charm_real_t result = 0.;
     int i;
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -148,9 +148,9 @@ double charm_get_field_ru(charm_data_t* p, double* x)
 }
 
 
-double charm_get_field_rv(charm_data_t* p, double* x)
+charm_real_t charm_get_field_rv(charm_data_t* p, charm_real_t* x)
 {
-    double result = 0.;
+    charm_real_t result = 0.;
     int i;
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -160,9 +160,9 @@ double charm_get_field_rv(charm_data_t* p, double* x)
 }
 
 
-double charm_get_field_rw(charm_data_t* p, double* x)
+charm_real_t charm_get_field_rw(charm_data_t* p, charm_real_t* x)
 {
-    double result = 0.;
+    charm_real_t result = 0.;
     int i;
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -172,9 +172,9 @@ double charm_get_field_rw(charm_data_t* p, double* x)
 }
 
 
-double charm_get_field_re(charm_data_t* p, double* x)
+charm_real_t charm_get_field_re(charm_data_t* p, charm_real_t* x)
 {
-    double result = 0.;
+    charm_real_t result = 0.;
     int i;
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -184,9 +184,9 @@ double charm_get_field_re(charm_data_t* p, double* x)
 }
 
 
-double charm_get_field_rc(charm_data_t* p, double* x, int k)
+charm_real_t charm_get_field_rc(charm_data_t* p, charm_real_t* x, int k)
 {
-    double result = 0.;
+    charm_real_t result = 0.;
     int i;
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -195,7 +195,7 @@ double charm_get_field_rc(charm_data_t* p, double* x, int k)
     return result;
 }
 
-void charm_get_fields(charm_data_t* p, double* x, charm_cons_t* c){
+void charm_get_fields(charm_data_t* p, charm_real_t* x, charm_cons_t* c){
     int k;
     size_t c_count = CHARM_MAX_COMPONETS_COUNT; // @todo fix by real components count
 //    c->ro = charm_get_field_ro(p, x);
@@ -215,7 +215,7 @@ void charm_get_fields_avg(charm_data_t* p, charm_cons_t* c)
 {
     int k, igp;
     size_t c_count = CHARM_MAX_COMPONETS_COUNT; // @todo fix by real components count
-    double *gx, gjw;
+    charm_real_t *gx, gjw;
 
     c->ru = 0.;
     c->rv = 0.;
@@ -240,7 +240,7 @@ void charm_get_fields_avg(charm_data_t* p, charm_cons_t* c)
 }
 
 
-//void charm_get_fields_arr(charm_data_t* p, double* fld[5])
+//void charm_get_fields_arr(charm_data_t* p, charm_real_t* fld[5])
 //{
 ////    fld[0] = p->par.c.ro;
 //    fld[1] = p->par.c.ru;
@@ -250,12 +250,12 @@ void charm_get_fields_avg(charm_data_t* p, charm_cons_t* c)
 //}
 
 
-//double charm_get_avg_ro(charm_data_t* p)
+//charm_real_t charm_get_avg_ro(charm_data_t* p)
 //{
-//    double result = 0.;
+//    charm_real_t result = 0.;
 //    int i;
-//    double vol = charm_quad_get_volume(p);
-//    double *x;
+//    charm_real_t vol = charm_quad_get_volume(p);
+//    charm_real_t *x;
 //
 //    for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
 //        x = p->par.g.quad_gp[i];
@@ -265,12 +265,12 @@ void charm_get_fields_avg(charm_data_t* p, charm_cons_t* c)
 //}
 
 
-double charm_get_avg_ru(charm_data_t* p)
+charm_real_t charm_get_avg_ru(charm_data_t* p)
 {
-    double result = 0.;
+    charm_real_t result = 0.;
     int i;
-    double vol = charm_quad_get_volume(p);
-    double *x;
+    charm_real_t vol = charm_quad_get_volume(p);
+    charm_real_t *x;
 
     for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
         x = p->par.g.quad_gp[i];
@@ -280,12 +280,12 @@ double charm_get_avg_ru(charm_data_t* p)
 }
 
 
-double charm_get_avg_rv(charm_data_t* p)
+charm_real_t charm_get_avg_rv(charm_data_t* p)
 {
-    double result = 0.;
+    charm_real_t result = 0.;
     int i;
-    double vol = charm_quad_get_volume(p);
-    double *x;
+    charm_real_t vol = charm_quad_get_volume(p);
+    charm_real_t *x;
 
     for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
         x = p->par.g.quad_gp[i];
@@ -295,12 +295,12 @@ double charm_get_avg_rv(charm_data_t* p)
 }
 
 
-double charm_get_avg_rw(charm_data_t* p)
+charm_real_t charm_get_avg_rw(charm_data_t* p)
 {
-    double result = 0.;
+    charm_real_t result = 0.;
     int i;
-    double vol = charm_quad_get_volume(p);
-    double *x;
+    charm_real_t vol = charm_quad_get_volume(p);
+    charm_real_t *x;
 
     for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
         x = p->par.g.quad_gp[i];
@@ -310,12 +310,12 @@ double charm_get_avg_rw(charm_data_t* p)
 }
 
 
-double charm_get_avg_re(charm_data_t* p)
+charm_real_t charm_get_avg_re(charm_data_t* p)
 {
-    double result = 0.;
+    charm_real_t result = 0.;
     int i;
-    double vol = charm_quad_get_volume(p);
-    double *x;
+    charm_real_t vol = charm_quad_get_volume(p);
+    charm_real_t *x;
 
     for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
         x = p->par.g.quad_gp[i];
@@ -325,12 +325,12 @@ double charm_get_avg_re(charm_data_t* p)
 }
 
 
-double charm_get_avg_rc(charm_data_t* p, int j)
+charm_real_t charm_get_avg_rc(charm_data_t* p, int j)
 {
-    double result = 0.;
+    charm_real_t result = 0.;
     int i;
-    double vol = charm_quad_get_volume(p);
-    double *x;
+    charm_real_t vol = charm_quad_get_volume(p);
+    charm_real_t *x;
 
     for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
         x = p->par.g.quad_gp[i];
@@ -340,7 +340,7 @@ double charm_get_avg_rc(charm_data_t* p, int j)
 }
 
 
-void charm_get_visc_tau(charm_data_t *p, double* x, charm_tensor_t *tau)
+void charm_get_visc_tau(charm_data_t *p, charm_real_t* x, charm_tensor_t *tau)
 {
     int i;
 
@@ -357,11 +357,11 @@ void charm_get_visc_tau(charm_data_t *p, double* x, charm_tensor_t *tau)
 }
 
 
-void charm_get_heat_q(charm_data_t *p, double* x, double *q)
+void charm_get_heat_q(charm_data_t *p, charm_real_t* x, charm_real_t *q)
 {
     int i;
 
-    memset(q, 0, sizeof(double)*3);
+    memset(q, 0, sizeof(charm_real_t)*3);
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
         q[0] += p->par.model.ns.q.x[i]*charm_base_func(x, i, p);

@@ -30,12 +30,12 @@ static void _charm_init_fetch_bnd(YAML::Node node, charm_bnd_t *bnd)
         case BOUND_INLET:
             bnd->bnd_fn = charm_bnd_cond_fn_inlet;
             n2 = node["parameters"];
-            bnd->params = CHARM_ALLOC(double, 5);
-            bnd->params[0] = n2["V"]["x"].as<double>();
-            bnd->params[1] = n2["V"]["y"].as<double>();
-            bnd->params[2] = n2["V"]["z"].as<double>();
-            bnd->params[3] = n2["T"].as<double>();
-            bnd->params[4] = n2["P"].as<double>();
+            bnd->params = CHARM_ALLOC(charm_real_t, 5);
+            bnd->params[0] = n2["V"]["x"].as<charm_real_t>();
+            bnd->params[1] = n2["V"]["y"].as<charm_real_t>();
+            bnd->params[2] = n2["V"]["z"].as<charm_real_t>();
+            bnd->params[3] = n2["T"].as<charm_real_t>();
+            bnd->params[4] = n2["P"].as<charm_real_t>();
             break;
         case BOUND_OUTLET:
             bnd->bnd_fn = charm_bnd_cond_fn_outlet;
@@ -46,8 +46,14 @@ static void _charm_init_fetch_bnd(YAML::Node node, charm_bnd_t *bnd)
         case BOUND_WALL_NO_SLIP: // @todo
             bnd->bnd_fn = charm_bnd_cond_fn_wall_no_slip;
             n2 = node["parameters"];
-            bnd->params = CHARM_ALLOC(double, 1);
-            bnd->params[0] = n2["T"].as<double>();
+            bnd->params = CHARM_ALLOC(charm_real_t, 1);
+            bnd->params[0] = n2["T"].as<charm_real_t>();
+            break;
+        case BOUND_MASS_FLOW: // @todo
+            bnd->bnd_fn = charm_bnd_cond_fn_wall_no_slip;
+            n2 = node["parameters"];
+            bnd->params = CHARM_ALLOC(charm_real_t, 1);
+            bnd->params[0] = n2["T"].as<charm_real_t>();
             break;
         default:
             CHARM_LERRORF("Unknown boundary type %d\n", bnd->type);
@@ -111,20 +117,20 @@ static void _charm_init_fetch_comp(YAML::Node node, charm_comp_t *comp)
         charm_abort(nullptr, 1);
     }
 
-    comp->m = node["M"].as<double>();
-    comp->ml0 = node["ML0"].as<double>();
-    comp->kp0 = node["KP0"].as<double>();
-    comp->t0 = node["T0"].as<double>();
-    comp->ts = node["TS"].as<double>();
-    comp->sig = node["Sig"].as<double>();
-    comp->ek = node["ek"].as<double>();
-    comp->h0 = node["h0"].as<double>();
+    comp->m = node["M"].as<charm_real_t>();
+    comp->ml0 = node["ML0"].as<charm_real_t>();
+    comp->kp0 = node["KP0"].as<charm_real_t>();
+    comp->t0 = node["T0"].as<charm_real_t>();
+    comp->ts = node["TS"].as<charm_real_t>();
+    comp->sig = node["Sig"].as<charm_real_t>();
+    comp->ek = node["ek"].as<charm_real_t>();
+    comp->h0 = node["h0"].as<charm_real_t>();
 
-    comp->cp = sc_array_new(sizeof(double));
+    comp->cp = sc_array_new(sizeof(charm_real_t));
     YAML::Node cp = node["Cp"];
     for (auto it : cp) {
-        auto tmp = (double*)sc_array_push(comp->cp);
-        *tmp = it.as<double>();
+        auto tmp = (charm_real_t*)sc_array_push(comp->cp);
+        *tmp = it.as<charm_real_t>();
     }
 }
 
@@ -179,7 +185,7 @@ static void _charm_init_fetch_reg(charm_ctx_t *ctx, YAML::Node node, charm_reg_t
     YAML::Node n1;
     int id, i;
     size_t idx;
-    double c;
+    charm_real_t c;
 
     std::string str;
 
@@ -189,21 +195,21 @@ static void _charm_init_fetch_reg(charm_ctx_t *ctx, YAML::Node node, charm_reg_t
     reg->mat_id = node["material_id"].as<int>();
 
     n1 = node["parameters"];
-    reg->v[0]   = n1["V"]["x"].as<double>();
-    reg->v[1]   = n1["V"]["y"].as<double>();
-    reg->v[2]   = n1["V"]["z"].as<double>();
-    reg->t      = n1["T"].as<double>();
-    reg->p      = n1["P"].as<double>();
+    reg->v[0]   = n1["V"]["x"].as<charm_real_t>();
+    reg->v[1]   = n1["V"]["y"].as<charm_real_t>();
+    reg->v[2]   = n1["V"]["z"].as<charm_real_t>();
+    reg->t      = n1["T"].as<charm_real_t>();
+    reg->p      = n1["P"].as<charm_real_t>();
 
-    reg->grav[0]   = n1["G"]["x"].as<double>();
-    reg->grav[1]   = n1["G"]["y"].as<double>();
-    reg->grav[2]   = n1["G"]["z"].as<double>();
+    reg->grav[0]   = n1["G"]["x"].as<charm_real_t>();
+    reg->grav[1]   = n1["G"]["y"].as<charm_real_t>();
+    reg->grav[2]   = n1["G"]["z"].as<charm_real_t>();
 
-    memset(reg->c, 0, CHARM_MAX_COMPONETS_COUNT*sizeof(double));
+    memset(reg->c, 0, CHARM_MAX_COMPONETS_COUNT*sizeof(charm_real_t));
     n1 = node["components"];
     for (auto it : n1) {
         id = it["id"].as<int>();
-        c  = it["concentration"].as<double>();
+        c  = it["concentration"].as<charm_real_t>();
         if (charm_comp_index_find_by_id(ctx, id, &idx)) {
             reg->c[idx] = c;
         }
@@ -289,16 +295,16 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
         }
 
 
-        ctx->max_err                = control["MAX_ERROR"].as<double>();
+        ctx->max_err                = control["MAX_ERROR"].as<charm_real_t>();
         ctx->refine_period          = control["REFINE_PERIOD"].as<int>();
         ctx->repartition_period     = control["REPARTITION_PERIOD"].as<int>();
         ctx->min_level              = control["MIN_LEVEL"].as<int>();
         ctx->max_level              = control["MAX_LEVEL"].as<int>();
         ctx->write_period           = control["FILE_OUTPUT_STEP"].as<int>();
         ctx->log_period             = control["LOG_OUTPUT_STEP"].as<int>();
-        ctx->dt                     = control["TAU"].as<double>();
-        ctx->CFL                    = control["CFL"].as<double>();
-        ctx->time                   = control["TMAX"].as<double>();
+        ctx->dt                     = control["TAU"].as<charm_real_t>();
+        ctx->CFL                    = control["CFL"].as<charm_real_t>();
+        ctx->time                   = control["TMAX"].as<charm_real_t>();
 
         YAML::Node comps = config["components"];
 

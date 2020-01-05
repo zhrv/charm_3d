@@ -20,10 +20,10 @@ void charm_model_ns_timestep_diffusion(p4est_t * p4est, p4est_ghost_t * ghost, c
 
 static void _charm_model_ns_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
-    double         *dt = (double*) user_data;
+    charm_real_t         *dt = (charm_real_t*) user_data;
     charm_data_t   *data = charm_get_quad_data(info->quad);
     charm_ctx_t    *ctx = (charm_ctx_t*) info->p4est->user_pointer;
-    double          dt_loc;
+    charm_real_t          dt_loc;
     charm_cons_t    cons;
     charm_prim_t    prim;
 
@@ -40,10 +40,10 @@ static void _charm_model_ns_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info
  * \param [in] p4est the forest
  * \return the timestep.
  */
-double charm_model_ns_get_dt (p4est_t * p4est)
+charm_real_t charm_model_ns_get_dt (p4est_t * p4est)
 {
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
-    double              loc_dt, glob_dt;
+    charm_real_t              loc_dt, glob_dt;
     int                 mpiret, i;
 
     return ctx->dt;
@@ -69,12 +69,12 @@ static void charm_model_ns_timestep_update_quad_iter_fn (p4est_iter_volume_info_
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
-    double              dt = *((double *) user_data);
-    double              rhs_ru[CHARM_BASE_FN_COUNT];
-    double              rhs_rv[CHARM_BASE_FN_COUNT];
-    double              rhs_rw[CHARM_BASE_FN_COUNT];
-    double              rhs_re[CHARM_BASE_FN_COUNT];
-    double              rhs_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];
+    charm_real_t              dt = *((charm_real_t *) user_data);
+    charm_real_t              rhs_ru[CHARM_BASE_FN_COUNT];
+    charm_real_t              rhs_rv[CHARM_BASE_FN_COUNT];
+    charm_real_t              rhs_rw[CHARM_BASE_FN_COUNT];
+    charm_real_t              rhs_re[CHARM_BASE_FN_COUNT];
+    charm_real_t              rhs_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];
     size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
@@ -184,7 +184,7 @@ static void _charm_model_ns_timestep_rk_2(p4est_iter_volume_info_t * info, void 
 }
 
 
-void charm_model_ns_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data)
+void charm_model_ns_timestep_single(p4est_t * p4est, charm_real_t *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data)
 {
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
     int                 refine_period = ctx->refine_period;

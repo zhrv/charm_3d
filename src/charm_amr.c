@@ -9,13 +9,13 @@
 #include "charm_fluxes.h"
 
 
-static double charm_error_sqr_estimate (p4est_quadrant_t * q)
+static charm_real_t charm_error_sqr_estimate (p4est_quadrant_t * q)
 {
     charm_data_t       *data = (charm_data_t *) q->p.user_data;
     int                 i;
-    double              du[CHARM_DIM];
-    double              vol = charm_quad_get_volume((charm_data_t *)q->p.user_data);
-    double              diff2 = 0.;
+    charm_real_t              du[CHARM_DIM];
+    charm_real_t              vol = charm_quad_get_volume((charm_data_t *)q->p.user_data);
+    charm_real_t              diff2 = 0.;
 
     for (i = 0; i < CHARM_DIM; i++) {
         du[i] = data->par.a.grad_u[i];
@@ -32,9 +32,9 @@ static double charm_error_sqr_estimate (p4est_quadrant_t * q)
 static int charm_refine_err_estimate (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q)
 {
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
-    double              global_err = ctx->max_err;
-    double              global_err2 = global_err * global_err;
-    double              vol, err2;
+    charm_real_t              global_err = ctx->max_err;
+    charm_real_t              global_err2 = global_err * global_err;
+    charm_real_t              vol, err2;
 
     vol = charm_quad_get_volume((charm_data_t *)q->p.user_data);
 
@@ -50,11 +50,11 @@ static int charm_refine_err_estimate (p4est_t * p4est, p4est_topidx_t which_tree
 static int charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q)
 {
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
-    double              global_err = ctx->max_err;
-    double              global_err2 = global_err * global_err;
+    charm_real_t              global_err = ctx->max_err;
+    charm_real_t              global_err2 = global_err * global_err;
     charm_data_t       *p = charm_get_quad_data(q);
-    double              vol = charm_quad_get_volume(p);
-    double              mp[3], err2;
+    charm_real_t              vol = charm_quad_get_volume(p);
+    charm_real_t              mp[3], err2;
 
     if (q->level >= ctx->max_level) {
         return 0;
@@ -63,7 +63,7 @@ static int charm_refine_init_err_estimate (p4est_t * p4est, p4est_topidx_t which
     charm_quad_get_center (q->p.user_data, mp);
 
 #ifdef POGGI
-    double h = pow(vol, 1./3.);
+    charm_real_t h = pow(vol, 1./3.);
     if ( ((-h < mp[2]) && (mp[2] < h)) || ((-0.00125 < mp[2]) && (mp[2] < 0.00125)) ) {
         return 1;
     }
@@ -90,14 +90,14 @@ static int charm_coarsen_initial_condition (p4est_t * p4est, p4est_topidx_t whic
 static int charm_coarsen_err_estimate (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * children[])
 {
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
-    double              global_err = ctx->max_err;
-    double              global_err2 = global_err * global_err;
+    charm_real_t              global_err = ctx->max_err;
+    charm_real_t              global_err2 = global_err * global_err;
     charm_data_t       *data;
     charm_cons_t        cons;
     charm_prim_t        prim;
-    double              vol, err2, childerr2;
-    double              parentu;
-    double              diff;
+    charm_real_t              vol, err2, childerr2;
+    charm_real_t              parentu;
+    charm_real_t              diff;
     int                 i;
 
 
@@ -211,9 +211,9 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
     size_t              c_count = charm_get_comp_count(p4est);
     charm_data_t       *parent_data, *child_data;
     int                 i, j, m, n, igp;
-    double              vol, svol;
-    double              ar[N][N], cr[N], rhs_ru[N], rhs_rv[N], rhs_rw[N], rhs_re[N], rhs_rc[CHARM_MAX_COMPONETS_COUNT][N];
-    double              *fld[5];
+    charm_real_t              vol, svol;
+    charm_real_t              ar[N][N], cr[N], rhs_ru[N], rhs_rv[N], rhs_rw[N], rhs_re[N], rhs_rc[CHARM_MAX_COMPONETS_COUNT][N];
+    charm_real_t              *fld[5];
 
     if (num_outgoing > 1) {
         charm_geom_quad_calc(p4est, incoming[0], which_tree);
@@ -365,20 +365,20 @@ static void _charm_amr_par_calc_face_iter_bnd (p4est_iter_face_info_t * info, vo
     p4est_t *p4est = info->p4est;
     charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
-    double n[3];
-    double qr, qu, qv, qw, qe;
-    double bfv;
+    charm_real_t n[3];
+    charm_real_t qr, qu, qv, qw, qe;
+    charm_real_t bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
 
 
     int8_t face;
-    double c[2][3], l[3];
-    double r_[2], p_[2], u_[2], v_[2], w_[2], e_[2];
+    charm_real_t c[2][3], l[3];
+    charm_real_t r_[2], p_[2], u_[2], v_[2], w_[2], e_[2];
     charm_cons_t cons;
     charm_prim_t prim[2];
-    double *x, gw, gj;
-    double intg[2][5];
+    charm_real_t *x, gw, gj;
+    charm_real_t intg[2][5];
 
 
     CHARM_ASSERT(info->tree_boundary);
@@ -429,16 +429,16 @@ static void _charm_amr_par_calc_face_iter_inner (p4est_iter_face_info_t * info, 
     p4est_t                *p4est = info->p4est;
     charm_data_t           *ghost_data = (charm_data_t *) user_data;
     charm_data_t           *udata[2];
-    double                  n[3];
-    double                  qr, qu, qv, qw, qe;
+    charm_real_t                  n[3];
+    charm_real_t                  qr, qu, qv, qw, qe;
     p4est_iter_face_side_t *side[2];
     sc_array_t             *sides = &(info->sides);
     charm_cons_t            cons[2];
     charm_prim_t            prim[2];
-    double                 *x, gw, gj;
-    double                  bfv;
-    double                  c[2][3];
-    double                  l[3];
+    charm_real_t                 *x, gw, gj;
+    charm_real_t                  bfv;
+    charm_real_t                  c[2][3];
+    charm_real_t                  l[3];
     int8_t                  face[2];
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
@@ -565,7 +565,7 @@ static void _charm_amr_par_calc_quad_iter_fn (p4est_iter_volume_info_t * info, v
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     int                 i;
-    double              vol = charm_quad_get_volume(data);
+    charm_real_t              vol = charm_quad_get_volume(data);
 
     for (i = 0; i < CHARM_DIM; i++) {
         data->par.a.grad_u[i] /= vol;

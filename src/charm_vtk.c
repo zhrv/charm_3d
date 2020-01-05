@@ -27,7 +27,7 @@
 #define CHARM_VTK_CELL_TYPE     11      /* VTK_VOXEL */
 
 /* default parameters for the vtk context */
-static const double charm_vtk_scale = 0.95;
+static const charm_real_t charm_vtk_scale = 0.95;
 static const int    charm_vtk_continuous = 0;
 
 /* default parameters for charm_vtk_write_file */
@@ -118,12 +118,12 @@ static
 
 #define CHARM_VTK_BINARY
 
-#ifndef CHARM_VTK_DOUBLES
+#ifndef CHARM_VTK_charm_real_tS
 #define CHARM_VTK_FLOAT_NAME "Float32"
 #define CHARM_VTK_FLOAT_TYPE float
 #else
 #define CHARM_VTK_FLOAT_NAME "Float64"
-#define CHARM_VTK_FLOAT_TYPE double
+#define CHARM_VTK_FLOAT_TYPE charm_real_t
 #endif
 
 #ifndef CHARM_VTK_BINARY
@@ -174,7 +174,7 @@ struct charm_vtk_context
 
   /* parameters that can optionally be set in a context */
   p4est_geometry_t   *geom;        /**< The geometry may be NULL. */
-  double              scale;       /**< Parameter to shrink quadrants. */
+  charm_real_t              scale;       /**< Parameter to shrink quadrants. */
   int                 continuous;  /**< Assume continuous point data? */
 
   /* internal context data */
@@ -222,7 +222,7 @@ charm_vtk_context_set_geom (charm_vtk_context_t * cont,
 }
 
 void
-charm_vtk_context_set_scale (charm_vtk_context_t * cont, double scale)
+charm_vtk_context_set_scale (charm_vtk_context_t * cont, charm_real_t scale)
 {
   P4EST_ASSERT (cont != NULL);
   P4EST_ASSERT (!cont->writing);
@@ -327,12 +327,12 @@ charm_vtk_write_file (p4est_t * p4est, p4est_geometry_t * geom,
 charm_vtk_context_t *
 charm_vtk_write_header (charm_vtk_context_t * cont)
 {
-  const double        intsize = 1.0 / P4EST_ROOT_LEN;
+  const charm_real_t        intsize = 1.0 / P4EST_ROOT_LEN;
   int                 mpirank;
   int                 conti;
-  double              scale;
+  charm_real_t              scale;
   const char         *filename;
-  const double       *v;
+  const charm_real_t       *v;
   const p4est_topidx_t *tree_to_vertex;
   p4est_topidx_t      first_local_tree, last_local_tree;
   p4est_locidx_t      Ncells, Ncorners;
@@ -340,7 +340,7 @@ charm_vtk_write_header (charm_vtk_context_t * cont)
   p4est_connectivity_t *connectivity;
   p4est_geometry_t   *geom;
 #ifdef CHARM_VTK_ASCII
-  double              wx, wy, wz;
+  charm_real_t              wx, wy, wz;
 #else
   int                 retval;
   uint8_t            *uint8_data;
@@ -350,8 +350,8 @@ charm_vtk_write_header (charm_vtk_context_t * cont)
 #ifdef P4_TO_P8
   int                 zi;
 #endif
-  double              h2, eta_x, eta_y, eta_z = 0.;
-  double              xyz[3], XYZ[3];   /* 3 not P4EST_DIM */
+  charm_real_t              h2, eta_x, eta_y, eta_z = 0.;
+  charm_real_t              xyz[3], XYZ[3];   /* 3 not P4EST_DIM */
   size_t              num_quads, zz;
   p4est_topidx_t      jt;
   p4est_topidx_t      vt[P4EST_CHILDREN];
@@ -613,7 +613,7 @@ charm_vtk_write_header (charm_vtk_context_t * cont)
     wz = float_data[3 * il + 2];
 
     fprintf (cont->vtufile,
-#ifdef CHARM_VTK_DOUBLES
+#ifdef CHARM_VTK_charm_real_tS
              "     %24.16e %24.16e %24.16e\n",
 #else
              "          %16.8e %16.8e %16.8e\n",
@@ -869,10 +869,10 @@ charm_vtk_write_point_datav (charm_vtk_context_t * cont,
     values[all] = va_arg (ap, sc_array_t *);
 
     /* Validate input. */
-    SC_CHECK_ABORT (values[all]->elem_size == sizeof (double),
+    SC_CHECK_ABORT (values[all]->elem_size == sizeof (charm_real_t),
                     P4EST_STRING
                     "_vtk: Error: incorrect point scalar data type;"
-                    " scalar data must contain doubles.");
+                    " scalar data must contain charm_real_ts.");
     SC_CHECK_ABORT (values[all]->elem_count == (size_t) cont->num_corners,
                     P4EST_STRING
                     "_vtk: Error: incorrect point scalar data count; see "
@@ -892,10 +892,10 @@ charm_vtk_write_point_datav (charm_vtk_context_t * cont,
     values[all] = va_arg (ap, sc_array_t *);
 
     /* Validate input. */
-    SC_CHECK_ABORT (values[all]->elem_size == sizeof (double),
+    SC_CHECK_ABORT (values[all]->elem_size == sizeof (charm_real_t),
                     P4EST_STRING
                     "_vtk: Error: incorrect point vector data type;"
-                    " vector data must contain doubles.");
+                    " vector data must contain charm_real_ts.");
     SC_CHECK_ABORT (values[all]->elem_count == 3 * (size_t) cont->num_corners,
                     P4EST_STRING
                     "_vtk: Error: incorrect point vector data count; see "
@@ -1080,13 +1080,13 @@ charm_vtk_write_cell_datav (charm_vtk_context_t * cont,
     values[all] = va_arg (ap, sc_array_t *);
 
     /* Validate input. */
-    SC_CHECK_ABORT (values[all]->elem_size == sizeof (double),
+    SC_CHECK_ABORT (values[all]->elem_size == sizeof (charm_real_t),
                     P4EST_STRING
-                    "_vtk: Error: incorrect cell scalar data type; scalar data must contain doubles.");
+                    "_vtk: Error: incorrect cell scalar data type; scalar data must contain charm_real_ts.");
     SC_CHECK_ABORT (values[all]->elem_count ==
                     (size_t) cont->p4est->local_num_quadrants,
                     P4EST_STRING
-                    "_vtk: Error: incorrect cell scalar data count; scalar data must contain exactly p4est->local_num_quadrants doubles.");
+                    "_vtk: Error: incorrect cell scalar data count; scalar data must contain exactly p4est->local_num_quadrants charm_real_ts.");
   }
 
   vector_strlen = 0;
@@ -1101,13 +1101,13 @@ charm_vtk_write_cell_datav (charm_vtk_context_t * cont,
     values[all] = va_arg (ap, sc_array_t *);
 
     /* Validate input. */
-    SC_CHECK_ABORT (values[all]->elem_size == sizeof (double),
+    SC_CHECK_ABORT (values[all]->elem_size == sizeof (charm_real_t),
                     P4EST_STRING
-                    "_vtk: Error: incorrect cell vector data type; vector data must contain doubles.");
+                    "_vtk: Error: incorrect cell vector data type; vector data must contain charm_real_ts.");
     SC_CHECK_ABORT (values[all]->elem_count ==
                     3 * (size_t) cont->p4est->local_num_quadrants,
                     P4EST_STRING
-                    "_vtk: Error: incorrect cell vector data count; vector data must contain exactly 3*p4est->local_num_quadrants doubles.");
+                    "_vtk: Error: incorrect cell vector data count; vector data must contain exactly 3*p4est->local_num_quadrants charm_real_ts.");
   }
 
   /* Check for pointer variable marking the end of variable data input. */
@@ -1435,12 +1435,12 @@ charm_vtk_write_point_scalar (charm_vtk_context_t * cont,
     P4EST_ASSERT (0 <= ddl && ddl < Ncorners);
 
     fprintf (cont->vtufile,
-#ifdef CHARM_VTK_DOUBLES
+#ifdef CHARM_VTK_charm_real_tS
              "     %24.16e\n",
 #else
              "          %16.8e\n",
 #endif
-             *(double *) sc_array_index (values, ddl));
+             *(charm_real_t *) sc_array_index (values, ddl));
   }
 #else
   float_data = P4EST_ALLOC (CHARM_VTK_FLOAT_TYPE, Npoints);
@@ -1448,7 +1448,7 @@ charm_vtk_write_point_scalar (charm_vtk_context_t * cont,
     ddl = use_nodes ? ntc[il] : il;
     P4EST_ASSERT (0 <= ddl && ddl < Ncorners);
     float_data[il] =
-      (CHARM_VTK_FLOAT_TYPE) * ((double *) sc_array_index (values, ddl));
+      (CHARM_VTK_FLOAT_TYPE) * ((charm_real_t *) sc_array_index (values, ddl));
   }
 
   fprintf (cont->vtufile, "          ");
@@ -1509,18 +1509,18 @@ charm_vtk_write_cell_scalar (charm_vtk_context_t * cont,
 #ifdef CHARM_VTK_ASCII
   for (il = 0; il < Ncells; ++il) {
     fprintf (cont->vtufile,
-#ifdef CHARM_VTK_DOUBLES
+#ifdef CHARM_VTK_charm_real_tS
              "     %24.16e\n",
 #else
              "          %16.8e\n",
 #endif
-             *(double *) sc_array_index (values, il));
+             *(charm_real_t *) sc_array_index (values, il));
   }
 #else
   float_data = P4EST_ALLOC (CHARM_VTK_FLOAT_TYPE, Ncells);
   for (il = 0; il < Ncells; ++il) {
     float_data[il] =
-      (CHARM_VTK_FLOAT_TYPE) * ((double *) sc_array_index (values, il));
+      (CHARM_VTK_FLOAT_TYPE) * ((charm_real_t *) sc_array_index (values, il));
   }
 
   fprintf (cont->vtufile, "          ");
@@ -1685,13 +1685,13 @@ charm_vtk_context_t *charm_vtk_write_cell_data (charm_vtk_context_t * cont,
         vector_strlen += retval;
 
         /* Validate input. */
-        SC_CHECK_ABORT (values[all]->elem_size == sizeof (double),
+        SC_CHECK_ABORT (values[all]->elem_size == sizeof (charm_real_t),
                         P4EST_STRING
-                                "_vtk: Error: incorrect cell vector data type; vector data must contain doubles.");
+                                "_vtk: Error: incorrect cell vector data type; vector data must contain charm_real_ts.");
         SC_CHECK_ABORT (values[all]->elem_count ==
                         3 * (size_t) cont->p4est->local_num_quadrants,
                         P4EST_STRING
-                                "_vtk: Error: incorrect cell vector data count; vector data must contain exactly 3*p4est->local_num_quadrants doubles.");
+                                "_vtk: Error: incorrect cell vector data count; vector data must contain exactly 3*p4est->local_num_quadrants charm_real_ts.");
     }
 
   char                vtkCellDataString[BUFSIZ] = "";

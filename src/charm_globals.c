@@ -15,6 +15,7 @@ const char *charm_bnd_types[] ={
         "BOUND_OUTLET",
         "BOUND_WALL_SLIP",
         "BOUND_WALL_NO_SLIP",
+        "BOUND_MASS_FLOW",
         NULL
 };
 
@@ -24,18 +25,18 @@ void charm_set_p4est(p4est_t *p4est) { g_p4est = p4est; }
 
 
 
-double scalar_prod(double v1[CHARM_DIM], double v2[CHARM_DIM])
+charm_real_t scalar_prod(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM])
 {
     return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
 }
 
 
-double vect_length(double v[CHARM_DIM])
+charm_real_t vect_length(charm_real_t v[CHARM_DIM])
 {
     return sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
 }
 
-void vect_prod(double v1[CHARM_DIM], double v2[CHARM_DIM], double res[CHARM_DIM])
+void vect_prod(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM], charm_real_t res[CHARM_DIM])
 {
     res[0] =  v1[1]*v2[2]-v1[2]*v2[1];
     res[1] = -v1[0]*v2[2]+v1[2]*v2[0];
@@ -43,28 +44,28 @@ void vect_prod(double v1[CHARM_DIM], double v2[CHARM_DIM], double res[CHARM_DIM]
 }
 
 
-double charm_face_get_area(charm_data_t *d, int8_t face)
+charm_real_t charm_face_get_area(charm_data_t *d, int8_t face)
 {
     return d->par.g.area[face];
 }
 
-double charm_face_get_normal(charm_data_t *d, int8_t face, double* n)
+charm_real_t charm_face_get_normal(charm_data_t *d, int8_t face, charm_real_t* n)
 {
-    memcpy(n, d->par.g.n[face], CHARM_DIM*sizeof(double));
+    memcpy(n, d->par.g.n[face], CHARM_DIM*sizeof(charm_real_t));
     return d->par.g.area[face];
 }
 
-void charm_quad_get_center(charm_data_t *d, double* c)
+void charm_quad_get_center(charm_data_t *d, charm_real_t* c)
 {
-    memcpy(c, d->par.g.c, 3*sizeof(double));
+    memcpy(c, d->par.g.c, 3*sizeof(charm_real_t));
 }
 
-void charm_face_get_center(charm_data_t *d, int8_t face, double* c)
+void charm_face_get_center(charm_data_t *d, int8_t face, charm_real_t* c)
 {
-    memcpy(c, d->par.g.fc[face], CHARM_DIM*sizeof(double));
+    memcpy(c, d->par.g.fc[face], CHARM_DIM*sizeof(charm_real_t));
 }
 
-double charm_quad_get_volume(charm_data_t *d)
+charm_real_t charm_quad_get_volume(charm_data_t *d)
 {
     return d->par.g.volume;
 }
@@ -236,13 +237,13 @@ void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src)
     dest->cp     = src->cp;
     dest->cv     = src->cv;
     dest->gam    = src->gam;
-    memcpy(dest->c, src->c, CHARM_MAX_COMPONETS_COUNT*sizeof(double));
+    memcpy(dest->c, src->c, CHARM_MAX_COMPONETS_COUNT*sizeof(charm_real_t));
 }
 
 
-double charm_matr3_det(double a[3][3])
+charm_real_t charm_matr3_det(charm_real_t a[3][3])
 {
-    double det_a = 0.;
+    charm_real_t det_a = 0.;
 
     det_a += a[0][0]*a[1][1]*a[2][2];
     det_a += a[0][2]*a[1][0]*a[2][1];
@@ -254,11 +255,11 @@ double charm_matr3_det(double a[3][3])
     return det_a;
 }
 
-void charm_matr3_inv(double a[3][3], double a_inv[3][3])
+void charm_matr3_inv(charm_real_t a[3][3], charm_real_t a_inv[3][3])
 {
-    double a_[3][3];
+    charm_real_t a_[3][3];
     int i, j;
-    double det_a = charm_matr3_det(a);
+    charm_real_t det_a = charm_matr3_det(a);
 
     CHARM_ASSERT(det_a != 0.);
 
@@ -281,22 +282,22 @@ void charm_matr3_inv(double a[3][3], double a_inv[3][3])
     }
 }
 
-void charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double am[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
+void charm_matr_inv(charm_real_t a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], charm_real_t am[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
 {
     int	       *mask;
-    double	    fmaxval;
+    charm_real_t	    fmaxval;
     int		    maxind;
     int		    tmpi;
-    double	    tmp;
-    double	  **a;
+    charm_real_t	    tmp;
+    charm_real_t	  **a;
     int         N = CHARM_BASE_FN_COUNT;
     int         i, j, ni, nj;
 
     mask = (int*)malloc(N*sizeof(int));//   new int[N];
-    a    = (double**)malloc(N*sizeof(double*)); //new double*[N];
+    a    = (charm_real_t**)malloc(N*sizeof(charm_real_t*)); //new charm_real_t*[N];
     for (i = 0; i < N; i++)
     {
-        a[i] = (double*)malloc(N*sizeof(double)); //new double[N];
+        a[i] = (charm_real_t*)malloc(N*sizeof(charm_real_t)); //new charm_real_t[N];
         for (j = 0; j < N; j++)
         {
             a[i][j] = a_src[i][j];
@@ -350,7 +351,7 @@ void charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], doub
             mask[i] = mask[maxind];
             mask[maxind] = tmpi;
         }
-        double aii = a[i][i];
+        charm_real_t aii = a[i][i];
         for (j = 0; j < N; j++)
         {
             a[i][j] = a[i][j] / aii;
@@ -360,7 +361,7 @@ void charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], doub
         {
             if (ni != i)
             {
-                double fconst = a[ni][i];
+                charm_real_t fconst = a[ni][i];
                 for (nj = 0; nj < N; nj++)
                 {
                     a[ni][nj] = a[ni][nj] - fconst *  a[i][nj];
@@ -393,7 +394,7 @@ void charm_matr_inv(double a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], doub
 }
 
 
-void charm_matr_vect_mult(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT], double res[CHARM_BASE_FN_COUNT])
+void charm_matr_vect_mult(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], charm_real_t b[CHARM_BASE_FN_COUNT], charm_real_t res[CHARM_BASE_FN_COUNT])
 {
     int i, j;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -405,7 +406,7 @@ void charm_matr_vect_mult(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], do
 }
 
 
-void charm_matr_add(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
+void charm_matr_add(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], charm_real_t b[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
 {
     int i, j;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -417,7 +418,7 @@ void charm_matr_add(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], double b
 }
 
 
-void charm_matr_zero(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
+void charm_matr_zero(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
 {
     int i, j;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -429,7 +430,7 @@ void charm_matr_zero(double a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
 }
 
 
-void charm_vect_add(double a[CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT])
+void charm_vect_add(charm_real_t a[CHARM_BASE_FN_COUNT], charm_real_t b[CHARM_BASE_FN_COUNT])
 {
     int i, j;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -439,7 +440,7 @@ void charm_vect_add(double a[CHARM_BASE_FN_COUNT], double b[CHARM_BASE_FN_COUNT]
 }
 
 
-void charm_vect_zero(double a[CHARM_BASE_FN_COUNT])
+void charm_vect_zero(charm_real_t a[CHARM_BASE_FN_COUNT])
 {
     int i;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -505,20 +506,20 @@ size_t charm_get_reactions_count(p4est_t* p4est)
 }
 
 
-double charm_get_visc_lambda(p4est_t* p4est, charm_data_t* data)
+charm_real_t charm_get_visc_lambda(p4est_t* p4est, charm_data_t* data)
 {
     return 0;
 }
 
 
-double charm_get_visc_mu(p4est_t* p4est, double *x, charm_data_t* data)
+charm_real_t charm_get_visc_mu(p4est_t* p4est, charm_real_t *x, charm_data_t* data)
 {
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     size_t c_count = charm_get_comp_count(p4est);
     charm_comp_t *comp;
     charm_cons_t cons;
     charm_prim_t prim;
-    double mu, cm, s;
+    charm_real_t mu, cm, s;
     int i;
 
     charm_get_fields(data, x, &cons);
@@ -537,14 +538,14 @@ double charm_get_visc_mu(p4est_t* p4est, double *x, charm_data_t* data)
 }
 
 
-double charm_get_heat_k(p4est_t* p4est, double *x, charm_data_t* data)
+charm_real_t charm_get_heat_k(p4est_t* p4est, charm_real_t *x, charm_data_t* data)
 {
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     size_t c_count = charm_get_comp_count(p4est);
     charm_comp_t *comp;
     charm_cons_t cons;
     charm_prim_t prim;
-    double kt;
+    charm_real_t kt;
     int i;
 
     charm_get_fields(data, x, &cons);
@@ -582,7 +583,7 @@ void charm_tensor_sum(charm_tensor_t * t1, charm_tensor_t *t2, charm_tensor_t * 
 }
 
 
-void charm_tensor_mul_scalar(charm_tensor_t * dest, double x)
+void charm_tensor_mul_scalar(charm_tensor_t * dest, charm_real_t x)
 {
     dest->xx *= x;
     dest->yy *= x;
@@ -599,12 +600,12 @@ void charm_tensor_zero(charm_tensor_t * t)
 }
 
 
-double charm_comp_calc_cp(charm_comp_t * comp, double t)
+charm_real_t charm_comp_calc_cp(charm_comp_t * comp, charm_real_t t)
 {
     int i;
-    double res = 0.;
-    double tt  = 1.;
-    double *cp;
+    charm_real_t res = 0.;
+    charm_real_t tt  = 1.;
+    charm_real_t *cp;
     if (comp->cp_type == COMP_ML_CONST) {
         cp = sc_array_index(comp->cp, 0);
         return *cp;
@@ -624,14 +625,14 @@ double charm_comp_calc_cp(charm_comp_t * comp, double t)
 }
 
 
-double charm_comp_calc_cp_dt(charm_comp_t * comp, double t)
+charm_real_t charm_comp_calc_cp_dt(charm_comp_t * comp, charm_real_t t)
 {
     CHARM_ASSERT(comp->cp_type == COMP_CP_POLYNOM);
 
     int i;
-    double res = 0.;
-    double tt  = 1.;
-    double *cp;
+    charm_real_t res = 0.;
+    charm_real_t tt  = 1.;
+    charm_real_t *cp;
     if (comp->cp_type == COMP_CP_POLYNOM) {
         for (i= 1; i < comp->cp->elem_count; i++) {
             cp = sc_array_index(comp->cp, i);
@@ -647,7 +648,7 @@ double charm_comp_calc_cp_dt(charm_comp_t * comp, double t)
 }
 
 
-double charm_comp_calc_ml(charm_comp_t * comp, double t)
+charm_real_t charm_comp_calc_ml(charm_comp_t * comp, charm_real_t t)
 {
     if (comp->ml_type == COMP_ML_CONST) {
         return comp->ml0;
@@ -661,7 +662,7 @@ double charm_comp_calc_ml(charm_comp_t * comp, double t)
 }
 
 
-double charm_comp_calc_kp(charm_comp_t * comp, double t)
+charm_real_t charm_comp_calc_kp(charm_comp_t * comp, charm_real_t t)
 {
     if (comp->kp_type == COMP_KP_CONST) {
         return comp->kp0;
@@ -675,16 +676,16 @@ double charm_comp_calc_kp(charm_comp_t * comp, double t)
 }
 
 
-double charm_comp_calc_enthalpy(charm_comp_t * comp, double t)
+charm_real_t charm_comp_calc_enthalpy(charm_comp_t * comp, charm_real_t t)
 {
     p4est_t *p4est = charm_get_p4est();
     charm_ctx_t *ctx = charm_get_ctx(p4est);
-    double t1,t2, *cp;
-    double t_ref = ctx->model.ns.t_ref;
+    charm_real_t t1,t2, *cp;
+    charm_real_t t_ref = ctx->model.ns.t_ref;
     int i;
-    double h = comp->h0;
+    charm_real_t h = comp->h0;
     for (i = 0; i < comp->cp->elem_count; i++){
-        cp = (double*) sc_array_index(comp->cp, i);
+        cp = (charm_real_t*) sc_array_index(comp->cp, i);
         t2 = pow(t, i+1)/(i+1);
         t1 = pow(t_ref,(i+1))/(i+1);
         h += (*cp)*(t2-t1);
