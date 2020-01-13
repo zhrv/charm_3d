@@ -20,8 +20,9 @@ void charm_model_euler_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node 
 
 static void _charm_init_fetch_bnd(YAML::Node node, charm_bnd_t *bnd)
 {
-    YAML::Node n2;
-    
+    YAML::Node n2, n3;
+    charm_int_t i;
+    charm_int_t c_count = charm_get_comp_count(charm_get_p4est());
     strcpy(bnd->name, node["name"].as<std::string>().c_str());
 
     bnd->type = charm_bnd_type_by_name(node["type"].as<std::string>().c_str());
@@ -50,10 +51,22 @@ static void _charm_init_fetch_bnd(YAML::Node node, charm_bnd_t *bnd)
             bnd->params[0] = n2["T"].as<charm_real_t>();
             break;
         case BOUND_MASS_FLOW: // @todo
-            bnd->bnd_fn = charm_bnd_cond_fn_wall_no_slip;
+            bnd->bnd_fn = charm_bnd_cond_fn_mass_flow;
             n2 = node["parameters"];
-            bnd->params = CHARM_ALLOC(charm_real_t, 1);
-            bnd->params[0] = n2["T"].as<charm_real_t>();
+            bnd->params = CHARM_ALLOC(charm_real_t, 7+c_count);
+            bnd->params[0] = n2["M"].as<charm_real_t>();
+            bnd->params[1] = n2["P"].as<charm_real_t>();
+            bnd->params[2] = n2["T"].as<charm_real_t>();
+            bnd->params[3] = n2["CosX"].as<charm_real_t>();
+            bnd->params[4] = n2["CosY"].as<charm_real_t>();
+            bnd->params[5] = n2["CosZ"].as<charm_real_t>();
+            bnd->params[6] = n2["P"].as<charm_real_t>();
+            n3 = n2["components"];
+            i = 7;
+            for (auto it : n3) {
+                bnd->params[i++] = it.as<charm_real_t>();
+            }
+
             break;
         default:
             CHARM_LERRORF("Unknown boundary type %d\n", bnd->type);
