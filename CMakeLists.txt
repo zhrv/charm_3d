@@ -81,3 +81,8 @@ add_executable(	charm_3d
 target_link_libraries(charm_3d p4est sc m yaml-cpp)
 set_property(TARGET charm_3d PROPERTY C_STANDARD 99)
 set_property(TARGET charm_3d PROPERTY CXX_STANDARD 14)
+
+
+add_executable(	tet2hex
+        src/utils/tet2hex/tet2hex.cpp
+)
