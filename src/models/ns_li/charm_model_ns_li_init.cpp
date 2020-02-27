@@ -80,9 +80,10 @@ void charm_model_ns_li_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node 
 {
     ctx->get_dt_fn              = charm_model_ns_li_get_dt;
     ctx->timestep_single_fn     = charm_model_ns_li_timestep_single;
-    ctx->model.ns_li.use_visc = model_node["use_visc"].as<int>();
-    ctx->model.ns_li.use_diff = model_node["use_diffusion"].as<int>();
-    ctx->model.ns_li.t_ref    = model_node["t_ref"].as<double>();
+    ctx->model.ns_li.use_visc   = model_node["use_visc"].as<int>();
+    ctx->model.ns_li.use_diff   = model_node["use_diffusion"].as<int>();
+    ctx->model.ns_li.t_ref      = model_node["t_ref"].as<double>();
+    ctx->model.ns_li.li_iters   = model_node["li_iterations"].as<int>();
 
     ctx->model.ns_li.li_sigma = sc_array_new(sizeof(double));
     YAML::Node sigmas;

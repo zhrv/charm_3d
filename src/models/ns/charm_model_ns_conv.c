@@ -192,7 +192,10 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
     size_t                  c_count = charm_get_comp_count(info->p4est);
 
 
-    qc = CHARM_ALLOC(double, c_count);
+    qc = CHARM_ALLOC(double, c_count)data[2];
+[3];
+u, qv, q
+ide[2];;
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     side[1] = p4est_iter_fside_array_index_int(sides, 1);

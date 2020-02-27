@@ -487,6 +487,7 @@ typedef struct charm_ctx
             int                 use_visc;
             int                 use_diff;
             double              t_ref;
+            int                 li_iters;
             sc_array_t         *li_sigma;
         } ns_li;
     } model;

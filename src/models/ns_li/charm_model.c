@@ -87,6 +87,60 @@ static void charm_model_ns_li_timestep_update_quad_iter_fn (p4est_iter_volume_in
     int                 i, j;
     double              _tau;
 
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_ru, rhs_ru);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_rv, rhs_rv);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_rw, rhs_rw);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_re, rhs_re);
+
+    for (j = 0; j < c_count; j++) {
+        charm_matr_vect_mult(data->par.g.a_inv, data->int_rc[j], rhs_rc[j]);
+    }
+
+    charm_vect_copy(lhs_ru, data->par.c.ru);
+    charm_vect_copy(lhs_rv, data->par.c.rv);
+    charm_vect_copy(lhs_rw, data->par.c.rw);
+    charm_vect_copy(lhs_re, data->par.c.re);
+    for (j = 0; j < c_count; j++) {
+        charm_vect_copy(lhs_rc[j], data->par.c.rc[j]);
+    }
+
+    charm_vect_sub(lhs_ru, data->par.c_old.ru);
+    charm_vect_sub(lhs_rv, data->par.c_old.rv);
+    charm_vect_sub(lhs_rw, data->par.c_old.rw);
+    charm_vect_sub(lhs_re, data->par.c_old.re);
+    for (j = 0; j < c_count; j++) {
+        charm_vect_sub(lhs_rc[j], data->par.c_old.rc[j]);
+    }
+
+    _tau = 1./dt[0];
+    charm_vect_scalar_mult(lhs_ru, _tau);
+    charm_vect_scalar_mult(lhs_rv, _tau);
+    charm_vect_scalar_mult(lhs_rw, _tau);
+    charm_vect_scalar_mult(lhs_re, _tau);
+    for (j = 0; j < c_count; j++) {
+        charm_vect_scalar_mult(lhs_rc[j], _tau);
+    }
+
+    charm_vect_add(rhs_ru, lhs_ru);
+    charm_vect_add(rhs_rv, lhs_rv);
+    charm_vect_add(rhs_rw, lhs_rw);
+    charm_vect_add(rhs_re, lhs_re);
+    for (j = 0; j < c_count; j++) {
+        charm_vect_add(rhs_rc[j], lhs_rc[j]);
+    }
+
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        data->par.c.ru[i] -= _NORM_(dt[1] * rhs_ru[i]);
+        data->par.c.rv[i] -= _NORM_(dt[1] * rhs_rv[i]);
+        data->par.c.rw[i] -= _NORM_(dt[1] * rhs_rw[i]);
+        data->par.c.re[i] -= _NORM_(dt[1] * rhs_re[i]);
+        for (j = 0; j < c_count; j++) {
+            data->par.c.rc[j][i] -= _NORM_(dt[1] * rhs_rc[j][i]);
+        }
+    }
+
+
+    /*
     charm_vect_copy(rhs_ru, data->par.c.ru);
     charm_vect_copy(rhs_rv, data->par.c.rv);
     charm_vect_copy(rhs_rw, data->par.c.rw);
@@ -140,20 +194,23 @@ static void charm_model_ns_li_timestep_update_quad_iter_fn (p4est_iter_volume_in
             data->par.c.rc[j][i] -= _NORM_(dt[1] * lhs_rc[j][i]);
         }
     }
+*/
 }
 
 
 static void charm_model_ns_li_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
+    charm_ctx_t        *ctx = charm_get_ctx(info->p4est);
     charm_data_t       *data = charm_get_quad_data(info->quad);
     int                 i, j;
+    size_t              c_count = ctx->comp->elem_count;
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
         data->int_ru[i] = 0.;
         data->int_rv[i] = 0.;
         data->int_rw[i] = 0.;
         data->int_re[i] = 0.;
-        for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
+        for (j = 0; j < c_count; j++) {
             data->int_rc[j][i] = 0.;
         }
     }
@@ -162,15 +219,17 @@ static void charm_model_ns_li_timestep_zero_quad_iter_fn (p4est_iter_volume_info
 
 static void _charm_model_ns_li_timestep_0(p4est_iter_volume_info_t * info, void *user_data)
 {
+    charm_ctx_t        *ctx = charm_get_ctx(info->p4est);
     charm_data_t       *data = charm_get_quad_data(info->quad);
     int                 i, j;
+    size_t              c_count = ctx->comp->elem_count;
 
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
         data->par.c_old.ru[i] = data->par.c.ru[i];
         data->par.c_old.rv[i] = data->par.c.rv[i];
         data->par.c_old.rw[i] = data->par.c.rw[i];
         data->par.c_old.re[i] = data->par.c.re[i];
-        for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
+        for (j = 0; j < c_count; j++) {
             data->par.c_old.rc[j][i] = data->par.c.rc[j][i];
         }
     }
@@ -184,7 +243,7 @@ void charm_model_ns_li_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_
     int                 repartition_period = ctx->repartition_period;
     int                 write_period = ctx->write_period;
     int                 allowcoarsening = 1;
-    int                 i_sig;
+    int                 i, sig_count = ctx->model.ns_li.li_sigma->elem_count;
     p4est_ghost_t      *ghost       = *_ghost;
     charm_data_t       *ghost_data  = *_ghost_data;
     double              dt_sig[2], *sig;
@@ -241,8 +300,9 @@ void charm_model_ns_li_timestep_single(p4est_t * p4est, double *dt, p4est_ghost_
     p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 
     dt_sig[0] = *dt;
-    for (i_sig = 0; i_sig < ctx->model.ns_li.li_sigma->elem_count; i_sig++) {
-        sig = (double*) sc_array_index(ctx->model.ns_li.li_sigma, i_sig);
+
+    for (i = 0; i < ctx->model.ns_li.li_iters; i++) {
+        sig = (double*) sc_array_index(ctx->model.ns_li.li_sigma, i % sig_count);
         dt_sig[1] = *sig;
 
         charm_model_ns_li_timestep_chem(p4est, ghost, ghost_data);

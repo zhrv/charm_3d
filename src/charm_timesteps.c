@@ -44,10 +44,13 @@ void charm_timesteps(p4est_t * p4est)
         if (ctx->timestep % ctx->log_period == 0) {
             charm_log_statistics(p4est, ctx->timestep, ctx->t, dt, calc_time);
         }
+        if (ctx->timestep == 60) {
+            int zhrv = 0;
+        }
     }
 
+    p4est_ghost_destroy(ghost);
     CHARM_FREE (ghost_data);
-    p4est_ghost_destroy (ghost);
 }
 
 
