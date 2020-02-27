@@ -64,12 +64,19 @@ static void _charm_init_fetch_bnd(YAML::Node node, charm_bnd_t *bnd)
             n3 = n2["components"];
             i = 7;
             for (auto it : n3) {
+                if (i > 7+c_count) {
+                    CHARM_LERRORF("BOUND_MASS_FLOW: Too many components specified. Must be %d\n", c_count);
+                }
                 bnd->params[i++] = it.as<charm_real_t>();
+            }
+            if (i < 7+c_count) {
+                CHARM_LERRORF("BOUND_MASS_FLOW: Too few components specified. Must be %d\n", c_count);
             }
 
             break;
+        case BOUND_UNKNOWN: // @todo
         default:
-            CHARM_LERRORF("Unknown boundary type %d\n", bnd->type);
+            CHARM_LERRORF("Unknown boundary type %s\n", bnd->name);
 
     }
 
