@@ -25,8 +25,6 @@ set(P4EST_INSTALL "${CONTRIB_DIR}/p4est/local")
 set(P4EST_INCLUDE "${P4EST_INSTALL}/include" "${P4EST_INSTALL}/include/sc_builtin")
 set(P4EST_LIB "${P4EST_INSTALL}/lib")
 
-set(MPI_INCLUDE "/usr/include/openmpi")
-
 set(YAML_INCLUDE "${CONTRIB_DIR}/yaml-cpp/local/include")
 
 set(YAML_LIB "${CONTRIB_DIR}/yaml-cpp/local/lib")
@@ -34,7 +32,8 @@ set(YAML_LIB64 "${CONTRIB_DIR}/yaml-cpp/local/lib64")
 
 set(CHARM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
 
-include_directories(${CHARM_INCLUDE} ${P4EST_INCLUDE} ${MPI_INCLUDE} ${YAML_INCLUDE})
+
+include_directories(${CHARM_INCLUDE} ${P4EST_INCLUDE} ${YAML_INCLUDE})
 link_directories(${P4EST_LIB} ${YAML_LIB} ${YAML_LIB64})
 
 add_executable(	charm_3d
