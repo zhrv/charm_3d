@@ -13,7 +13,7 @@
 
 void charm_model_ns_timestep_diff_grad(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 void charm_model_ns_timestep_diff_integrals(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
-
+void charm_model_ns_timestep_turb(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 
 static void _charm_model_ns_timestep_diffusion_quad_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
@@ -84,6 +84,7 @@ void charm_model_ns_timestep_diff(p4est_t * p4est, p4est_ghost_t * ghost, charm_
 {
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     if (!ctx->model.ns.use_visc) return;
+    charm_model_ns_timestep_turb(p4est, ghost, ghost_data);
     charm_model_ns_timestep_diffusion(p4est, ghost, ghost_data);
     charm_model_ns_timestep_diff_grad(p4est, ghost, ghost_data);
     charm_model_ns_timestep_diff_integrals(p4est, ghost, ghost_data);
