@@ -38,6 +38,7 @@ link_directories(${P4EST_LIB} ${YAML_LIB} ${YAML_LIB64})
 
 add_executable(	charm_3d
 
+        include/charm_def.h
         include/charm_amr.h
         include/charm_base_func.h
         include/charm_bnd_cond.h
@@ -75,7 +76,9 @@ add_executable(	charm_3d
         src/models/ns/charm_model_ns_diff_grad.c
         src/models/ns/charm_model_ns_diff_integrals.c
         src/models/ns/charm_model_ns_chem.c
-        include/charm_def.h)
+        src/models/ns/charm_model_ns_turb.c
+        src/models/ns/turb/charm_model_ns_turb_sst.c
+)
 
 target_link_libraries(charm_3d p4est sc m yaml-cpp)
 set_property(TARGET charm_3d PROPERTY C_STANDARD 99)

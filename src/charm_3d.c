@@ -29,39 +29,26 @@ int main (int argc, char **argv)
     }
     CHARM_ASSERT(p4est_connectivity_is_valid(conn));
 
-    p4est = p4est_new_ext (mpicomm,              /* communicator */
-                           conn,                 /* connectivity */
-                           0,                    /* minimum quadrants per MPI process */
-                           ctx.min_level,        /* minimum level of refinement */
-                           1,                    /* fill uniform */
-                           sizeof (charm_data_t),         /* data size */
-                           charm_init_initial_condition,  /* initializes data */
-                           (void *) (&ctx));            /* context */
+    p4est = p4est_new_ext (mpicomm,                         /* communicator */
+                           conn,                            /* connectivity */
+                           0,                               /* minimum quadrants per MPI process */
+                           ctx.min_level,                   /* minimum level of refinement */
+                           1,                               /* fill uniform */
+                           sizeof (charm_data_t),           /* data size */
+                           charm_init_initial_condition,    /* initializes data */
+                           (void *) (&ctx));                /* context */
     charm_set_p4est(p4est);
 
     charm_write_solution (p4est);
-//    charm_calc_grad(p4est, NULL, NULL);
-
     charm_adapt_init(p4est);
 
-
-
-   // charm_write_solution (p4est, 0);
-
-
-
-    /* time step */
     charm_timesteps (p4est);
 
-    /* Destroy the p4est and the connectivity structure. */
     p4est_destroy (p4est);
     p4est_connectivity_destroy (conn);
 
-    /* Verify that allocations internal to p4est and sc do not leak memory.
-     * This should be called if sc_init () has been called earlier. */
     sc_finalize ();
 
-    /* This is standard MPI programs.  Without --enable-mpi, this is a dummy. */
     mpiret = sc_MPI_Finalize ();
     SC_CHECK_MPI (mpiret);
     return 0;

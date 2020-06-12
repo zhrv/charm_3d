@@ -17,5 +17,5 @@ void charm_model_ns_timestep_turb(p4est_t * p4est, p4est_ghost_t * ghost, charm_
 {
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
 
-    if (ctx->turb_fn) ctx->turb_fn(p4est, ghost, ghost_data);
+    if (ctx->model.ns.turb_fn) ctx->model.ns.turb_fn(p4est, ghost, ghost_data);
 }

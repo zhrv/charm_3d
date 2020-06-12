@@ -306,10 +306,21 @@ typedef struct charm_ctx
         struct {
 
         } euler;
+        
         struct {
-            int                 use_visc;
-            int                 use_diff;
-            charm_real_t        t_ref;
+            int                         use_visc;
+            int                         use_diff;
+            charm_real_t                t_ref;
+            charm_turb_model_fn_t       turb_fn;
+            union {
+                struct {
+
+                } sst;
+
+                struct {
+
+                } sa;
+            } turb;
         } ns;
     } model;
 //    charm_real_t              visc_m;
@@ -326,7 +337,7 @@ typedef struct charm_ctx
     charm_get_timestep_fn_t     get_dt_fn;
     charm_flux_fn_t             flux_fn;
     charm_limiter_fn_t          lim_fn;
-    charm_turb_model_fn_t       turb_fn;
+    
 } charm_ctx_t;
 
 typedef struct charm_tree_attr
