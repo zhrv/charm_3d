@@ -5,6 +5,8 @@
 #ifndef CHAMR_3D_CHARM_GLOBALS_H
 #define CHAMR_3D_CHARM_GLOBALS_H
 
+#include "charm_version.h"
+
 #include <p4est_to_p8est.h>
 
 #include <p8est_bits.h>

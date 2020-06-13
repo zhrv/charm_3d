@@ -48,6 +48,8 @@ add_executable(	charm_3d
         include/charm_limiter.h
         include/charm_models.h
         include/charm_vtk.h
+        include/charm_def.h
+        include/charm_version.h
 
         src/charm_3d.c
         src/charm_connectivity.c
