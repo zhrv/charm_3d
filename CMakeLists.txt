@@ -75,7 +75,7 @@ add_executable(	charm_3d
         src/models/ns/charm_model_ns_diff_grad.c
         src/models/ns/charm_model_ns_diff_integrals.c
         src/models/ns/charm_model_ns_chem.c
-        include/charm_def.h)
+        include/charm_def.h include/charm_version.h)
 
 target_link_libraries(charm_3d p4est sc m yaml-cpp)
 set_property(TARGET charm_3d PROPERTY C_STANDARD 99)
