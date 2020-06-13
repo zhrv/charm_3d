@@ -5,6 +5,8 @@
 #ifndef CHARM_3D_CHARM_DEF_H
 #define CHARM_3D_CHARM_DEF_H
 
+#include "charm_version.h"
+
 
 #define CHARM_DIM           P4EST_DIM
 #define CHARM_ALLOC         P4EST_ALLOC
