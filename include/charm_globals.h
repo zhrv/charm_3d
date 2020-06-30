@@ -162,6 +162,9 @@ typedef struct charm_param
 
     union {
         struct {
+            charm_real_t v[3];
+        } adv;
+        struct {
 
         } euler;
         struct {
