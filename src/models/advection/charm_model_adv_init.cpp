@@ -14,10 +14,14 @@
 extern "C" {
     charm_real_t charm_model_adv_get_dt (p4est_t * p4est);
     void charm_model_adv_timestep_single(p4est_t * p4est, charm_real_t *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data);
+    void charm_model_adv_adapt_init(p4est_t *p4est);
+    void charm_model_adv_adapt(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data);
 }
 void charm_model_adv_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yaml)
 {
     ctx->get_dt_fn              = charm_model_adv_get_dt;
     ctx->timestep_single_fn     = charm_model_adv_timestep_single;
+    ctx->amr_init_fn            = charm_model_adv_adapt_init;
+    ctx->amr_fn                 = charm_model_adv_adapt;
 }
 

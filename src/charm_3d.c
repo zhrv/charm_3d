@@ -37,7 +37,7 @@ int main (int argc, char **argv)
             charm_init_initial_condition, (void *) (&ctx));
     charm_set_p4est(p4est);
     charm_write_solution (p4est);
-    charm_adapt_init(p4est);
+    ctx.amr_init_fn(p4est);
     charm_timesteps (p4est);
     p4est_destroy (p4est);
     p4est_connectivity_destroy (conn);

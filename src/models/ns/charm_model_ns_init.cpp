@@ -7,6 +7,7 @@
 #include "charm_eos.h"
 #include "charm_limiter.h"
 #include "charm_models.h"
+#include "charm_amr.h"
 #include "yaml-cpp/yaml.h"
 #include <cstring>
 #include <cstdlib>
@@ -83,6 +84,9 @@ void charm_model_ns_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yam
     ctx->model.ns.use_visc = model_node["use_visc"].as<int>();
     ctx->model.ns.use_diff = model_node["use_diffusion"].as<int>();
     ctx->model.ns.t_ref    = model_node["t_ref"].as<charm_real_t>();
+
+    ctx->amr_init_fn            = charm_adapt_init;
+    ctx->amr_fn                 = charm_adapt;
 
     _charm_model_ns_chem_init(ctx, yaml);
 }
