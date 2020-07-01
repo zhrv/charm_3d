@@ -197,7 +197,7 @@ void charm_model_ns_timestep_single(p4est_t * p4est, charm_real_t *dt, p4est_gho
     if (refine_period) {
         if (!(ctx->timestep % refine_period)) {
             if (ctx->timestep) {
-                charm_adapt(p4est, ghost, ghost_data); /* adapt */
+                ctx->amr_fn(p4est, ghost, ghost_data); /* adapt */
                 if (ghost) {
                     p4est_ghost_destroy(ghost);
                     CHARM_FREE (ghost_data);

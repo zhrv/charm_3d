@@ -162,6 +162,9 @@ typedef struct charm_param
 
     union {
         struct {
+            charm_real_t v[3];
+        } adv;
+        struct {
 
         } euler;
         struct {
@@ -239,6 +242,13 @@ typedef void    (*charm_flux_fn_t)                  (p4est_t *p4est, charm_prim_
 typedef void    (*charm_timestep_single_fn_t)       (p4est_t * p4est, charm_real_t *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data);
 typedef charm_real_t  (*charm_get_timestep_fn_t)    (p4est_t * p4est);
 typedef void    (*charm_turb_model_fn_t)            (p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
+typedef void    (*charm_limiter_fn_t)           (p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data);
+typedef void    (*charm_bnd_cond_fn_t)          (charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t* n);
+typedef void    (*charm_flux_fn_t)              (p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu, charm_real_t* qv, charm_real_t* qw, charm_real_t* qe, charm_real_t qc[], charm_real_t n[3]);
+typedef void    (*charm_timestep_single_fn_t)   (p4est_t * p4est, charm_real_t *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data);
+typedef charm_real_t  (*charm_get_timestep_fn_t)(p4est_t * p4est);
+typedef void    (*charm_amr_init_fn_t)          (p4est_t *p4est);
+typedef void    (*charm_amr_fn_t)               (p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data);
 
 #ifndef GLOBALS_H_FILE
 extern const char *charm_bnd_types[];
@@ -337,7 +347,8 @@ typedef struct charm_ctx
     charm_get_timestep_fn_t     get_dt_fn;
     charm_flux_fn_t             flux_fn;
     charm_limiter_fn_t          lim_fn;
-    
+    charm_amr_init_fn_t         amr_init_fn;
+    charm_amr_fn_t              amr_fn;
 } charm_ctx_t;
 
 typedef struct charm_tree_attr
