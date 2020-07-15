@@ -16,6 +16,7 @@ void charm_model_ns_timestep_conv(p4est_t * p4est, p4est_ghost_t * ghost, charm_
 void charm_model_ns_timestep_diff(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 void charm_model_ns_timestep_chem(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 void charm_model_ns_timestep_diffusion(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
+void charm_model_ns_geom_calc(p4est_t *p4est);
 
 
 static void _charm_model_ns_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
@@ -58,9 +59,6 @@ charm_real_t charm_model_ns_get_dt (p4est_t * p4est)
 
     return glob_dt;
 }
-
-
-
 
 
 
@@ -194,10 +192,14 @@ void charm_model_ns_timestep_single(p4est_t * p4est, charm_real_t *dt, p4est_gho
     p4est_ghost_t      *ghost       = *_ghost;
     charm_data_t       *ghost_data  = *_ghost_data;
 
+    if (!ctx->timestep) {
+        charm_model_ns_geom_calc(p4est);
+    }
     if (refine_period) {
         if (!(ctx->timestep % refine_period)) {
             if (ctx->timestep) {
-                charm_adapt(p4est, ghost, ghost_data); /* adapt */
+                charm_adapt(p4est, ghost, ghost_data);
+                charm_model_ns_geom_calc(p4est);
                 if (ghost) {
                     p4est_ghost_destroy(ghost);
                     CHARM_FREE (ghost_data);

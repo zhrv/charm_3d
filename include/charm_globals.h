@@ -169,6 +169,12 @@ typedef struct charm_param
             charm_vec_c_t q;
             charm_real_t d[CHARM_MAX_COMPONETS_COUNT];
             charm_real_t chem_rhs;
+            struct {
+                charm_real_t k;
+                charm_real_t w;
+                charm_real_t mu_t;
+
+            } turb;
         } ns;
     } model;
 
@@ -188,6 +194,7 @@ typedef struct charm_param
         charm_real_t          dh[CHARM_DIM];
         charm_real_t          a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
         charm_real_t          a_inv[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
+        charm_real_t          y;
     } g;
 
     int         mat_id;
@@ -242,7 +249,13 @@ typedef void    (*charm_turb_model_fn_t)            (p4est_t * p4est, p4est_ghos
 
 #ifndef GLOBALS_H_FILE
 extern const char *charm_bnd_types[];
+extern const char *charm_turb_models[];
 #endif
+
+typedef enum {
+    TURB_MODEL_SST,
+    TURB_MODEL_UNKNOWN
+} charm_turb_models_t;
 
 typedef enum {
     BOUND_INLET,
@@ -250,6 +263,7 @@ typedef enum {
     BOUND_WALL_SLIP,
     BOUND_WALL_NO_SLIP,
     BOUND_MASS_FLOW,
+    BOUND_SYMMETRY,
     BOUND_UNKNOWN
 } charm_bnd_types_t;
 
@@ -311,16 +325,28 @@ typedef struct charm_ctx
             int                         use_visc;
             int                         use_diff;
             charm_real_t                t_ref;
-            charm_turb_model_fn_t       turb_fn;
-            union {
-                struct {
+            struct {
+                charm_turb_model_fn_t       model_fn;
+                charm_turb_models_t         model_type;
+                union {
+                    struct {
+                        charm_real_t a1;
+                        charm_real_t sigma_k1;
+                        charm_real_t sigma_k2;
+                        charm_real_t sigma_w1;
+                        charm_real_t sigma_w2;
+                        charm_real_t beta_star;
+                        charm_real_t beta_1;
+                        charm_real_t beta_2;
+                        charm_real_t kappa;
+                    } sst;
 
-                } sst;
-
-                struct {
-
-                } sa;
+                    struct {
+                        double a1;
+                    } sa;
+                } param;
             } turb;
+
         } ns;
     } model;
 //    charm_real_t              visc_m;
@@ -355,6 +381,8 @@ charm_real_t scalar_prod(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM])
 charm_real_t vect_length(charm_real_t v[CHARM_DIM]);
 
 void vect_prod(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM], charm_real_t res[CHARM_DIM]);
+void vect_sub(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM], charm_real_t res[CHARM_DIM]);
+charm_real_t vect_dist(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM]);
 
 
 charm_real_t charm_face_get_area(charm_data_t *d, int8_t face);

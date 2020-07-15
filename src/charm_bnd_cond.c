@@ -72,6 +72,25 @@ void charm_bnd_cond_fn_wall_slip(charm_prim_t *par_in, charm_prim_t *par_out, in
 }
 
 
+void charm_bnd_cond_fn_symmetry(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
+{
+    int i;
+    charm_real_t  v[3] = {par_in->u, par_in->v, par_in->w};
+
+    charm_prim_cpy(par_out, par_in);
+
+    charm_real_t   svn = scalar_prod( v, n );
+    charm_real_t   vv[3] = {n[0]*svn, n[1]*svn, n[2]*svn};
+    for (i = 0; i < 3; i++) {
+        v[i] -= vv[i];
+        v[i] -= vv[i];
+    }
+    par_out->u = v[0];
+    par_out->v = v[1];
+    par_out->w = v[2];
+}
+
+
 // @todo
 void charm_bnd_cond_fn_wall_no_slip(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
 {
