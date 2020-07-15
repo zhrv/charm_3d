@@ -70,6 +70,11 @@ add_executable(	charm_3d
         src/models/euler/charm_model.c
         src/models/euler/charm_model_euler_init.cpp
 
+        src/models/advection/charm_model.c
+        src/models/advection/charm_model_adv_init.cpp
+        src/models/advection/charm_model_adv_amr.c
+
+
         src/models/ns/charm_model.c
         src/models/ns/charm_model_ns_init.cpp
         src/models/ns/charm_model_ns_conv.c

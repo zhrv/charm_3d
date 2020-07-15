@@ -198,8 +198,8 @@ void charm_model_ns_timestep_single(p4est_t * p4est, charm_real_t *dt, p4est_gho
     if (refine_period) {
         if (!(ctx->timestep % refine_period)) {
             if (ctx->timestep) {
-                charm_adapt(p4est, ghost, ghost_data);
-                charm_model_ns_geom_calc(p4est);
+                ctx->amr_fn(p4est, ghost, ghost_data); /* adapt */
+                charm_model_ns_geom_calc(p4est); //@todo выяснить нужно или нет
                 if (ghost) {
                     p4est_ghost_destroy(ghost);
                     CHARM_FREE (ghost_data);
