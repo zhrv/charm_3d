@@ -20,7 +20,7 @@ static void _charm_model_ns_geom_calc_face_iter_fn (p4est_iter_face_info_t * inf
 
         if (bnd->type == BOUND_WALL_NO_SLIP) {
             if (side->is.full.is_ghost) {
-                        CHARM_ASSERT(0);
+                CHARM_ASSERT(0);
             } else {
                 udata = charm_get_quad_data(side->is.full.quad);//(charm_data_t *) side[0]->is.full.quad->p.user_data;
             }

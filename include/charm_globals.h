@@ -107,9 +107,9 @@ typedef struct charm_tensor_c
 } charm_tensor_c_t;
 
 typedef struct charm_vec {
-    charm_real_t x[CHARM_BASE_FN_COUNT];
-    charm_real_t y[CHARM_BASE_FN_COUNT];
-    charm_real_t z[CHARM_BASE_FN_COUNT];
+    charm_real_t x;
+    charm_real_t y;
+    charm_real_t z;
 } charm_vec_t;
 
 typedef struct charm_vec_c {
@@ -224,22 +224,23 @@ typedef struct charm_param
 typedef struct charm_data
 {
     charm_param_t       par;
-    charm_real_t              int_ru[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    charm_real_t              int_rv[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    charm_real_t              int_rw[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    charm_real_t              int_re[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    charm_real_t              int_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];              /**< the time derivative */
 
-    charm_real_t              int_q_x[CHARM_BASE_FN_COUNT];
-    charm_real_t              int_q_y[CHARM_BASE_FN_COUNT];
-    charm_real_t              int_q_z[CHARM_BASE_FN_COUNT];
+    charm_real_t        int_ru[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    charm_real_t        int_rv[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    charm_real_t        int_rw[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    charm_real_t        int_re[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+    charm_real_t        int_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];              /**< the time derivative */
 
-    charm_real_t              int_tau_xx[CHARM_BASE_FN_COUNT];
-    charm_real_t              int_tau_yy[CHARM_BASE_FN_COUNT];
-    charm_real_t              int_tau_zz[CHARM_BASE_FN_COUNT];
-    charm_real_t              int_tau_xy[CHARM_BASE_FN_COUNT];
-    charm_real_t              int_tau_xz[CHARM_BASE_FN_COUNT];
-    charm_real_t              int_tau_yz[CHARM_BASE_FN_COUNT];
+    charm_real_t        int_q_x[CHARM_BASE_FN_COUNT];
+    charm_real_t        int_q_y[CHARM_BASE_FN_COUNT];
+    charm_real_t        int_q_z[CHARM_BASE_FN_COUNT];
+
+    charm_real_t        int_tau_xx[CHARM_BASE_FN_COUNT];
+    charm_real_t        int_tau_yy[CHARM_BASE_FN_COUNT];
+    charm_real_t        int_tau_zz[CHARM_BASE_FN_COUNT];
+    charm_real_t        int_tau_xy[CHARM_BASE_FN_COUNT];
+    charm_real_t        int_tau_xz[CHARM_BASE_FN_COUNT];
+    charm_real_t        int_tau_yz[CHARM_BASE_FN_COUNT];
     int                 ref_flag;
 } charm_data_t;
 
@@ -483,10 +484,6 @@ void charm_geom_quad_calc(p4est_t *p4est, p4est_quadrant_t *q, p4est_topidx_t tr
 p4est_connectivity_t *charm_conn_create(charm_ctx_t *ctx);
 
 charm_real_t charm_get_heat_k(p4est_t *p4est, charm_real_t *x, charm_data_t *data);
-
-charm_real_t charm_get_visc_lambda(p4est_t *p4est, charm_data_t *data);
-
-charm_real_t charm_get_visc_mu(p4est_t *p4est, charm_real_t *x, charm_data_t *data);
 
 void charm_tensor_zero(charm_tensor_t *t);
 
