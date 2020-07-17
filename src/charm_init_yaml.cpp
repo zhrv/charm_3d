@@ -42,6 +42,9 @@ static void _charm_init_fetch_bnd(charm_ctx_t *ctx, YAML::Node node, charm_bnd_t
         case BOUND_OUTLET:
             bnd->bnd_fn = charm_bnd_cond_fn_outlet;
             break;
+        case BOUND_SYMMETRY:
+            bnd->bnd_fn = charm_bnd_cond_fn_symmetry;
+            break;
         case BOUND_WALL_SLIP:
             bnd->bnd_fn = charm_bnd_cond_fn_wall_slip;
             break;

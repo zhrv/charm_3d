@@ -11,6 +11,7 @@
 #include "charm_amr.h"
 
 
+charm_real_t charm_model_ns_get_visc_mu(p4est_t *p4est, charm_real_t *x, charm_data_t *data);
 
 
 /*
@@ -110,7 +111,7 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
         x  = udata->par.g.fc[face];
         gw = 1.;
         gj = udata->par.g.area[face];
-        mu = charm_get_visc_mu(p4est, x, udata);
+        mu = charm_model_ns_get_visc_mu(p4est, x, udata);
         charm_get_fields_avg(udata, &cons);
         charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
         charm_get_heat_q(udata, x, qt);

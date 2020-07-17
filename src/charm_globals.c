@@ -1,7 +1,7 @@
 //
 // Created by zhrv on 26.10.17.
 //
-#define GLOBAL_H_FILE
+#define GLOBALS_H_FILE
 
 #include <charm_base_func.h>
 #include "charm_globals.h"
@@ -16,6 +16,12 @@ const char *charm_bnd_types[] ={
         "BOUND_WALL_SLIP",
         "BOUND_WALL_NO_SLIP",
         "BOUND_MASS_FLOW",
+        "BOUND_SYMMETRY",
+        NULL
+};
+
+const char *charm_turb_models[] ={
+        "SST",
         NULL
 };
 
@@ -34,6 +40,20 @@ charm_real_t scalar_prod(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM])
 charm_real_t vect_length(charm_real_t v[CHARM_DIM])
 {
     return sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+}
+
+void vect_sub(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM], charm_real_t res[CHARM_DIM])
+{
+    res[0] = v1[0]-v2[0];
+    res[1] = v1[1]-v2[1];
+    res[2] = v1[2]-v2[2];
+}
+
+charm_real_t vect_dist(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM])
+{
+    charm_real_t res[CHARM_DIM];
+    vect_sub(v1, v2, res);
+    return vect_length(res);
 }
 
 void vect_prod(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM], charm_real_t res[CHARM_DIM])
@@ -503,38 +523,6 @@ size_t charm_get_reactions_count(p4est_t* p4est)
 {
     charm_ctx_t * ctx       = charm_get_ctx(p4est);
     return ctx->reactions == NULL ? 0 : ctx->reactions->elem_count;
-}
-
-
-charm_real_t charm_get_visc_lambda(p4est_t* p4est, charm_data_t* data)
-{
-    return 0;
-}
-
-
-charm_real_t charm_get_visc_mu(p4est_t* p4est, charm_real_t *x, charm_data_t* data)
-{
-    charm_ctx_t *ctx = charm_get_ctx(p4est);
-    size_t c_count = charm_get_comp_count(p4est);
-    charm_comp_t *comp;
-    charm_cons_t cons;
-    charm_prim_t prim;
-    charm_real_t mu, cm, s;
-    int i;
-
-    charm_get_fields(data, x, &cons);
-    charm_param_cons_to_prim(p4est, &prim, &cons);
-    s  = 0.;
-    mu = 0.;
-    for (i = 0; i < c_count; i++) {
-        comp = charm_get_comp(p4est, i);
-        cm = prim.c[i]/comp->m;
-        s += cm;
-        mu += cm*charm_comp_calc_ml(comp, prim.t);
-    }
-    return mu/s;
-
-
 }
 
 

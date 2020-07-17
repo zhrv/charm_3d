@@ -48,7 +48,6 @@ add_executable(	charm_3d
         include/charm_limiter.h
         include/charm_models.h
         include/charm_vtk.h
-        include/charm_def.h
         include/charm_version.h
 
         src/charm_3d.c
@@ -85,7 +84,7 @@ add_executable(	charm_3d
         src/models/ns/charm_model_ns_chem.c
         src/models/ns/charm_model_ns_turb.c
         src/models/ns/turb/charm_model_ns_turb_sst.c
-)
+        src/models/ns/charm_model_ns_geom.c)
 
 target_link_libraries(charm_3d p4est sc m yaml-cpp)
 set_property(TARGET charm_3d PROPERTY C_STANDARD 99)
