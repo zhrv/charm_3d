@@ -1,0 +1,95 @@
+method: CHARM_3D
+version: 0.1.2
+control:
+  FLUX_TYPE: HLLC
+  LIMITER: BJ
+  MAX_ERROR: 0.01
+  REFINE_PERIOD: 10
+  REPARTITION_PERIOD: 10
+  MIN_LEVEL: 0
+  MAX_LEVEL: 1
+  CFL: 0.1                  # число Куранта
+  TAU: 1.0e-2               # шаг по времени, используется меньшее значение из этого или из полученного из числа Куранта
+  TMAX: 100000              # время, до которго выполняется расчет
+  STEP_MAX: 31000
+  FILE_OUTPUT_STEP: 1000      # количество итераций, через которые выполняется вывод результатов в файл
+  LOG_OUTPUT_STEP: 10        # интервал вывода краткой информации в лог-файл
+  MODEL:
+    name: NS
+    use_visc: 0
+    use_diffusion: 0
+    t_ref: 298.15
+    turbulence:
+      model: SST
+      parameters:
+        a1: 0.31
+        sigma_k1: 0.85
+        sigma_k2: 1.0
+        sigma_w1: 0.5
+        sigma_w2: 0.856
+        beta_star: 0.09
+        beta_1: 0.075
+        beta_2: 0.0828
+        kappa: 0.41
+mesh:
+  files_type: gmsh_msh
+  name: naca0012.msh       # имя файлов с данными сетки
+components:
+  -
+    id: 0
+    name: AIR
+    cp_type: CONST
+    kp_type: CONST
+    ml_type: CONST
+    M: 0.02869409                 # молярная масса
+    Cp: [1014.16]
+    KP0: 0                        # теплопроводность вещества при температуре T0
+    ML0: 0                        # динамическая вязкость вещества при температуре T0
+    T0: 273.15                    # константа для формулы Сазерленда
+    TS: 218.0                     # константа для формулы Сазерленда
+    Sig: 3.512                    # параметры Леннарда-Джонса
+    ek: 139.8                     # параметры Леннарда-Джонса
+    h0: -8.386329e+4              # энтальпия образования вещества
+materials:
+  -
+    id: 0
+    name: AIR
+    eof_type: IDEAL # IDEAL, MIX
+regions:
+  -
+    id: 0
+    name: KLIN
+    cell_type: 0
+    material_id: 0
+    components:
+      - {id: 0, concentration: 1}
+    parameters:
+      V: {x: 697.7082, y: 0, z: 0}
+      T: 300
+      P: 101325.0
+      G: {x: 0, y: 0, z: 0}
+boundaries:
+  -
+    name: BACK
+    type: BOUND_WALL_SLIP
+  -
+    name: FRONT
+    type: BOUND_WALL_SLIP
+  -
+    name: LEFT
+    type: BOUND_INLET
+    parameters:
+      V: {x: 697.7082, y: 0, z: 0}
+      T: 300
+      P: 101325.0
+  -
+    name: RIGHT
+    type: BOUND_OUTLET
+  -
+    name: TOP
+    type: BOUND_WALL_SLIP
+  -
+    name: BOTTOM
+    type: BOUND_WALL_NO_SLIP
+    parameters:
+      T: 300
