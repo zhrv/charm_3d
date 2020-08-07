@@ -1,0 +1,29 @@
+@startuml
+
+start
+partition Инициализация {
+    :"Инициализация (yaml)";
+    :"Чтение сетки";
+    :"Инициализация p4est и ГУ";
+    :"Инициализация AMR";
+}
+
+partition Timesteps {
+    :Создание фиктивных ячеек;
+    while (t < TMAX) is (true)
+    :Вызов подпрограммы метода;
+'    note right
+'    This note is on several
+'    //lines// and can
+'    contain <b>HTML</b>
+'    ====
+'    * Calling the method ""foo()"" is prohibited
+'    end note
+    if (шаг вывода?) then (yes)
+        :Вывод среза данных/
+    endif
+    endwhile
+}
+:Освобождение памяти;
+stop
+@enduml

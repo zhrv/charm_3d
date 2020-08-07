@@ -1,0 +1,83 @@
+'• package
+'• node
+'• folder
+'• frame
+'• cloud
+'• database
+@startuml
+skinparam monochrome true
+skinparam componentStyle uml2
+sprite $paperSheet {
+FFFFFFFFFC000000
+F33333333CC00000
+FAAAAAAAACCC0000
+F33333333CCCC000
+FAAAAAAAACCCCC00
+F33333333CCCCCC0
+FAAAAAAAACCCCCCC
+F33333333333333F
+FAAAAAAAAAAAAAAF
+F33333333333333F
+FAAAAAAAAAAAAAAF
+F33333333333333F
+FAAAAAAAAAAAAAAF
+F33333333333333F
+FAAAAAAAAAAAAAAF
+F33333333333333F
+FAAAAAAAAAAAAAAF
+F33333333333333F
+FAAAAAAAAAAAAAAF
+F33333333333333F
+FFFFFFFFFFFFFFFF
+}
+
+
+frame "Сторонние библиотеки" #cccccc {
+[p4est] #ffffff
+[yaml-cpp] #ffffff
+}
+frame "Модуль инициализации" {
+[Чтение YAML] <-- [НД и ГУ]
+[Чтение YAML] ..> [yaml-cpp]
+[Чтение YAML] <-- [Инициализация]
+[НД и ГУ] <-- [Инициализация]
+}
+frame "Модуль сеточной модели" {
+[Mesh reader] -r- [MSH-file Reader]
+[Mesh reader] -d- [OpenFOAM files Reader]
+[Mesh reader] -- [UNV-file Reader]
+}
+[Mesh reader] <-- [Инициализация]
+
+frame "Вычислительный модуль" #eeeeee {
+    () "Model" as Model
+    [MAIN] ..> [p4est]
+    [MAIN] -- [AMR]
+    [MAIN] --> Model
+    [MAIN] - [Вывод данных]
+    note right of Model
+        Интерфейс для
+        вычислительной модели
+    end note
+}
+
+
+database "Файловая система" {
+    rectangle "Файл конфигурации" <<$paperSheet>> as YAML
+    rectangle "Файлы сетки" <<$paperSheet>> as MESH
+    rectangle "Срезы данных" <<$paperSheet>> as VTK
+
+    [Чтение YAML] -- YAML
+    [Вывод данных]  -r- VTK
+    MESH -- [Mesh reader]
+}
+
+
+
+[Инициализация] <-- [MAIN]
+[Инициализация] ..> [p4est]
+
+
+
+@enduml
+

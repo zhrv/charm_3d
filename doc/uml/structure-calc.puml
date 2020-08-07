@@ -1,0 +1,32 @@
+@startuml
+skinparam componentStyle uml2
+skinparam monochrome true
+
+frame "Вычислительный модуль" {
+    component MAIN
+    component AMR
+
+
+    package "NS" {
+        [RKDG для NS] -- [MAIN]
+        [RKDG для NS] -- [Критерии огрубления/дробления для NS]
+        [RKDG для NS] -- [Химия]
+        [RKDG для NS] -- [Турбулентность]
+        [AMR] -u-> [Критерии огрубления/дробления для NS]
+        [Химия] -- [MAIN]
+        [Турбулентность] -- [MAIN]
+    }
+
+    package "Euler" {
+        [RKDG для Euler] -- [MAIN]
+        [RKDG для Euler] -- [Критерии огрубления/дробления для Euler]
+        [Критерии огрубления/дробления для Euler] <-- [AMR]
+    }
+    MAIN -d- AMR
+
+}
+
+
+@enduml
+
+
