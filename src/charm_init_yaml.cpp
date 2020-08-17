@@ -18,13 +18,11 @@
 void charm_model_ns_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yaml);
 void charm_model_euler_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yaml);
 
-static charm_int_t _glob_c_count = 1;
-
-static void _charm_init_fetch_bnd(YAML::Node node, charm_bnd_t *bnd)
+static void _charm_init_fetch_bnd(charm_ctx_t *ctx, YAML::Node node, charm_bnd_t *bnd)
 {
     YAML::Node n2, n3;
     charm_int_t i;
-    charm_int_t c_count = _glob_c_count;
+    charm_int_t c_count = ctx->comp->elem_count;
     strcpy(bnd->name, node["name"].as<std::string>().c_str());
 
     bnd->type = charm_bnd_type_by_name(node["type"].as<std::string>().c_str());
@@ -91,13 +89,13 @@ static void _charm_init_bnd(charm_ctx_t *ctx, YAML::Node node)
     ctx->bnd = sc_array_new(sizeof(charm_bnd_t));
     for (auto it : node) {
         auto bnd = (charm_bnd_t *) sc_array_push(ctx->bnd);
-        _charm_init_fetch_bnd(it, bnd);
+        _charm_init_fetch_bnd(ctx, it, bnd);
     }
 
 }
 
 
-static void _charm_init_fetch_comp(YAML::Node node, charm_comp_t *comp)
+static void _charm_init_fetch_comp(charm_ctx_t *ctx, YAML::Node node, charm_comp_t *comp)
 {
     std::string str;
     comp->id = node["id"].as<int>();
@@ -162,9 +160,8 @@ static void _charm_init_comps(charm_ctx_t *ctx, YAML::Node node)
     ctx->comp = sc_array_new(sizeof(charm_comp_t));
     for (auto c : node) {
         auto comp = (charm_comp_t *) sc_array_push(ctx->comp);
-        _charm_init_fetch_comp(c, comp);
+        _charm_init_fetch_comp(ctx, c, comp);
     }
-    _glob_c_count = ctx->comp->elem_count;
 }
 
 
@@ -278,6 +275,59 @@ static void _charm_init_mesh_info(charm_ctx_t *ctx, YAML::Node node)
     ctx->msh = m;
 }
 
+
+
+
+bool _charm_init_yaml_check_version(std::string v)
+{
+    std::vector<int> ver, cver;
+    std::string delimiter = ".";
+
+    size_t pos = 0;
+    std::string token;
+    while ((pos = v.find(delimiter)) != std::string::npos) {
+        token = v.substr(0, pos);
+        ver.push_back(std::stoi(token));
+        v.erase(0, pos + delimiter.length());
+    }
+    ver.push_back(std::stoi(v));
+
+    pos = 0;
+    std::string cv = YAML_VERSION;
+    while ((pos = cv.find(delimiter)) != std::string::npos) {
+        token = cv.substr(0, pos);
+        cver.push_back(std::stoi(token));
+        cv.erase(0, pos + delimiter.length());
+    }
+    cver.push_back(std::stoi(cv));
+
+    if (ver.size() != cver.size()) {
+        return false;
+    }
+    if (ver[0] > cver[0]) {
+        return true;
+    }
+    else if (ver[0] == cver[0]) {
+        if (ver[1] > cver[1]) {
+            return true;
+        }
+        else if (ver[1] == cver[1]) {
+            if (ver[2] >= cver[2]) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
+    }
+    else {
+        return false;
+    }
+}
+
 extern "C" void charm_init_context_yaml(charm_ctx_t *ctx);
 
 void charm_init_context_yaml(charm_ctx_t *ctx)
@@ -285,6 +335,18 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
     std::string str;
     try {
         YAML::Node config = YAML::LoadFile("task.yaml");
+        str = config["method"].as<std::string>();
+        if (str != "CHARM_3D") {
+            throw YAML::Exception(YAML::Mark::null_mark(), "Method name must be 'CHARM_3D'");
+        }
+        
+        str = config["version"].as<std::string>();
+
+        if (!_charm_init_yaml_check_version(str)) {
+            throw YAML::Exception(YAML::Mark::null_mark(), "Wrong YAML version. Must be "+std::string(YAML_VERSION)+" or higher.");
+        }
+
+
         YAML::Node control = config["control"];
 
         str = control["FLUX_TYPE"].as<std::string>();
@@ -329,15 +391,9 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
         ctx->CFL                    = control["CFL"].as<charm_real_t>();
         ctx->time                   = control["TMAX"].as<charm_real_t>();
 
-        YAML::Node comps = config["components"];
 
-        _charm_init_bnd(ctx, config["boundaries"]);
-
-
-
-
-        _charm_init_bnd(       ctx, config["boundaries"]);
         _charm_init_comps(     ctx, config["components"]);
+        _charm_init_bnd(       ctx, config["boundaries"]);
         _charm_init_mat(       ctx, config["materials"]);
         _charm_init_reg(       ctx, config["regions"]);
         _charm_init_mesh_info( ctx, config["mesh"]);
@@ -362,7 +418,7 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
 
     }
     catch(YAML::Exception &e) {
-        std::cout << "Error: " << e.msg << std::endl;
+        std::cout << "Error (YAML): " << e.msg << std::endl;
         exit(1);
     }
 
