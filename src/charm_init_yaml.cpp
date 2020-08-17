@@ -18,11 +18,13 @@
 void charm_model_ns_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yaml);
 void charm_model_euler_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yaml);
 
+static charm_int_t _glob_c_count = 1;
+
 static void _charm_init_fetch_bnd(YAML::Node node, charm_bnd_t *bnd)
 {
     YAML::Node n2, n3;
     charm_int_t i;
-    charm_int_t c_count = charm_get_comp_count(charm_get_p4est());
+    charm_int_t c_count = _glob_c_count;
     strcpy(bnd->name, node["name"].as<std::string>().c_str());
 
     bnd->type = charm_bnd_type_by_name(node["type"].as<std::string>().c_str());
@@ -162,6 +164,7 @@ static void _charm_init_comps(charm_ctx_t *ctx, YAML::Node node)
         auto comp = (charm_comp_t *) sc_array_push(ctx->comp);
         _charm_init_fetch_comp(c, comp);
     }
+    _glob_c_count = ctx->comp->elem_count;
 }
 
 
