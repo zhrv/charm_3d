@@ -259,6 +259,7 @@ extern const char *charm_turb_models[];
 #endif
 
 typedef enum {
+    TURB_MODEL_SA,
     TURB_MODEL_SST,
     TURB_MODEL_UNKNOWN
 } charm_turb_models_t;
@@ -348,7 +349,18 @@ typedef struct charm_ctx
                     } sst;
 
                     struct {
-                        double a1;
+                        charm_real_t sigma;
+                        charm_real_t kappa;
+                        charm_real_t cb1;
+                        charm_real_t cb2;
+                        charm_real_t cw1;
+                        charm_real_t cw2;
+                        charm_real_t cw3;
+                        charm_real_t cv1;
+                        charm_real_t ct1;
+                        charm_real_t ct2;
+                        charm_real_t ct3;
+                        charm_real_t ct4;
                     } sa;
                 } param;
             } turb;

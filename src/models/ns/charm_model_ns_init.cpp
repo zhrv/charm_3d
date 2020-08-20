@@ -13,6 +13,7 @@
 #include <cstdlib>
 
 extern "C" {
+    void charm_model_ns_turb_sa (p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
     void charm_model_ns_turb_sst(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 }
 
@@ -104,6 +105,23 @@ void _charm_model_ns_turb_sst_fetch_param(charm_ctx_t *ctx, YAML::Node par)
 }
 
 
+void _charm_model_ns_turb_sa_fetch_param(charm_ctx_t *ctx, YAML::Node par)
+{
+    ctx->model.ns.turb.param.sa.sigma   = par["sigma"].as<charm_real_t>();
+    ctx->model.ns.turb.param.sa.kappa   = par["kappa "].as<charm_real_t>();
+    ctx->model.ns.turb.param.sa.cb1     = par["cb1"].as<charm_real_t>();
+    ctx->model.ns.turb.param.sa.cb2     = par["cb2"].as<charm_real_t>();
+    ctx->model.ns.turb.param.sa.cw1     = par["cw1"].as<charm_real_t>();
+    ctx->model.ns.turb.param.sa.cw2     = par["cw2"].as<charm_real_t>();
+    ctx->model.ns.turb.param.sa.cw3     = par["cw3"].as<charm_real_t>();
+    ctx->model.ns.turb.param.sa.cv1     = par["cv1"].as<charm_real_t>();
+    ctx->model.ns.turb.param.sa.ct1     = par["ct1"].as<charm_real_t>();
+    ctx->model.ns.turb.param.sa.ct2     = par["ct2"].as<charm_real_t>();
+    ctx->model.ns.turb.param.sa.ct3     = par["ct3"].as<charm_real_t>();
+    ctx->model.ns.turb.param.sa.ct4     = par["ct4"].as<charm_real_t>();
+}
+
+
 static void _charm_model_ns_turb_init(charm_ctx_t *ctx, YAML::Node node)
 {
     ctx->model.ns.turb.model_type = _charm_turb_model_by_name(node["model"].as<std::string>().c_str());
@@ -111,6 +129,13 @@ static void _charm_model_ns_turb_init(charm_ctx_t *ctx, YAML::Node node)
         case TURB_MODEL_SST:
             ctx->model.ns.turb.model_fn = charm_model_ns_turb_sst;
             _charm_model_ns_turb_sst_fetch_param(ctx, node["parameters"]);
+            break;
+        case TURB_MODEL_SA:
+            ctx->model.ns.turb.model_fn = charm_model_ns_turb_sa;
+            _charm_model_ns_turb_sa_fetch_param(ctx, node["parameters"]);
+            break;
+        default:
+            ctx->model.ns.turb.model_fn = NULL;
             break;
     }
 }
