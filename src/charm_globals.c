@@ -21,6 +21,7 @@ const char *charm_bnd_types[] ={
 };
 
 const char *charm_turb_models[] ={
+        "SA",
         "SST",
         NULL
 };
