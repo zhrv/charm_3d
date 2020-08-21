@@ -91,6 +91,18 @@ void charm_bnd_cond_fn_symmetry(charm_prim_t *par_in, charm_prim_t *par_out, int
 }
 
 
+void charm_bnd_cond_fn_freestream(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
+{
+    //@todo
+}
+
+
+void charm_bnd_cond_fn_pressure(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
+{
+    //@todo
+}
+
+
 // @todo
 void charm_bnd_cond_fn_wall_no_slip(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
 {
