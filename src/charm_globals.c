@@ -17,6 +17,8 @@ const char *charm_bnd_types[] ={
         "BOUND_WALL_NO_SLIP",
         "BOUND_MASS_FLOW",
         "BOUND_SYMMETRY",
+        "BOUND_FREE_STREAM",
+        "BOUND_PRESSURE",
         NULL
 };
 

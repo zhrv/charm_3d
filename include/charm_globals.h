@@ -271,6 +271,8 @@ typedef enum {
     BOUND_WALL_NO_SLIP,
     BOUND_MASS_FLOW,
     BOUND_SYMMETRY,
+    BOUND_FREE_STREAM,
+    BOUND_PRESSURE,
     BOUND_UNKNOWN
 } charm_bnd_types_t;
 

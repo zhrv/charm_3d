@@ -93,13 +93,37 @@ void charm_bnd_cond_fn_symmetry(charm_prim_t *par_in, charm_prim_t *par_out, int
 
 void charm_bnd_cond_fn_freestream(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
 {
+    p4est_t      *p4est = charm_get_p4est();
+    charm_int_t   c_count = charm_get_comp_count(p4est);
+    charm_real_t  parM    = param[0];
+    charm_real_t  parP    = param[1];
+    charm_real_t  parT    = param[2];
+    charm_real_t  parCosX = param[3];
+    charm_real_t  parCosY = param[4];
+    charm_real_t  parCosZ = param[5];
+    charm_real_t *parC = CHARM_ALLOC(charm_real_t, c_count);
+
+    memcpy(parC, &(param[6]), sizeof(charm_real_t)*c_count);
+
     //@todo
+
+    CHARM_FREE(parC);
 }
 
 
 void charm_bnd_cond_fn_pressure(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
 {
+    p4est_t      *p4est = charm_get_p4est();
+    charm_int_t   c_count = charm_get_comp_count(p4est);
+    charm_real_t  parP = param[0];
+    charm_real_t  parT = param[1];
+    charm_real_t *parC = CHARM_ALLOC(charm_real_t, c_count);
+
+    memcpy(parC, &(param[2]), sizeof(charm_real_t)*c_count);
+
     //@todo
+
+    CHARM_FREE(parC);
 }
 
 
