@@ -24,7 +24,7 @@ void charm_bnd_cond_fn_wall_no_slip(charm_prim_t *par_in, charm_prim_t *par_out,
 void charm_bnd_cond_fn_symmetry(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t *param,
                                 charm_real_t n[CHARM_DIM]);
 
-void charm_bnd_cond_fn_freestream(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t *param,
+void charm_bnd_cond_fn_free_stream(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t *param,
                                 charm_real_t n[CHARM_DIM]);
 
 void charm_bnd_cond_fn_pressure(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t *param,
