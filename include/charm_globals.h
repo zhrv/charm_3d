@@ -173,10 +173,16 @@ typedef struct charm_param
             charm_real_t d[CHARM_MAX_COMPONETS_COUNT];
             charm_real_t chem_rhs;
             struct {
-                charm_real_t k;
-                charm_real_t w;
                 charm_real_t mu_t;
-
+                union {
+                    struct {
+                        charm_real_t nu;
+                    } sa;
+                    struct {
+                        charm_real_t k;
+                        charm_real_t w;
+                    } sst;
+                } model;
             } turb;
         } ns;
     } model;
