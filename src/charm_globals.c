@@ -17,6 +17,8 @@ const char *charm_bnd_types[] ={
         "BOUND_WALL_NO_SLIP",
         "BOUND_MASS_FLOW",
         "BOUND_SYMMETRY",
+        "BOUND_FREE_STREAM",
+        "BOUND_PRESSURE",
         NULL
 };
 
@@ -259,6 +261,12 @@ void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src)
     dest->cv     = src->cv;
     dest->gam    = src->gam;
     memcpy(dest->c, src->c, CHARM_MAX_COMPONETS_COUNT*sizeof(charm_real_t));
+}
+
+
+charm_real_t charm_prim_vel_mag(charm_prim_t * prim)
+{
+    return sqrt(prim->u*prim->u+prim->v*prim->v+prim->w*prim->w);
 }
 
 
@@ -681,4 +689,5 @@ charm_real_t charm_comp_calc_enthalpy(charm_comp_t * comp, charm_real_t t)
     }
     return h;
 }
+
 

@@ -78,6 +78,49 @@ static void _charm_init_fetch_bnd(charm_ctx_t *ctx, YAML::Node node, charm_bnd_t
             }
 
             break;
+        case BOUND_FREE_STREAM: // @todo
+            bnd->bnd_fn = charm_bnd_cond_fn_free_stream;
+            n2 = node["parameters"];
+            bnd->params = CHARM_ALLOC(charm_real_t, 7+c_count);
+            bnd->params[0] = n2["M"].as<charm_real_t>();
+            bnd->params[1] = n2["P"].as<charm_real_t>();
+            bnd->params[2] = n2["T"].as<charm_real_t>();
+            bnd->params[3] = n2["R"].as<charm_real_t>();
+            bnd->params[4] = n2["CosX"].as<charm_real_t>();
+            bnd->params[5] = n2["CosY"].as<charm_real_t>();
+            bnd->params[6] = n2["CosZ"].as<charm_real_t>();
+            n3 = n2["components"];
+            i = 7;
+            for (auto it : n3) {
+                if (i > 7+c_count) { //@todo
+                    CHARM_LERRORF("BOUND_MASS_FLOW: Too many components specified. Must be %d\n", c_count);
+                }
+                bnd->params[i++] = it.as<charm_real_t>();
+            }
+            if (i < 7+c_count) {
+                CHARM_LERRORF("BOUND_MASS_FLOW: Too few components specified. Must be %d\n", c_count);
+            }
+
+            break;
+        case BOUND_PRESSURE: // @todo
+            bnd->bnd_fn = charm_bnd_cond_fn_pressure;
+            n2 = node["parameters"];
+            bnd->params = CHARM_ALLOC(charm_real_t, 2+c_count);
+            bnd->params[0] = n2["P"].as<charm_real_t>();
+            bnd->params[1] = n2["T"].as<charm_real_t>();
+            n3 = n2["components"];
+            i = 2;
+            for (auto it : n3) {
+                if (i > 2+c_count) { //@todo
+                    CHARM_LERRORF("BOUND_MASS_FLOW: Too many components specified. Must be %d\n", c_count);
+                }
+                bnd->params[i++] = it.as<charm_real_t>();
+            }
+            if (i < 2+c_count) {
+                CHARM_LERRORF("BOUND_MASS_FLOW: Too few components specified. Must be %d\n", c_count);
+            }
+
+            break;
         case BOUND_UNKNOWN: // @todo
         default:
             CHARM_LERRORF("Unknown boundary type %s\n", bnd->name);
