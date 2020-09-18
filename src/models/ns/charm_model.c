@@ -7,7 +7,6 @@
 #include "charm_base_func.h"
 #include "charm_fluxes.h"
 #include "charm_bnd_cond.h"
-#include "charm_globals.h"
 #include "charm_limiter.h"
 #include "charm_amr.h"
 

@@ -1,4 +1,5 @@
 #include "charm_globals.h"
+#include "charm_base_func.h"
 
 
 
@@ -76,7 +77,7 @@ static void _charm_model_ns_turb_sst_surface_int_iter_bnd(p4est_iter_face_info_t
         gj = udata->par.g.face_gj[face][igp];
         charm_get_fields(udata, x, &cons);
         charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
-        charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
+        // TODO charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
         ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qe, qc, n); /* flux from side 0 to side 1 */
         for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
             if (!side[0]->is.full.is_ghost) {
