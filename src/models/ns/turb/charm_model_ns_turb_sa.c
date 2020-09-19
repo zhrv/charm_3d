@@ -16,9 +16,9 @@ static void _charm_model_ns_turb_sa_params(p4est_t * p4est, p4est_ghost_t * ghos
 static void _charm_model_ns_turb_sa_grad_zero_quad_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t *data = (charm_data_t *) info->quad->p.user_data;
-    data->par.model.ns.turb.model.sa.grad_nu[0] = 0.;
-    data->par.model.ns.turb.model.sa.grad_nu[1] = 0.;
-    data->par.model.ns.turb.model.sa.grad_nu[2] = 0.;
+    data->par.model.ns.turb.model.sa.grad_nu_[0] = 0.;
+    data->par.model.ns.turb.model.sa.grad_nu_[1] = 0.;
+    data->par.model.ns.turb.model.sa.grad_nu_[2] = 0.;
 }
 
 
@@ -26,14 +26,14 @@ static void _charm_model_ns_turb_sa_grad_update_quad_iter_fn(p4est_iter_volume_i
 {
     charm_data_t *data = (charm_data_t *) info->quad->p.user_data;
     charm_real_t volume = data->par.g.volume;
-    data->par.model.ns.turb.model.sa.grad_nu[0] /= volume;
-    data->par.model.ns.turb.model.sa.grad_nu[1] /= volume;
-    data->par.model.ns.turb.model.sa.grad_nu[2] /= volume;
+    data->par.model.ns.turb.model.sa.grad_nu_[0] /= volume;
+    data->par.model.ns.turb.model.sa.grad_nu_[1] /= volume;
+    data->par.model.ns.turb.model.sa.grad_nu_[2] /= volume;
 }
 
 
 static void _charm_model_ns_turb_sa_grad_surface_int_iter_bnd(p4est_iter_face_info_t * info, void *user_data)
-{
+{/* TODO
     int i;
     p4est_t                    *p4est = info->p4est;
     charm_ctx_t                *ctx = charm_get_ctx(p4est);
@@ -74,7 +74,7 @@ static void _charm_model_ns_turb_sa_grad_surface_int_iter_bnd(p4est_iter_face_in
     charm_quad_get_center(udata, c[0]);
     charm_face_get_center(udata, face, c[1]);
 
-    int_nu = &(udata->par.model.ns.turb.model.sa.int_nu);
+    int_nu = &(udata->par.model.ns.turb.model.sa.int_nu_);
 
     for (i = 0; i < 3; i++) {
         l[i] = c[1][i] - c[0][i];
@@ -89,14 +89,14 @@ static void _charm_model_ns_turb_sa_grad_surface_int_iter_bnd(p4est_iter_face_in
     {
         x = udata->par.g.fc[face];
         s = udata->par.g.area[face];
-        nu_[0] = udata->par.model.ns.turb.model.sa.nu;
+        nu_[0] = udata->par.model.ns.turb.model.sa.nu_;
         if (!side[0]->is.full.is_ghost) {
 
             *int_nu += qu * s;
         }
 
     }
-}
+*/}
 
 
 static void _charm_model_ns_turb_sa_grad_surface_int_iter_inner(p4est_iter_face_info_t * info, void *user_data)
@@ -168,22 +168,22 @@ static void _charm_model_ns_turb_sa_grad_surface_int_iter_inner(p4est_iter_face_
             s = charm_face_get_area(udata[h_side], face[h_side]);
             qu = 0.;
             for (i = 0; i < 2; i++) {
-                qu += udata[i]->par.model.ns.turb.model.sa.nu;
+                qu += udata[i]->par.model.ns.turb.model.sa.nu_;
             }
             qu *= 0.5;
             for (i = 0; i < 2; i++) {
                 if (i == h_side) {
                     if (!side[i]->is.hanging.is_ghost[j]) {
-                        udata[i]->par.model.ns.turb.model.sa.grad_nu[0] += qu * (i ? -1. : 1.) * s * n[0];
-                        udata[i]->par.model.ns.turb.model.sa.grad_nu[1] += qu * (i ? -1. : 1.) * s * n[1];
-                        udata[i]->par.model.ns.turb.model.sa.grad_nu[2] += qu * (i ? -1. : 1.) * s * n[2];
+                        udata[i]->par.model.ns.turb.model.sa.grad_nu_[0] += qu * (i ? -1. : 1.) * s * n[0];
+                        udata[i]->par.model.ns.turb.model.sa.grad_nu_[1] += qu * (i ? -1. : 1.) * s * n[1];
+                        udata[i]->par.model.ns.turb.model.sa.grad_nu_[2] += qu * (i ? -1. : 1.) * s * n[2];
                     }
                 }
                 else {
                     if (!side[i]->is.full.is_ghost) {
-                        udata[i]->par.model.ns.turb.model.sa.grad_nu[0] += qu * (i ? -1. : 1.) * s * n[0];
-                        udata[i]->par.model.ns.turb.model.sa.grad_nu[1] += qu * (i ? -1. : 1.) * s * n[1];
-                        udata[i]->par.model.ns.turb.model.sa.grad_nu[2] += qu * (i ? -1. : 1.) * s * n[2];
+                        udata[i]->par.model.ns.turb.model.sa.grad_nu_[0] += qu * (i ? -1. : 1.) * s * n[0];
+                        udata[i]->par.model.ns.turb.model.sa.grad_nu_[1] += qu * (i ? -1. : 1.) * s * n[1];
+                        udata[i]->par.model.ns.turb.model.sa.grad_nu_[2] += qu * (i ? -1. : 1.) * s * n[2];
                     }
                 }
             }
@@ -217,15 +217,15 @@ static void _charm_model_ns_turb_sa_grad_surface_int_iter_inner(p4est_iter_face_
         s = charm_face_get_area(udata[0], face[0]);
         qu = 0.;
         for (i = 0; i < 2; i++) {
-            qu += udata[i]->par.model.ns.turb.model.sa.nu;
+            qu += udata[i]->par.model.ns.turb.model.sa.nu_;
         }
         qu *= 0.5;
 
         for (i = 0; i < 2; i++) {
             if (!side[i]->is.full.is_ghost) {
-                udata[i]->par.model.ns.turb.model.sa.grad_nu[0] += qu * (i ? -1. : 1.) * s * n[0];
-                udata[i]->par.model.ns.turb.model.sa.grad_nu[1] += qu * (i ? -1. : 1.) * s * n[1];
-                udata[i]->par.model.ns.turb.model.sa.grad_nu[2] += qu * (i ? -1. : 1.) * s * n[2];
+                udata[i]->par.model.ns.turb.model.sa.grad_nu_[0] += qu * (i ? -1. : 1.) * s * n[0];
+                udata[i]->par.model.ns.turb.model.sa.grad_nu_[1] += qu * (i ? -1. : 1.) * s * n[1];
+                udata[i]->par.model.ns.turb.model.sa.grad_nu_[2] += qu * (i ? -1. : 1.) * s * n[2];
             }
         }
     }
@@ -253,16 +253,23 @@ static void _charm_model_ns_turb_sa_grad_surface_int_iter_fn(p4est_iter_face_inf
 
 static void _charm_model_ns_turb_sa_zero_quad_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
+    ((charm_data_t *) info->quad->p.user_data)->par.model.ns.turb.model.sa.int_nu_ = 0.;
 }
 
 
 static void _charm_model_ns_turb_sa_update_quad_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
+    charm_data_t       *data = charm_get_quad_data(info->quad);
+    charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
+    charm_real_t              dt = *((charm_real_t *) user_data);
+    int                 i, j;
+
+    data->par.model.ns.turb.model.sa.nu_ -= _NORM_(dt * data->par.model.ns.turb.model.sa.int_nu_);
 }
 
 
 static void _charm_model_ns_turb_sa_surface_int_iter_bnd(p4est_iter_face_info_t * info, void *user_data)
-{
+{/* TODO
     int i;
     p4est_t *p4est = info->p4est;
     charm_ctx_t * ctx = charm_get_ctx(p4est);
@@ -325,7 +332,7 @@ static void _charm_model_ns_turb_sa_surface_int_iter_bnd(p4est_iter_face_info_t 
         }
 
     }
-}
+*/}
 
 
 static void _charm_model_ns_turb_sa_surface_int_iter_inner(p4est_iter_face_info_t * info, void *user_data)
@@ -396,8 +403,8 @@ static void _charm_model_ns_turb_sa_surface_int_iter_inner(p4est_iter_face_info_
             charm_face_get_center(udata[h_side], face[h_side], x);
             s = charm_face_get_area(udata[h_side], face[h_side]);
             for (i = 0; i < 2; i++) {
-                nu_[i] = udata[i]->par.model.ns.turb.model.sa.nu;
-                int_nu[i] = &(udata[i]->par.model.ns.turb.model.sa.int_nu);
+                nu_[i] = udata[i]->par.model.ns.turb.model.sa.nu_;
+                int_nu[i] = &(udata[i]->par.model.ns.turb.model.sa.int_nu_);
             }
             qu = 0.; // TODO
             for (i = 0; i < 2; i++) {
@@ -441,8 +448,8 @@ static void _charm_model_ns_turb_sa_surface_int_iter_inner(p4est_iter_face_info_
         charm_face_get_center(udata[0], face[0], x);
         s = charm_face_get_area(udata[0], face[0]);
         for (i = 0; i < 2; i++) {
-            nu_[i] = udata[i]->par.model.ns.turb.model.sa.nu;
-            int_nu[i] = &(udata[i]->par.model.ns.turb.model.sa.int_nu);
+            nu_[i] = udata[i]->par.model.ns.turb.model.sa.nu_;
+            int_nu[i] = &(udata[i]->par.model.ns.turb.model.sa.int_nu_);
         }
         qu = 0.; // TODO
 
@@ -471,52 +478,37 @@ static void _charm_model_ns_turb_sa_surface_int_iter_fn(p4est_iter_face_info_t *
 
 void charm_model_ns_turb_sa(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data)
 {
+    charm_ctx_t    *ctx = charm_get_ctx(p4est);
+    charm_real_t    dt = ctx->get_dt_fn(p4est);
+
     _charm_model_ns_turb_sa_params(p4est, ghost, ghost_data);
 
     // calc gradients
 
-    p4est_iterate (p4est,
-                   ghost,
-                   (void *) ghost_data,
-                   _charm_model_ns_turb_sa_grad_zero_quad_iter_fn,
-                   NULL, NULL, NULL);
+    p4est_iterate (p4est, ghost, (void *) ghost_data,
+                   _charm_model_ns_turb_sa_grad_zero_quad_iter_fn, NULL, NULL, NULL);
 
-    p4est_iterate (p4est,
-                   ghost,
-                   (void *) ghost_data,
-                   NULL,
-                   _charm_model_ns_turb_sa_grad_surface_int_iter_fn,
-                   NULL, NULL);
+    p4est_iterate (p4est, ghost, (void *) ghost_data,
+                   NULL, _charm_model_ns_turb_sa_grad_surface_int_iter_fn, NULL, NULL);
 
-    p4est_iterate (p4est, NULL,
-                   NULL,
-                   _charm_model_ns_turb_sa_grad_update_quad_iter_fn,
-                   NULL, NULL, NULL);
+    p4est_iterate (p4est, NULL, NULL,
+                   _charm_model_ns_turb_sa_grad_update_quad_iter_fn, NULL, NULL, NULL);
 
-    p4est_ghost_exchange_data (p4est, ghost, ghost_data); /* synchronize the ghost data */
+    p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 
 
     // calc main equation
 
-    p4est_iterate (p4est,
-                   ghost,
-                   (void *) ghost_data,
-                   _charm_model_ns_turb_sa_zero_quad_iter_fn,
-                   NULL, NULL, NULL);
+    p4est_iterate (p4est, ghost, (void *) ghost_data,
+                   _charm_model_ns_turb_sa_zero_quad_iter_fn, NULL, NULL, NULL);
 
-    p4est_iterate (p4est,
-                   ghost,
-                   (void *) ghost_data,
-                   NULL,
-                   _charm_model_ns_turb_sa_surface_int_iter_fn,
-                   NULL, NULL);
+    p4est_iterate (p4est, ghost, (void *) ghost_data,
+                   NULL, _charm_model_ns_turb_sa_surface_int_iter_fn, NULL, NULL);
 
-    p4est_iterate (p4est, NULL,
-                   NULL,
-                   _charm_model_ns_turb_sa_update_quad_iter_fn,
-                   NULL, NULL, NULL);
+    p4est_iterate (p4est, NULL, (void *) &dt,
+                   _charm_model_ns_turb_sa_update_quad_iter_fn, NULL, NULL, NULL);
 
-    p4est_ghost_exchange_data (p4est, ghost, ghost_data); /* synchronize the ghost data */
+    p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 
 }
 
