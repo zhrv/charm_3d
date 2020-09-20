@@ -177,9 +177,10 @@ typedef struct charm_param
                 union {
                     struct {
                         charm_real_t nu_; // nu with tilde
-                        charm_real_t grad_nu_[3];
+                        charm_real_t grad_nu_[CHARM_DIM];
                         charm_real_t nu; // kinematic viscosity
                         charm_real_t int_nu_;
+                        charm_real_t grad_u[CHARM_DIM][CHARM_DIM];
                     } sa;
                     struct {
                         charm_real_t k;
