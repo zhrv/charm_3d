@@ -5,10 +5,7 @@
 #include <p8est_iterate.h>
 #include <charm_globals.h>
 #include "charm_base_func.h"
-#include "charm_fluxes.h"
-#include "charm_bnd_cond.h"
 #include "charm_limiter.h"
-#include "charm_amr.h"
 
 
 void charm_model_ns_timestep_conv(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
@@ -18,7 +15,7 @@ void charm_model_ns_timestep_diffusion(p4est_t * p4est, p4est_ghost_t * ghost, c
 void charm_model_ns_geom_calc(p4est_t *p4est);
 
 
-static void _charm_model_ns_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+static void charm_model_ns_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_real_t         *dt = (charm_real_t*) user_data;
     charm_data_t   *data = charm_get_quad_data(info->quad);
@@ -50,7 +47,7 @@ charm_real_t charm_model_ns_get_dt (p4est_t * p4est)
     loc_dt = ctx->dt;
     p4est_iterate (p4est, NULL,
                    (void *) &loc_dt,
-                   _charm_model_ns_timestep_min_dt_quad_iter_fn,
+                   charm_model_ns_timestep_min_dt_quad_iter_fn,
                    NULL, NULL, NULL);
 
     mpiret = sc_MPI_Allreduce (&loc_dt, &glob_dt, 1, sc_MPI_DOUBLE, sc_MPI_MIN, p4est->mpicomm);
@@ -113,7 +110,7 @@ static void charm_model_ns_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t 
 }
 
 
-static void _charm_model_ns_timestep_rk_0(p4est_iter_volume_info_t * info, void *user_data)
+static void charm_model_ns_timestep_rk_0(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     int                 i, j;
@@ -130,7 +127,7 @@ static void _charm_model_ns_timestep_rk_0(p4est_iter_volume_info_t * info, void 
 }
 
 
-static void _charm_model_ns_timestep_rk_1(p4est_iter_volume_info_t * info, void *user_data)
+static void charm_model_ns_timestep_rk_1(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     int                 i, j;
@@ -154,7 +151,7 @@ static void _charm_model_ns_timestep_rk_1(p4est_iter_volume_info_t * info, void 
 }
 
 
-static void _charm_model_ns_timestep_rk_2(p4est_iter_volume_info_t * info, void *user_data)
+static void charm_model_ns_timestep_rk_2(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     int                 i, j;
@@ -257,13 +254,13 @@ void charm_model_ns_timestep_single(p4est_t * p4est, charm_real_t *dt, p4est_gho
                     p4est_ghost_exchange_data (p4est, ghost, ghost_data);           \
                     charm_limiter(p4est, ghost, ghost_data);
 
-    p4est_iterate (p4est, NULL, NULL, _charm_model_ns_timestep_rk_0, NULL, NULL, NULL);
+    p4est_iterate (p4est, NULL, NULL, charm_model_ns_timestep_rk_0, NULL, NULL, NULL);
     CHARM_RUNGE_KUTTA_STEP()
     p4est_ghost_exchange_data (p4est, ghost, ghost_data);
     CHARM_RUNGE_KUTTA_STEP()
-    p4est_iterate (p4est, NULL, NULL, _charm_model_ns_timestep_rk_1, NULL, NULL, NULL);
+    p4est_iterate (p4est, NULL, NULL, charm_model_ns_timestep_rk_1, NULL, NULL, NULL);
     CHARM_RUNGE_KUTTA_STEP()
-    p4est_iterate (p4est, NULL, NULL, _charm_model_ns_timestep_rk_2, NULL, NULL, NULL);
+    p4est_iterate (p4est, NULL, NULL, charm_model_ns_timestep_rk_2, NULL, NULL, NULL);
     p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 
 #undef CHARM_RUNGE_KUTTA_STEP

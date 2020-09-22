@@ -3,7 +3,7 @@
 //
 #include <charm_globals.h>
 
-static void _charm_model_ns_geom_calc_face_iter_fn (p4est_iter_face_info_t * info, void *user_data)
+static void charm_model_ns_geom_calc_face_iter_fn (p4est_iter_face_info_t * info, void *user_data)
 {
     sc_array_t             *fc = user_data;
     sc_array_t             *sides = &(info->sides);
@@ -34,11 +34,11 @@ static void _charm_model_ns_geom_calc_face_iter_fn (p4est_iter_face_info_t * inf
 }
 
 
-static void _charm_model_ns_geom_calc_quad_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
+static void charm_model_ns_geom_calc_quad_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
     sc_array_t         *fc = user_data;
     charm_data_t       *data = charm_get_quad_data(info->quad);
-    int                 i, j;
+    int                 i;
     charm_real_t       *c;
     charm_real_t        l;
 
@@ -64,12 +64,12 @@ void charm_model_ns_geom_calc(p4est_t *p4est)
                    NULL,
                    (void *) fc,
                    NULL,
-                   _charm_model_ns_geom_calc_face_iter_fn,
+                   charm_model_ns_geom_calc_face_iter_fn,
                    NULL, NULL);
     p4est_iterate (p4est,
                    NULL,
                    (void *) fc,
-                   _charm_model_ns_geom_calc_quad_iter_fn,
+                   charm_model_ns_geom_calc_quad_iter_fn,
                    NULL, NULL, NULL);
     sc_array_destroy(fc);
 }

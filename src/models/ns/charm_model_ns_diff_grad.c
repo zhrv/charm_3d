@@ -4,11 +4,8 @@
 
 #include <p8est_iterate.h>
 #include "charm_base_func.h"
-#include "charm_fluxes.h"
 #include "charm_bnd_cond.h"
 #include "charm_globals.h"
-#include "charm_limiter.h"
-#include "charm_amr.h"
 
 
 charm_real_t charm_model_ns_get_visc_mu(p4est_t *p4est, charm_real_t *x, charm_data_t *data);
@@ -21,14 +18,14 @@ charm_real_t charm_model_ns_get_visc_lambda(p4est_t *p4est, charm_data_t *data);
  */
 
 
-static void _charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+static void charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     p4est_quadrant_t   *q = info->quad;
     charm_data_t       *data = charm_get_quad_data(q);
     int                 ibf, igp;
     charm_cons_t        c;
     charm_prim_t        p;
-    charm_real_t              phi_x, phi_y, phi_z, phi, tmp_qx, tmp_qy, tmp_qz;
+    charm_real_t              phi_x, phi_y, phi_z, tmp_qx, tmp_qy, tmp_qz;
     charm_real_t             *x;
     charm_real_t              lambda, mu, kt, lp, lm, h;
     int                 i;
@@ -82,11 +79,9 @@ static void _charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info
  */
 
 
-static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * info, void *user_data) {
+static void charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * info, void *user_data) {
     int i, ibf, igp;
     p4est_t *p4est = info->p4est;
-    charm_ctx_t * ctx = charm_get_ctx(p4est);
-    charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
     charm_real_t n[3];
     charm_real_t qxx, qyy, qzz, qxy, qxz, qyz, qtx, qty, qtz;
@@ -99,13 +94,11 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
 
     int8_t face;
     charm_real_t c[2][3], l[3];
-    charm_real_t r_[2], p_[2], u_[2], v_[2], w_[2], e_[2];
     charm_cons_t cons;
     charm_prim_t prim[2];
     charm_comp_t *comp;
     charm_real_t *x, gw, gj;
     charm_real_t lambda, mu, lp, lm, kt, fr, fc, h;
-    int j;
 
 
     CHARM_ASSERT(info->tree_boundary);
@@ -115,7 +108,6 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
 
     if (side[0]->is.full.is_ghost) {
         CHARM_ASSERT(0);
-        udata = &(ghost_data[side[0]->is.full.quadid]);
     } else {
         udata = charm_get_quad_data(side[0]->is.full.quad);
     }
@@ -200,11 +192,10 @@ static void _charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * 
 }
 
 
-static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t * info, void *user_data)
+static void charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t * info, void *user_data)
 {
-    int                     i, j, h_side, igp, ibf,cj;
+    int                     i, j, h_side, igp, ibf;
     p4est_t                *p4est = info->p4est;
-    charm_ctx_t            *ctx = charm_get_ctx(p4est);
     charm_data_t           *ghost_data = (charm_data_t *) user_data;
     charm_data_t           *udata[2];
     charm_real_t                  n[3];
@@ -432,21 +423,21 @@ static void _charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t 
     }
 }
 
-static void _charm_model_ns_diff_grad_surface_int_iter_fn (p4est_iter_face_info_t * info, void *user_data)
+static void charm_model_ns_diff_grad_surface_int_iter_fn (p4est_iter_face_info_t * info, void *user_data)
 {
     sc_array_t         *sides = &(info->sides);
 
     if (sides->elem_count != 2) {
-        _charm_model_ns_conv_surface_int_iter_bnd(info, user_data);
+        charm_model_ns_conv_surface_int_iter_bnd(info, user_data);
     }
     else {
-        _charm_model_ns_conv_surface_int_iter_inner(info, user_data);
+        charm_model_ns_conv_surface_int_iter_inner(info, user_data);
     }
 
 }
 
 
-static void _charm_model_ns_diff_grad_update_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+static void charm_model_ns_diff_grad_update_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
 
@@ -463,7 +454,7 @@ static void _charm_model_ns_diff_grad_update_quad_iter_fn (p4est_iter_volume_inf
 }
 
 
-static void _charm_model_ns_diff_grad_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+static void charm_model_ns_diff_grad_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     int                 i;
@@ -490,19 +481,19 @@ void charm_model_ns_timestep_diff_grad(p4est_t * p4est, p4est_ghost_t * ghost, c
     p4est_iterate (p4est,
                    ghost,
                    (void *) ghost_data,
-                   _charm_model_ns_diff_grad_zero_quad_iter_fn,
+                   charm_model_ns_diff_grad_zero_quad_iter_fn,
                    NULL, NULL, NULL);
 
     p4est_iterate (p4est,
                    ghost,
                    (void *) ghost_data,
-                   _charm_model_ns_diff_grad_volume_int_iter_fn,
-                   _charm_model_ns_diff_grad_surface_int_iter_fn,
+                   charm_model_ns_diff_grad_volume_int_iter_fn,
+                   charm_model_ns_diff_grad_surface_int_iter_fn,
                    NULL, NULL);
 
     p4est_iterate (p4est, NULL,
                    NULL,
-                   _charm_model_ns_diff_grad_update_quad_iter_fn,
+                   charm_model_ns_diff_grad_update_quad_iter_fn,
                    NULL, NULL, NULL);
 
 

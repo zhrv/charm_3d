@@ -7,7 +7,6 @@
 #include "charm_globals.h"
 #include "charm_eos.h"
 #include "charm_limiter.h"
-#include "charm_models.h"
 #include "yaml-cpp/yaml.h"
 #include <cstring>
 #include <cstdlib>
@@ -15,11 +14,11 @@
 
 #ifdef CHARM_CONFIG_YAML
 
-void charm_model_ns_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yaml);
+void charm_model_ns_init(charm_ctx_t *ctx, YAML::Node model_node, const YAML::Node &yaml);
 void charm_model_euler_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yaml);
 void charm_model_adv_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yaml);
 
-static void _charm_init_fetch_bnd(charm_ctx_t *ctx, YAML::Node node, charm_bnd_t *bnd)
+static void charm_init_fetch_bnd(charm_ctx_t *ctx, const YAML::Node &node, charm_bnd_t *bnd)
 {
     YAML::Node n2, n3;
     charm_int_t i;
@@ -131,18 +130,18 @@ static void _charm_init_fetch_bnd(charm_ctx_t *ctx, YAML::Node node, charm_bnd_t
 }
 
 
-static void _charm_init_bnd(charm_ctx_t *ctx, YAML::Node node)
+static void charm_init_bnd(charm_ctx_t *ctx, const YAML::Node &node)
 {
     ctx->bnd = sc_array_new(sizeof(charm_bnd_t));
     for (auto it : node) {
         auto bnd = (charm_bnd_t *) sc_array_push(ctx->bnd);
-        _charm_init_fetch_bnd(ctx, it, bnd);
+        charm_init_fetch_bnd(ctx, it, bnd);
     }
 
 }
 
 
-static void _charm_init_fetch_comp(charm_ctx_t *ctx, YAML::Node node, charm_comp_t *comp)
+static void charm_init_fetch_comp(charm_ctx_t *ctx, const YAML::Node &node, charm_comp_t *comp)
 {
     std::string str;
     comp->id = node["id"].as<int>();
@@ -202,17 +201,17 @@ static void _charm_init_fetch_comp(charm_ctx_t *ctx, YAML::Node node, charm_comp
 }
 
 
-static void _charm_init_comps(charm_ctx_t *ctx, YAML::Node node)
+static void charm_init_comps(charm_ctx_t *ctx, const YAML::Node &node)
 {
     ctx->comp = sc_array_new(sizeof(charm_comp_t));
     for (auto c : node) {
         auto comp = (charm_comp_t *) sc_array_push(ctx->comp);
-        _charm_init_fetch_comp(ctx, c, comp);
+        charm_init_fetch_comp(ctx, c, comp);
     }
 }
 
 
-static void _charm_init_fetch_mat(charm_ctx_t *ctx, YAML::Node node, charm_mat_t *mat)
+static void charm_init_fetch_mat(charm_ctx_t *ctx, const YAML::Node &node, charm_mat_t *mat)
 {
     std::string str;
     mat->id = node["id"].as<int>();
@@ -238,16 +237,16 @@ static void _charm_init_fetch_mat(charm_ctx_t *ctx, YAML::Node node, charm_mat_t
 }
 
 
-static void _charm_init_mat(charm_ctx_t *ctx, YAML::Node node)
+static void charm_init_mat(charm_ctx_t *ctx, const YAML::Node &node)
 {
     ctx->mat = sc_array_new(sizeof(charm_mat_t));
     for (auto it : node) {
         auto mat = (charm_mat_t *) sc_array_push(ctx->mat);
-        _charm_init_fetch_mat(ctx, it, mat);
+        charm_init_fetch_mat(ctx, it, mat);
     }
 }
 
-static void _charm_init_fetch_reg(charm_ctx_t *ctx, YAML::Node node, charm_reg_t *reg)
+static void charm_init_fetch_reg(charm_ctx_t *ctx, const YAML::Node &node, charm_reg_t *reg)
 {
     YAML::Node n1;
     int id, i;
@@ -297,17 +296,17 @@ static void _charm_init_fetch_reg(charm_ctx_t *ctx, YAML::Node node, charm_reg_t
 }
 
 
-static void _charm_init_reg(charm_ctx_t *ctx, YAML::Node node)
+static void charm_init_reg(charm_ctx_t *ctx, const YAML::Node &node)
 {
     ctx->reg = sc_array_new(sizeof(charm_reg_t));
     for (auto it : node) {
         auto reg = (charm_reg_t *) sc_array_push(ctx->reg);
-        _charm_init_fetch_reg(ctx, it, reg);
+        charm_init_fetch_reg(ctx, it, reg);
     }
 }
 
 
-static void _charm_init_mesh_info(charm_ctx_t *ctx, YAML::Node node)
+static void charm_init_mesh_info(charm_ctx_t *ctx, const YAML::Node &node)
 {
     charm_mesh_info_t *m;// = ctx->msh;
     std::string str;
@@ -325,7 +324,7 @@ static void _charm_init_mesh_info(charm_ctx_t *ctx, YAML::Node node)
 
 
 
-bool _charm_init_yaml_check_version(std::string v)
+bool charm_init_yaml_check_version(std::string v)
 {
     std::vector<int> ver, cver;
     std::string delimiter = ".";
@@ -389,7 +388,7 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
         
         str = config["version"].as<std::string>();
 
-        if (!_charm_init_yaml_check_version(str)) {
+        if (!charm_init_yaml_check_version(str)) {
             throw YAML::Exception(YAML::Mark::null_mark(), "Wrong YAML version. Must be "+std::string(YAML_VERSION)+" or higher.");
         }
 
@@ -439,11 +438,11 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
         ctx->time                   = control["TMAX"].as<charm_real_t>();
 
 
-        _charm_init_comps(     ctx, config["components"]);
-        _charm_init_bnd(       ctx, config["boundaries"]);
-        _charm_init_mat(       ctx, config["materials"]);
-        _charm_init_reg(       ctx, config["regions"]);
-        _charm_init_mesh_info( ctx, config["mesh"]);
+        charm_init_comps(     ctx, config["components"]);
+        charm_init_bnd(       ctx, config["boundaries"]);
+        charm_init_mat(       ctx, config["materials"]);
+        charm_init_reg(       ctx, config["regions"]);
+        charm_init_mesh_info( ctx, config["mesh"]);
 
         ctx->model.ns.use_visc = 0;
         YAML::Node model = control["MODEL"];

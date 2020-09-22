@@ -5,11 +5,6 @@
 #include <p8est_iterate.h>
 #include <charm_globals.h>
 #include "charm_base_func.h"
-#include "charm_fluxes.h"
-#include "charm_bnd_cond.h"
-#include "charm_globals.h"
-#include "charm_limiter.h"
-#include "charm_amr.h"
 
 void charm_model_ns_timestep_diff_grad(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 void charm_model_ns_timestep_diff_integrals(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
@@ -52,7 +47,7 @@ charm_real_t charm_model_ns_get_visc_lambda(p4est_t* p4est, charm_data_t* data)
 
 
 
-static void _charm_model_ns_timestep_diffusion_quad_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
+static void charm_model_ns_timestep_diffusion_quad_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_cons_t        cons;
@@ -111,7 +106,7 @@ void charm_model_ns_timestep_diffusion(p4est_t * p4est, p4est_ghost_t * ghost, c
     size_t c_count = charm_get_comp_count(p4est);
     if (c_count < 2) return;
     p4est_iterate (p4est, NULL, NULL,
-                   _charm_model_ns_timestep_diffusion_quad_iter_fn,
+                   charm_model_ns_timestep_diffusion_quad_iter_fn,
                    NULL, NULL, NULL);
     p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 }
