@@ -304,7 +304,6 @@ static void charm_model_ns_turb_sa_zero_quad_iter_fn(p4est_iter_volume_info_t * 
     charm_real_t volume;
     charm_real_t d = data->par.g.y;
     charm_real_t *grad_nu_ = data->par.model.ns.turb.model.sa.grad_nu_;
-    charm_real_t grad_u[CHARM_DIM][CHARM_DIM];
     charm_real_t *c;
     charm_cons_t cons;
     charm_prim_t prim;
