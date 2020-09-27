@@ -39,6 +39,8 @@ void charm_bnd_cond_fn_mass_flow(charm_prim_t *par_in, charm_prim_t *par_out, in
 
 charm_bnd_types_t charm_bnd_type_by_name(const char *name);
 
+charm_bnd_types_t charm_bnd_get_type(p4est_t* p4est, p4est_topidx_t treeid, int8_t face);
+
 #ifdef __cplusplus
 }
 #endif

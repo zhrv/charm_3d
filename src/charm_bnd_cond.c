@@ -7,6 +7,14 @@
 static charm_mat_t  *glob_mat;
 static charm_prim_t  prim_tmp;
 
+charm_bnd_types_t charm_bnd_get_type(p4est_t* p4est, p4est_topidx_t treeid, int8_t face) {
+    charm_ctx_t *ctx = charm_get_ctx(p4est);
+    charm_tree_attr_t *attr = charm_get_tree_attr(p4est, treeid);
+    charm_bnd_t *bnd = attr->bnd[face];
+    return bnd->type;
+}
+
+
 charm_bnd_types_t charm_bnd_type_by_name(const char* name) {
     int i = 0;
     while (charm_bnd_types[i] != NULL) {
