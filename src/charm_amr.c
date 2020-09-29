@@ -13,9 +13,9 @@ static charm_real_t charm_error_sqr_estimate (p4est_quadrant_t * q)
 {
     charm_data_t       *data = (charm_data_t *) q->p.user_data;
     int                 i;
-    charm_real_t              du[CHARM_DIM];
-    charm_real_t              vol = charm_quad_get_volume((charm_data_t *)q->p.user_data);
-    charm_real_t              diff2 = 0.;
+    charm_vector_t      du;
+    charm_real_t        vol = charm_quad_get_volume((charm_data_t *)q->p.user_data);
+    charm_real_t        diff2 = 0.;
 
     for (i = 0; i < CHARM_DIM; i++) {
         du[i] = data->par.a.grad_u[i];
@@ -347,7 +347,7 @@ void charm_adapt_init(p4est_t *p4est)
 }
 
 
-static void _charm_amr_par_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+static void charm_amr_par_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     int                 i;
@@ -359,7 +359,7 @@ static void _charm_amr_par_zero_quad_iter_fn (p4est_iter_volume_info_t * info, v
 
 
 
-static void _charm_amr_par_calc_face_iter_bnd (p4est_iter_face_info_t * info, void *user_data)
+static void charm_amr_par_calc_face_iter_bnd (p4est_iter_face_info_t * info, void *user_data)
 {
     int i, ibf, igp;
     p4est_t *p4est = info->p4est;
@@ -423,7 +423,7 @@ static void _charm_amr_par_calc_face_iter_bnd (p4est_iter_face_info_t * info, vo
 }
 
 
-static void _charm_amr_par_calc_face_iter_inner (p4est_iter_face_info_t * info, void *user_data)
+static void charm_amr_par_calc_face_iter_inner (p4est_iter_face_info_t * info, void *user_data)
 {
     int                     i, j, h_side, igp, ibf;
     p4est_t                *p4est = info->p4est;
@@ -549,19 +549,19 @@ static void _charm_amr_par_calc_face_iter_inner (p4est_iter_face_info_t * info, 
 }
 
 
-static void _charm_amr_par_calc_face_iter_fn (p4est_iter_face_info_t * info, void *user_data)
+static void charm_amr_par_calc_face_iter_fn (p4est_iter_face_info_t * info, void *user_data)
 {
     sc_array_t         *sides = &(info->sides);
 
     if (sides->elem_count != 2) {
-        _charm_amr_par_calc_face_iter_bnd(info, user_data);
+        charm_amr_par_calc_face_iter_bnd(info, user_data);
     }
     else {
-        _charm_amr_par_calc_face_iter_inner(info, user_data);
+        charm_amr_par_calc_face_iter_inner(info, user_data);
     }
 }
 
-static void _charm_amr_par_calc_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+static void charm_amr_par_calc_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     int                 i;
@@ -581,20 +581,20 @@ void charm_adapt(p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data)
     p4est_iterate (p4est,
                    ghost,
                    (void *) ghost_data,
-                   _charm_amr_par_zero_quad_iter_fn,
+                   charm_amr_par_zero_quad_iter_fn,
                    NULL, NULL, NULL);
 
     p4est_iterate (p4est,
                    ghost,
                    (void *) ghost_data,
                    NULL,
-                   _charm_amr_par_calc_face_iter_fn,
+                   charm_amr_par_calc_face_iter_fn,
                    NULL, NULL);
 
     p4est_iterate (p4est,
                    ghost,
                    (void *) ghost_data,
-                   _charm_amr_par_calc_quad_iter_fn,
+                   charm_amr_par_calc_quad_iter_fn,
                    NULL,
                    NULL, NULL);
 

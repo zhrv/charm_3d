@@ -98,7 +98,8 @@ static void charm_model_ns_turb_sa_update_quad_iter_fn(p4est_iter_volume_info_t 
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
     charm_real_t        dt = *((charm_real_t *) user_data);
-    charm_real_t        nut, fv1, xi, *c, nu, xi3;
+    charm_real_t        nut, fv1, xi, nu, xi3;
+    charm_point_t       c;
     charm_cons_t        cons;
     charm_prim_t        prim;
     int                 i, j;
@@ -173,10 +174,10 @@ static void charm_model_ns_turb_sa_surface_int_iter_bnd(p4est_iter_face_info_t *
         }
     }
 
-    charm_face_get_center(udata[0], face[0], x);
-    s = charm_face_get_area(udata[0], face[0]);
-    charm_get_fields(udata[i], x, &(cons[i]));
-    charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
+    x = c[1];
+    s = charm_face_get_area(udata, face);
+    charm_get_fields(udata, x, &cons);
+    charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
 
     un[0]       = prim[i].u*n[0]+prim[i].v*n[1]+prim[i].w*n[2];
     mu[0]       = charm_model_ns_get_visc_mu(p4est, x, udata);

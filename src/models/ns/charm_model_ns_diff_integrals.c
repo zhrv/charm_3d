@@ -117,7 +117,7 @@ static void charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * i
         charm_real_t un = scalar_prod(vv, n);
         charm_real_t vn[3] = {un*n[0], un*n[1], un*n[2]};
         charm_real_t vt[3] = {vv[0]-vn[0], vv[1]-vn[1], vv[2]-vn[2]};
-        charm_real_t ll = vect_length(l);
+        charm_real_t ll = vector_length(l);
         qu = -mu*vt[0]/ll;
         qv = -mu*vt[1]/ll;
         qw = -mu*vt[2]/ll;

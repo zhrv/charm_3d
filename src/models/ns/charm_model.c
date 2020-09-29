@@ -64,11 +64,11 @@ static void charm_model_ns_timestep_update_quad_iter_fn (p4est_iter_volume_info_
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
     charm_real_t              dt = *((charm_real_t *) user_data);
-    charm_real_t              rhs_ru[CHARM_BASE_FN_COUNT];
-    charm_real_t              rhs_rv[CHARM_BASE_FN_COUNT];
-    charm_real_t              rhs_rw[CHARM_BASE_FN_COUNT];
-    charm_real_t              rhs_re[CHARM_BASE_FN_COUNT];
-    charm_real_t              rhs_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];
+    charm_vect_t              rhs_ru;
+    charm_vect_t              rhs_rv;
+    charm_vect_t              rhs_rw;
+    charm_vect_t              rhs_re;
+    charm_vect_t              rhs_rc[CHARM_MAX_COMPONETS_COUNT];
     size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 

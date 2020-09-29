@@ -141,7 +141,7 @@ static void charm_model_ns_chem_iter_fn(p4est_iter_volume_info_t * info, void *u
     // TODO
     for (i = 0; i < c_count; i++) {
         comp = charm_get_comp(p4est, i);
-        memset(data->par.c.rc[i], 0, sizeof(charm_real_t)*CHARM_BASE_FN_COUNT);
+        memset(data->par.c.rc[i], 0, sizeof(charm_vect_t));
         data->par.c.rc[i][0] = chem_c_hat[i] * comp->m;
     }
 

@@ -485,7 +485,7 @@ void charm_calc_flux_hllc(p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu
             }
         }
     }
-    vect_prod(nt[0], nt[1], nt[2]);
+    vector_prod(nt[0], nt[1], nt[2]);
     for (i = 0; i < 2; i++) {
         vv[i][0] = u_[i];
         vv[i][1] = v_[i];

@@ -28,7 +28,7 @@ charm_bnd_types_t charm_bnd_type_by_name(const char* name) {
 
 
 void charm_bnd_cond(p4est_t* p4est, p4est_topidx_t treeid, int8_t face,
-                    charm_prim_t *par_in, charm_prim_t *par_out, charm_real_t n[CHARM_DIM])
+                    charm_prim_t *par_in, charm_prim_t *par_out, charm_vector_t n)
 {
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     charm_tree_attr_t *attr = charm_get_tree_attr(p4est, treeid);
@@ -42,7 +42,7 @@ void charm_bnd_cond(p4est_t* p4est, p4est_topidx_t treeid, int8_t face,
 }
 
 
-void charm_bnd_cond_fn_inlet(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
+void charm_bnd_cond_fn_inlet(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_vector_t n)
 {
     CHARM_ASSERT(param);
 
@@ -56,32 +56,13 @@ void charm_bnd_cond_fn_inlet(charm_prim_t *par_in, charm_prim_t *par_out, int8_t
 }
 
 
-void charm_bnd_cond_fn_outlet(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
+void charm_bnd_cond_fn_outlet(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_vector_t n)
 {
     charm_prim_cpy(par_out, par_in);
 }
 
 
-void charm_bnd_cond_fn_wall_slip(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
-{
-    int i;
-    charm_real_t  v[3] = {par_in->u, par_in->v, par_in->w};
-
-    charm_prim_cpy(par_out, par_in);
-
-    charm_real_t   svn = scalar_prod( v, n );
-    charm_real_t   vv[3] = {n[0]*svn, n[1]*svn, n[2]*svn};
-    for (i = 0; i < 3; i++) {
-        v[i] -= vv[i];
-        v[i] -= vv[i];
-    }
-    par_out->u = v[0];
-    par_out->v = v[1];
-    par_out->w = v[2];
-}
-
-
-void charm_bnd_cond_fn_symmetry(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
+void charm_bnd_cond_fn_wall_slip(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_vector_t n)
 {
     int i;
     charm_real_t  v[3] = {par_in->u, par_in->v, par_in->w};
@@ -100,7 +81,26 @@ void charm_bnd_cond_fn_symmetry(charm_prim_t *par_in, charm_prim_t *par_out, int
 }
 
 
-void charm_bnd_cond_fn_free_stream(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
+void charm_bnd_cond_fn_symmetry(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_vector_t n)
+{
+    int i;
+    charm_real_t  v[3] = {par_in->u, par_in->v, par_in->w};
+
+    charm_prim_cpy(par_out, par_in);
+
+    charm_real_t   svn = scalar_prod( v, n );
+    charm_real_t   vv[3] = {n[0]*svn, n[1]*svn, n[2]*svn};
+    for (i = 0; i < 3; i++) {
+        v[i] -= vv[i];
+        v[i] -= vv[i];
+    }
+    par_out->u = v[0];
+    par_out->v = v[1];
+    par_out->w = v[2];
+}
+
+
+void charm_bnd_cond_fn_free_stream(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_vector_t n)
 {
     p4est_t      *p4est = charm_get_p4est();
     charm_int_t   c_count = charm_get_comp_count(p4est);
@@ -177,7 +177,7 @@ void charm_bnd_cond_fn_free_stream(charm_prim_t *par_in, charm_prim_t *par_out, 
 }
 
 
-void charm_bnd_cond_fn_pressure(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
+void charm_bnd_cond_fn_pressure(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_vector_t n)
 {
     p4est_t      *p4est = charm_get_p4est();
     charm_int_t   c_count = charm_get_comp_count(p4est);
@@ -205,7 +205,7 @@ void charm_bnd_cond_fn_pressure(charm_prim_t *par_in, charm_prim_t *par_out, int
 
 
 // @todo
-void charm_bnd_cond_fn_wall_no_slip(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
+void charm_bnd_cond_fn_wall_no_slip(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_vector_t n)
 {
     int i;
     charm_real_t  v[3] = {par_in->u, par_in->v, par_in->w};
@@ -225,7 +225,7 @@ void charm_bnd_cond_fn_wall_no_slip(charm_prim_t *par_in, charm_prim_t *par_out,
 }
 
 
-void charm_bnd_cond_fn_mass_flow(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t n[CHARM_DIM])
+void charm_bnd_cond_fn_mass_flow(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_vector_t n)
 {
     p4est_t *p4est = charm_get_p4est();
 
@@ -239,7 +239,7 @@ void charm_bnd_cond_fn_mass_flow(charm_prim_t *par_in, charm_prim_t *par_out, in
     charm_real_t _cos_y  = param[4];	// косинусы угла входа потока
     charm_real_t _cos_z  = param[5];
 
-    charm_real_t v[CHARM_DIM] = {_cos_x, _cos_y, _cos_z};
+    charm_vector_t v = {_cos_x, _cos_y, _cos_z};
 
     charm_real_t flow_dir = scalar_prod(n, v);
 

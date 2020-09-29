@@ -45,7 +45,7 @@ static void charm_model_ns_geom_calc_quad_iter_fn(p4est_iter_volume_info_t * inf
     data->par.g.y = DBL_MAX;
     for (i = 0; i < fc->elem_count; i++) {
         c = sc_array_index(fc, i);
-        l =vect_dist(c, data->par.g.c);
+        l =vector_dist(c, data->par.g.c);
         if (data->par.g.y > l) {
             data->par.g.y = l;
         }

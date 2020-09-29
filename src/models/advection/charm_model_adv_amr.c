@@ -13,9 +13,9 @@ static charm_real_t charm_error_sqr_estimate (p4est_quadrant_t * q)
 {
     charm_data_t       *data = (charm_data_t *) q->p.user_data;
     int                 i;
-    charm_real_t              du[CHARM_DIM];
-    charm_real_t              vol = charm_quad_get_volume((charm_data_t *)q->p.user_data);
-    charm_real_t              diff2 = 0.;
+    charm_vector_t      du;
+    charm_real_t        vol = charm_quad_get_volume((charm_data_t *)q->p.user_data);
+    charm_real_t        diff2 = 0.;
 
     for (i = 0; i < CHARM_DIM; i++) {
         du[i] = data->par.a.grad_u[i];

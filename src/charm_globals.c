@@ -34,32 +34,32 @@ void charm_set_p4est(p4est_t *p4est) { g_p4est = p4est; }
 
 
 
-charm_real_t scalar_prod(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM])
+charm_real_t scalar_prod(charm_vector_t v1, charm_vector_t v2)
 {
     return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
 }
 
 
-charm_real_t vect_length(charm_real_t v[CHARM_DIM])
+charm_real_t vector_length(charm_vector_t v)
 {
     return sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
 }
 
-void vect_sub(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM], charm_real_t res[CHARM_DIM])
+void vector_sub(charm_vector_t v1, charm_vector_t v2, charm_vector_t res)
 {
     res[0] = v1[0]-v2[0];
     res[1] = v1[1]-v2[1];
     res[2] = v1[2]-v2[2];
 }
 
-charm_real_t vect_dist(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM])
+charm_real_t vector_dist(charm_vector_t v1, charm_vector_t v2)
 {
-    charm_real_t res[CHARM_DIM];
-    vect_sub(v1, v2, res);
-    return vect_length(res);
+    charm_vector_t res;
+    vector_sub(v1, v2, res);
+    return vector_length(res);
 }
 
-void vect_prod(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM], charm_real_t res[CHARM_DIM])
+void vector_prod(charm_vector_t v1, charm_vector_t v2, charm_vector_t res)
 {
     res[0] =  v1[1]*v2[2]-v1[2]*v2[1];
     res[1] = -v1[0]*v2[2]+v1[2]*v2[0];
@@ -72,20 +72,20 @@ charm_real_t charm_face_get_area(charm_data_t *d, int8_t face)
     return d->par.g.area[face];
 }
 
-charm_real_t charm_face_get_normal(charm_data_t *d, int8_t face, charm_real_t* n)
+charm_real_t charm_face_get_normal(charm_data_t *d, int8_t face, charm_vector_t n)
 {
-    memcpy(n, d->par.g.n[face], CHARM_DIM*sizeof(charm_real_t));
+    memcpy(n, d->par.g.n[face], sizeof(charm_vector_t));
     return d->par.g.area[face];
 }
 
-void charm_quad_get_center(charm_data_t *d, charm_real_t* c)
+void charm_quad_get_center(charm_data_t *d, charm_point_t c)
 {
-    memcpy(c, d->par.g.c, 3*sizeof(charm_real_t));
+    memcpy(c, d->par.g.c, sizeof(charm_point_t));
 }
 
-void charm_face_get_center(charm_data_t *d, int8_t face, charm_real_t* c)
+void charm_face_get_center(charm_data_t *d, int8_t face, charm_point_t c)
 {
-    memcpy(c, d->par.g.fc[face], CHARM_DIM*sizeof(charm_real_t));
+    memcpy(c, d->par.g.fc[face], sizeof(charm_point_t));
 }
 
 charm_real_t charm_quad_get_volume(charm_data_t *d)
@@ -311,7 +311,7 @@ void charm_matr3_inv(charm_real_t a[3][3], charm_real_t a_inv[3][3])
     }
 }
 
-void charm_matr_inv(charm_real_t a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], charm_real_t am[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
+void charm_matr_inv(charm_matr_t a_src, charm_matr_t am)
 {
     int	       *mask;
     charm_real_t	    fmaxval;
@@ -423,7 +423,7 @@ void charm_matr_inv(charm_real_t a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]
 }
 
 
-void charm_matr_vect_mult(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], charm_real_t b[CHARM_BASE_FN_COUNT], charm_real_t res[CHARM_BASE_FN_COUNT])
+void charm_matr_vect_mult(charm_matr_t a, charm_vect_t b, charm_vect_t res)
 {
     int i, j;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -435,7 +435,7 @@ void charm_matr_vect_mult(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUN
 }
 
 
-void charm_matr_add(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], charm_real_t b[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
+void charm_matr_add(charm_matr_t a, charm_matr_t b)
 {
     int i, j;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -447,7 +447,7 @@ void charm_matr_add(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], ch
 }
 
 
-void charm_matr_zero(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
+void charm_matr_zero(charm_matr_t a)
 {
     int i, j;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -459,7 +459,7 @@ void charm_matr_zero(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
 }
 
 
-void charm_vect_add(charm_real_t a[CHARM_BASE_FN_COUNT], charm_real_t b[CHARM_BASE_FN_COUNT])
+void charm_vect_add(charm_vect_t a, charm_vect_t b)
 {
     int i, j;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -469,7 +469,7 @@ void charm_vect_add(charm_real_t a[CHARM_BASE_FN_COUNT], charm_real_t b[CHARM_BA
 }
 
 
-void charm_vect_zero(charm_real_t a[CHARM_BASE_FN_COUNT])
+void charm_vect_zero(charm_vect_t a)
 {
     int i;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
