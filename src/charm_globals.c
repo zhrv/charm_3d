@@ -34,32 +34,32 @@ void charm_set_p4est(p4est_t *p4est) { g_p4est = p4est; }
 
 
 
-charm_real_t scalar_prod(charm_vector_t v1, charm_vector_t v2)
+charm_real_t scalar_prod(charm_vec_t v1, charm_vec_t v2)
 {
     return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
 }
 
 
-charm_real_t vector_length(charm_vector_t v)
+charm_real_t vector_length(charm_vec_t v)
 {
     return sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
 }
 
-void vector_sub(charm_vector_t v1, charm_vector_t v2, charm_vector_t res)
+void vector_sub(charm_vec_t v1, charm_vec_t v2, charm_vec_t res)
 {
     res[0] = v1[0]-v2[0];
     res[1] = v1[1]-v2[1];
     res[2] = v1[2]-v2[2];
 }
 
-charm_real_t vector_dist(charm_vector_t v1, charm_vector_t v2)
+charm_real_t vector_dist(charm_vec_t v1, charm_vec_t v2)
 {
-    charm_vector_t res;
+    charm_vec_t res;
     vector_sub(v1, v2, res);
     return vector_length(res);
 }
 
-void vector_prod(charm_vector_t v1, charm_vector_t v2, charm_vector_t res)
+void vector_prod(charm_vec_t v1, charm_vec_t v2, charm_vec_t res)
 {
     res[0] =  v1[1]*v2[2]-v1[2]*v2[1];
     res[1] = -v1[0]*v2[2]+v1[2]*v2[0];
@@ -72,9 +72,9 @@ charm_real_t charm_face_get_area(charm_data_t *d, int8_t face)
     return d->par.g.area[face];
 }
 
-charm_real_t charm_face_get_normal(charm_data_t *d, int8_t face, charm_vector_t n)
+charm_real_t charm_face_get_normal(charm_data_t *d, int8_t face, charm_vec_t n)
 {
-    memcpy(n, d->par.g.n[face], sizeof(charm_vector_t));
+    memcpy(n, d->par.g.n[face], sizeof(charm_vec_t));
     return d->par.g.area[face];
 }
 

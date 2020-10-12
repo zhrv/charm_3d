@@ -66,9 +66,9 @@ static void charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info_
                 tmp_qy += h*p.r*data->par.model.ns.d[i]*p.c[i]*phi_y;
                 tmp_qz += h*p.r*data->par.model.ns.d[i]*p.c[i]*phi_z;
             }
-            data->int_q_x[ibf] += tmp_qx;
-            data->int_q_y[ibf] += tmp_qy;
-            data->int_q_z[ibf] += tmp_qz;
+            data->int_q[0][ibf] += tmp_qx;
+            data->int_q[1][ibf] += tmp_qy;
+            data->int_q[2][ibf] += tmp_qz;
         }
     }
 }
@@ -183,9 +183,9 @@ static void charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * i
                 udata->int_tau_xz[ibf] += qxz * bfv;
                 udata->int_tau_yz[ibf] += qyz * bfv;
 
-                udata->int_q_x[ibf] -= qtx * bfv;
-                udata->int_q_y[ibf] -= qty * bfv;
-                udata->int_q_z[ibf] -= qtz * bfv;
+                udata->int_q[0][ibf] -= qtx * bfv;
+                udata->int_q[1][ibf] -= qty * bfv;
+                udata->int_q[2][ibf] -= qtz * bfv;
             }
         }
     }
@@ -311,9 +311,9 @@ static void charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t *
                                 udata[i]->int_tau_xz[ibf] += qxz * bfv;
                                 udata[i]->int_tau_yz[ibf] += qyz * bfv;
 
-                                udata[i]->int_q_x[ibf] -= qtx * bfv;
-                                udata[i]->int_q_y[ibf] -= qty * bfv;
-                                udata[i]->int_q_z[ibf] -= qtz * bfv;
+                                udata[i]->int_q[0][ibf] -= qtx * bfv;
+                                udata[i]->int_q[1][ibf] -= qty * bfv;
+                                udata[i]->int_q[2][ibf] -= qtz * bfv;
                             }
                         }
                         else {
@@ -326,9 +326,9 @@ static void charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t *
                                 udata[i]->int_tau_xz[ibf] += qxz * bfv;
                                 udata[i]->int_tau_yz[ibf] += qyz * bfv;
 
-                                udata[i]->int_q_x[ibf] -= qtx * bfv;
-                                udata[i]->int_q_y[ibf] -= qty * bfv;
-                                udata[i]->int_q_z[ibf] -= qtz * bfv;
+                                udata[i]->int_q[0][ibf] -= qtx * bfv;
+                                udata[i]->int_q[1][ibf] -= qty * bfv;
+                                udata[i]->int_q[2][ibf] -= qtz * bfv;
                             }
                         }
                     }
@@ -413,9 +413,9 @@ static void charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t *
                         udata[i]->int_tau_xz[ibf] += qxz * bfv;
                         udata[i]->int_tau_yz[ibf] += qyz * bfv;
 
-                        udata[i]->int_q_x[ibf] -= qtx * bfv;
-                        udata[i]->int_q_y[ibf] -= qty * bfv;
-                        udata[i]->int_q_z[ibf] -= qtz * bfv;
+                        udata[i]->int_q[0][ibf] -= qtx * bfv;
+                        udata[i]->int_q[1][ibf] -= qty * bfv;
+                        udata[i]->int_q[2][ibf] -= qtz * bfv;
                     }
                 }
             }
@@ -448,9 +448,9 @@ static void charm_model_ns_diff_grad_update_quad_iter_fn (p4est_iter_volume_info
     charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_xz, data->par.model.ns.tau.xz);
     charm_matr_vect_mult(data->par.g.a_inv, data->int_tau_yz, data->par.model.ns.tau.yz);
 
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_x, data->par.model.ns.q.x);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_y, data->par.model.ns.q.y);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_q_z, data->par.model.ns.q.z);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_q[0], data->par.model.ns.q[0]);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_q[1], data->par.model.ns.q[1]);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_q[2], data->par.model.ns.q[2]);
 }
 
 
@@ -467,9 +467,9 @@ static void charm_model_ns_diff_grad_zero_quad_iter_fn (p4est_iter_volume_info_t
         data->int_tau_xz[i] = 0.;
         data->int_tau_yz[i] = 0.;
 
-        data->int_q_x[i] = 0.;
-        data->int_q_y[i] = 0.;
-        data->int_q_z[i] = 0.;
+        data->int_q[0][i] = 0.;
+        data->int_q[1][i] = 0.;
+        data->int_q[2][i] = 0.;
     }
 }
 

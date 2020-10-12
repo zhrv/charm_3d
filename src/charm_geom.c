@@ -9,7 +9,7 @@
  *  Cells
  */
 
-void charm_quad_get_vertices(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, charm_vector_t v[8])
+void charm_quad_get_vertices(p4est_t* p4est, p4est_quadrant_t* q, p4est_topidx_t treeid, charm_vec_t v[8])
 {
     p4est_qcoord_t l = CHARM_QUADRANT_LEN(q->level);
     p4est_qcoord_t qx, qy, qz;

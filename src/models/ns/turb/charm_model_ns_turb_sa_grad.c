@@ -12,7 +12,7 @@ static void charm_model_ns_turb_sa_grad_zero_quad_iter_fn(p4est_iter_volume_info
     int i;
     for (i = 0; i < CHARM_DIM; i++) {
         data->par.model.ns.turb.model.sa.grad_nu_[i] = 0.;
-        memset(data->par.model.ns.turb.model.sa.grad_u[i], 0, sizeof(charm_vector_t));
+        memset(data->par.model.ns.turb.model.sa.grad_u[i], 0, sizeof(charm_vec_t));
     }
 }
 
@@ -107,7 +107,7 @@ static void charm_model_ns_turb_sa_grad_surface_int_iter_inner(p4est_iter_face_i
     charm_data_t           *udata[2];
     charm_real_t            n[3];
     charm_real_t            qu;
-    charm_vector_t          gu;
+    charm_vec_t          gu;
     p4est_iter_face_side_t *side[2];
     sc_array_t             *sides = &(info->sides);
     charm_real_t           *x, s;

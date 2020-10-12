@@ -17,10 +17,13 @@ typedef double              charm_real_t;
 typedef int                 charm_int_t;
 typedef unsigned int        charm_uint_t;
 typedef double              charm_point_t[CHARM_DIM];
-typedef double              charm_vector_t[CHARM_DIM];
+typedef double              charm_vec_t[CHARM_DIM];
 
 typedef double              charm_vect_t[CHARM_BASE_FN_COUNT];
 typedef double              charm_matr_t[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
+
+typedef charm_vect_t         charm_vec_c_t[CHARM_DIM];
+
 
 typedef enum {
     COMP_CP_CONST,
@@ -111,17 +114,17 @@ typedef struct charm_tensor_c
     charm_vect_t yz;
 } charm_tensor_c_t;
 
-typedef struct charm_vec {
-    charm_real_t x;
-    charm_real_t y;
-    charm_real_t z;
-} charm_vec_t;
-
-typedef struct charm_vec_c {
-    charm_vect_t x;
-    charm_vect_t y;
-    charm_vect_t z;
-} charm_vec_c_t;
+//typedef struct charm_vec {
+//    charm_real_t x;
+//    charm_real_t y;
+//    charm_real_t z;
+//} charm_vec_t;
+//
+//typedef struct charm_vec_c {
+//    charm_vect_t x;
+//    charm_vect_t y;
+//    charm_vect_t z;
+//} charm_vec_c_t;
 
 
 typedef void (*charm_eos_fn_t) (p4est_t * p4est, charm_prim_t * p, int flag);
@@ -138,11 +141,11 @@ typedef struct charm_reg
     char            name[64];
     int             id;
     int             mat_id;
-    charm_vector_t        v;
-    charm_real_t          t;
-    charm_real_t          p;
-    charm_real_t          c[CHARM_MAX_COMPONETS_COUNT];
-    charm_vector_t        grav;
+    charm_vec_t     v;
+    charm_real_t    t;
+    charm_real_t    p;
+    charm_real_t    c[CHARM_MAX_COMPONETS_COUNT];
+    charm_vec_t     grav;
 } charm_reg_t;
 
 typedef struct charm_param
@@ -182,10 +185,10 @@ typedef struct charm_param
                 union {
                     struct {
                         charm_real_t    nu_; // nu with tilde
-                        charm_vector_t  grad_nu_;
+                        charm_vec_t     grad_nu_;
                         charm_real_t    nu; // kinematic viscosity
                         charm_real_t    int_nu_;
-                        charm_vector_t  grad_u[CHARM_DIM];
+                        charm_vec_t     grad_u[CHARM_DIM];
                     } sa;
                     struct {
                         charm_real_t k;
@@ -198,7 +201,7 @@ typedef struct charm_param
 
     struct geom
     {
-        charm_vector_t        n[CHARM_FACES];
+        charm_vec_t           n[CHARM_FACES];
         charm_point_t         face_gp[CHARM_FACES][CHARM_FACE_GP_COUNT];
         charm_real_t          face_gw[CHARM_FACES][CHARM_FACE_GP_COUNT];
         charm_real_t          face_gj[CHARM_FACES][CHARM_FACE_GP_COUNT];
@@ -209,14 +212,14 @@ typedef struct charm_param
         charm_real_t          volume;
         charm_point_t         c;
         charm_point_t         fc[CHARM_FACES];
-        charm_vector_t        dh;
+        charm_vec_t           dh;
         charm_matr_t          a;
         charm_matr_t          a_inv;
         charm_real_t          y;
     } g;
 
-    int         mat_id;
-    charm_vector_t      grav;
+    int             mat_id;
+    charm_vec_t     grav;
 
 
     struct lim
@@ -230,7 +233,7 @@ typedef struct charm_param
     } l;
 
     struct amr {
-        charm_vector_t      grad_u;
+        charm_vec_t      grad_u;
     } a;
 
 } charm_param_t;
@@ -246,9 +249,7 @@ typedef struct charm_data
     charm_vect_t        int_re;
     charm_vect_t        int_rc[CHARM_MAX_COMPONETS_COUNT];
 
-    charm_vect_t        int_q_x;
-    charm_vect_t        int_q_y;
-    charm_vect_t        int_q_z;
+    charm_vec_c_t       int_q;
 
     charm_vect_t        int_tau_xx;
     charm_vect_t        int_tau_yy;
@@ -260,8 +261,8 @@ typedef struct charm_data
 } charm_data_t;
 
 typedef void            (*charm_limiter_fn_t)               (p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data);
-typedef void            (*charm_bnd_cond_fn_t)              (charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_vector_t n);
-typedef void            (*charm_flux_fn_t)                  (p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu, charm_real_t* qv, charm_real_t* qw, charm_real_t* qe, charm_real_t qc[], charm_vector_t n);
+typedef void            (*charm_bnd_cond_fn_t)              (charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_vec_t n);
+typedef void            (*charm_flux_fn_t)                  (p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu, charm_real_t* qv, charm_real_t* qw, charm_real_t* qe, charm_real_t qc[], charm_vec_t n);
 typedef void            (*charm_timestep_single_fn_t)       (p4est_t * p4est, charm_real_t *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data);
 typedef charm_real_t    (*charm_get_timestep_fn_t)          (p4est_t * p4est);
 typedef void            (*charm_turb_model_fn_t)            (p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
@@ -412,18 +413,18 @@ typedef struct charm_tree_attr
     extern "C" {
 #endif
 
-charm_real_t scalar_prod(charm_vector_t v1, charm_vector_t v2);
+charm_real_t scalar_prod(charm_vec_t v1, charm_vec_t v2);
 
-charm_real_t vector_length(charm_vector_t v);
+charm_real_t vector_length(charm_vec_t v);
 
-void vector_prod(charm_vector_t v1, charm_vector_t v2, charm_vector_t res);
-void vector_sub(charm_vector_t v1, charm_vector_t v2, charm_vector_t res);
-charm_real_t vector_dist(charm_vector_t v1, charm_vector_t v2);
+void vector_prod(charm_vec_t v1, charm_vec_t v2, charm_vec_t res);
+void vector_sub(charm_vec_t v1, charm_vec_t v2, charm_vec_t res);
+charm_real_t vector_dist(charm_vec_t v1, charm_vec_t v2);
 
 
 charm_real_t charm_face_get_area(charm_data_t *d, int8_t face);
 
-charm_real_t charm_face_get_normal(charm_data_t *d, int8_t face, charm_vector_t n);
+charm_real_t charm_face_get_normal(charm_data_t *d, int8_t face, charm_vec_t n);
 
 void charm_quad_get_center(charm_data_t *d, charm_point_t c);
 

@@ -399,9 +399,9 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
         if (str == "LF") {
             ctx->flux_fn = charm_calc_flux_lf;
         }
-        else if (str == "GODUNOV") {
-            ctx->flux_fn = charm_calc_flux_godunov;
-        }
+//        else if (str == "GODUNOV") {
+//            ctx->flux_fn = charm_calc_flux_godunov;
+//        }
         else if (str == "HLLC") {
             ctx->flux_fn = charm_calc_flux_hllc;
         }
@@ -409,7 +409,7 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
             ctx->flux_fn = charm_calc_flux_cd;
         }
         else {
-            CHARM_LERRORF("Unknown flux type '%s'. Use: LF, GODUNOV.\n", str.c_str());
+            CHARM_LERRORF("Unknown flux type '%s'. Use: LF or HLLC.\n", str.c_str());
             charm_abort(nullptr, 1);
         }
 
