@@ -103,7 +103,7 @@ void charm_model_ns_turb_sst_fetch_param(charm_ctx_t *ctx, YAML::Node par)
 void charm_model_ns_turb_sa_fetch_param(charm_ctx_t *ctx, YAML::Node par)
 {
     ctx->model.ns.turb.param.sa.sigma   = par["sigma"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sa.kappa   = par["kappa "].as<charm_real_t>();
+    ctx->model.ns.turb.param.sa.kappa   = par["kappa"].as<charm_real_t>();
     ctx->model.ns.turb.param.sa.cb1     = par["cb1"].as<charm_real_t>();
     ctx->model.ns.turb.param.sa.cb2     = par["cb2"].as<charm_real_t>();
     ctx->model.ns.turb.param.sa.cw1     = par["cw1"].as<charm_real_t>();

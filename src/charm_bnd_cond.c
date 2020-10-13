@@ -147,7 +147,7 @@ void charm_bnd_cond_fn_free_stream(charm_prim_t *par_in, charm_prim_t *par_out, 
             vt = parV - parVN*n[1];
             wt = parW - parVN*n[2];
             for (ic=0; ic < c_count; ic++)
-                par_out->c[ic] = param[2+ic];
+                par_out->c[ic] = param[7+ic];
         }
         else {
             ut = par_in->u - parVN*n[0];
@@ -171,7 +171,7 @@ void charm_bnd_cond_fn_free_stream(charm_prim_t *par_in, charm_prim_t *par_out, 
             par_out->p = parP;
             par_out->t = parT;
             for (ic=0; ic < c_count; ic++)
-                par_out->c[ic] = param[2+ic];
+                par_out->c[ic] = param[7+ic];
         }
     }
 }

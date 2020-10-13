@@ -21,7 +21,9 @@ void charm_model_adv_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node ya
 static void charm_init_fetch_bnd(charm_ctx_t *ctx, const YAML::Node &node, charm_bnd_t *bnd)
 {
     YAML::Node n2, n3;
-    charm_int_t i;
+    charm_int_t i, id;
+    size_t idx;
+    charm_real_t c;
     charm_int_t c_count = ctx->comp->elem_count;
     strcpy(bnd->name, node["name"].as<std::string>().c_str());
 
@@ -66,15 +68,39 @@ static void charm_init_fetch_bnd(charm_ctx_t *ctx, const YAML::Node &node, charm
             bnd->params[6] = n2["P"].as<charm_real_t>();
             n3 = n2["components"];
             i = 7;
+            memset(&(bnd->params[i]), 0, sizeof(charm_real_t)*c_count);
             for (auto it : n3) {
-                if (i > 7+c_count) {
-                    CHARM_LERRORF("BOUND_MASS_FLOW: Too many components specified. Must be %d\n", c_count);
+                id = it["id"].as<int>();
+                c  = it["concentration"].as<charm_real_t>();
+                if (charm_comp_index_find_by_id(ctx, id, &idx)) {
+                    bnd->params[i+idx] = c;
                 }
-                bnd->params[i++] = it.as<charm_real_t>();
+                else {
+                    CHARM_LERRORF("Unknown component id %d for boundary '%s' in file 'task.yaml'\n", id, bnd->name);
+                    charm_abort(nullptr, 1);
+                }
             }
-            if (i < 7+c_count) {
-                CHARM_LERRORF("BOUND_MASS_FLOW: Too few components specified. Must be %d\n", c_count);
+
+            c = 0;
+            for (idx = 0; idx < c_count; idx++) {
+                c += bnd->params[i+idx];
             }
+            if (fabs(c)-1. > CHARM_EPS) {
+                CHARM_LERRORF("Sum of concentrations for boundary '%s' is not equal to 1 in file 'task.yaml'\n", bnd->name);
+                charm_abort(nullptr, 1);
+            }
+
+
+
+//            for (auto it : n3) {
+//                if (i > 7+c_count) {
+//                    CHARM_LERRORF("BOUND_MASS_FLOW: Too many components specified. Must be %d\n", c_count);
+//                }
+//                bnd->params[i++] = it.as<charm_real_t>();
+//            }
+//            if (i < 7+c_count) {
+//                CHARM_LERRORF("BOUND_MASS_FLOW: Too few components specified. Must be %d\n", c_count);
+//            }
 
             break;
         case BOUND_FREE_STREAM: // @todo
@@ -90,15 +116,37 @@ static void charm_init_fetch_bnd(charm_ctx_t *ctx, const YAML::Node &node, charm
             bnd->params[6] = n2["CosZ"].as<charm_real_t>();
             n3 = n2["components"];
             i = 7;
+            memset(&(bnd->params[i]), 0, sizeof(charm_real_t)*c_count);
             for (auto it : n3) {
-                if (i > 7+c_count) { //@todo
-                    CHARM_LERRORF("BOUND_MASS_FLOW: Too many components specified. Must be %d\n", c_count);
+                id = it["id"].as<int>();
+                c  = it["concentration"].as<charm_real_t>();
+                if (charm_comp_index_find_by_id(ctx, id, &idx)) {
+                    bnd->params[i+idx] = c;
                 }
-                bnd->params[i++] = it.as<charm_real_t>();
+                else {
+                    CHARM_LERRORF("Unknown component id %d for boundary '%s' in file 'task.yaml'\n", id, bnd->name);
+                    charm_abort(nullptr, 1);
+                }
             }
-            if (i < 7+c_count) {
-                CHARM_LERRORF("BOUND_MASS_FLOW: Too few components specified. Must be %d\n", c_count);
+
+            c = 0;
+            for (idx = 0; idx < c_count; idx++) {
+                c += bnd->params[i+idx];
             }
+            if (fabs(c)-1. > CHARM_EPS) {
+                CHARM_LERRORF("Sum of concentrations for boundary '%s' is not equal to 1 in file 'task.yaml'\n", bnd->name);
+                charm_abort(nullptr, 1);
+            }
+
+//            for (auto it : n3) {
+//                if (i > 7+c_count) { //@todo
+//                    CHARM_LERRORF("BOUND_FREE_STREAM: Too many components specified. Must be %d\n", c_count);
+//                }
+//                bnd->params[i++] = it.as<charm_real_t>();
+//            }
+//            if (i < 7+c_count) {
+//                CHARM_LERRORF("BOUND_FREE_STREAM: Too few components specified. Must be %d\n", c_count);
+//            }
 
             break;
         case BOUND_PRESSURE: // @todo
@@ -109,15 +157,37 @@ static void charm_init_fetch_bnd(charm_ctx_t *ctx, const YAML::Node &node, charm
             bnd->params[1] = n2["T"].as<charm_real_t>();
             n3 = n2["components"];
             i = 2;
+            memset(&(bnd->params[i]), 0, sizeof(charm_real_t)*c_count);
             for (auto it : n3) {
-                if (i > 2+c_count) { //@todo
-                    CHARM_LERRORF("BOUND_MASS_FLOW: Too many components specified. Must be %d\n", c_count);
+                id = it["id"].as<int>();
+                c  = it["concentration"].as<charm_real_t>();
+                if (charm_comp_index_find_by_id(ctx, id, &idx)) {
+                    bnd->params[i+idx] = c;
                 }
-                bnd->params[i++] = it.as<charm_real_t>();
+                else {
+                    CHARM_LERRORF("Unknown component id %d for boundary '%s' in file 'task.yaml'\n", id, bnd->name);
+                    charm_abort(nullptr, 1);
+                }
             }
-            if (i < 2+c_count) {
-                CHARM_LERRORF("BOUND_MASS_FLOW: Too few components specified. Must be %d\n", c_count);
+
+            c = 0;
+            for (idx = 0; idx < c_count; idx++) {
+                c += bnd->params[i+idx];
             }
+            if (fabs(c)-1. > CHARM_EPS) {
+                CHARM_LERRORF("Sum of concentrations for boundary '%s' is not equal to 1 in file 'task.yaml'\n", bnd->name);
+                charm_abort(nullptr, 1);
+            }
+
+//            for (auto it : n3) {
+//                if (i > 2+c_count) { //@todo
+//                    CHARM_LERRORF("BOUND_MASS_FLOW: Too many components specified. Must be %d\n", c_count);
+//                }
+//                bnd->params[i++] = it.as<charm_real_t>();
+//            }
+//            if (i < 2+c_count) {
+//                CHARM_LERRORF("BOUND_MASS_FLOW: Too few components specified. Must be %d\n", c_count);
+//            }
 
             break;
         case BOUND_UNKNOWN: // @todo
