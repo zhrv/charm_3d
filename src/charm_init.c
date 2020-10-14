@@ -70,4 +70,6 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     for (i = 0; i < CHARM_DIM; i++) {
         par->grav[i] = reg->grav[i];
     }
+
+    if (ctx->model_init_fn) ctx->model_init_fn(p4est, which_tree, q);
 }

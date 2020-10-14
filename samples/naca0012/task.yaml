@@ -4,10 +4,10 @@ control:
   FLUX_TYPE: HLLC
   LIMITER: BJ
   MAX_ERROR: 0.01
-  REFINE_PERIOD: 10
-  REPARTITION_PERIOD: 10
+  REFINE_PERIOD: 0
+  REPARTITION_PERIOD: 0
   MIN_LEVEL: 0
-  MAX_LEVEL: 1
+  MAX_LEVEL: 0
   CFL: 0.1                  # число Куранта
   TAU: 1.0e-6               # шаг по времени, используется меньшее значение из этого или из полученного из числа Куранта
   TMAX: 100000              # время, до которго выполняется расчет
@@ -16,15 +16,15 @@ control:
   LOG_OUTPUT_STEP: 1        # интервал вывода краткой информации в лог-файл
   MODEL:
     name: NS
-    use_visc: 0
+    use_visc: 1
     use_diffusion: 0
     t_ref: 298.15
-#    turbulence:
-#      #model: SST
-#      #parameters: { a1: 0.31, sigma_k1: 0.85, sigma_k2: 1.0, sigma_w1: 0.5, sigma_w2: 0.856, beta_star: 0.09, beta_1: 0.075, beta_2: 0.0828, kappa: 0.41}
-#      model: SA
-#      parameters: {sigma: 0.66666667, kappa: 0.41, cb1: 0.1355, cb2: 0.622, cw1: 3.23906782, cw2: 0.3, cw3: 2, cv1: 7.1, ct1: 1, ct2: 2, ct3: 1.2, ct4: 0.5}
-#      # cw1 = cb1/kappa^2 + (1+cb2)/sigma
+    turbulence:
+      #model: SST
+      #parameters: { a1: 0.31, sigma_k1: 0.85, sigma_k2: 1.0, sigma_w1: 0.5, sigma_w2: 0.856, beta_star: 0.09, beta_1: 0.075, beta_2: 0.0828, kappa: 0.41}
+      model: SA
+      parameters: {sigma: 0.66666667, kappa: 0.41, cb1: 0.1355, cb2: 0.622, cw1: 3.23906782, cw2: 0.3, cw3: 2, cv1: 7.1, ct1: 1, ct2: 2, ct3: 1.2, ct4: 0.5}
+      # cw1 = cb1/kappa^2 + (1+cb2)/sigma
 mesh:
   files_type: gmsh_msh
   name: naca0012.msh       # имя файлов с данными сетки
@@ -73,7 +73,6 @@ boundaries:
     name: LEFT
     type: BOUND_FREE_STREAM
     parameters:
-      R: 0.64703490660946161
       T: 248.019
       P: 46066.16
       CosX: 0.999662
@@ -94,7 +93,6 @@ boundaries:
     name: TOP
     type: BOUND_FREE_STREAM
     parameters:
-      R: 0.6470349
       T: 248.019
       P: 46066.16
       CosX: 0.999662
@@ -107,7 +105,6 @@ boundaries:
     name: BOTTOM
     type: BOUND_FREE_STREAM
     parameters:
-      R: 0.6470349
       T: 248.019
       P: 46066.16
       CosX: 0.999662

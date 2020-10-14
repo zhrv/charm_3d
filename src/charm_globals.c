@@ -260,6 +260,7 @@ void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src)
     dest->cp     = src->cp;
     dest->cv     = src->cv;
     dest->gam    = src->gam;
+    dest->m      = src->m;
     memcpy(dest->c, src->c, CHARM_MAX_COMPONETS_COUNT*sizeof(charm_real_t));
 }
 

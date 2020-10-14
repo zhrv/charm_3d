@@ -20,6 +20,16 @@ charm_real_t charm_model_ns_get_visc_mu(p4est_t* p4est, charm_real_t *x, charm_d
 void charm_model_ns_turb_sa_grad(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 
 
+void charm_model_ns_turb_init_initial_condition(p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q)
+{
+    charm_ctx_t        *ctx     = (charm_ctx_t *) p4est->user_pointer;
+    charm_data_t       *data    = (charm_data_t *) q->p.user_data;
+    charm_param_t      *par     = &data->par;
+
+    par->model.ns.turb.model.sa.nu_ = 0.;
+}
+
+
 static void charm_model_ns_turb_sa_params(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data)
 {
     charm_ctx_t                *ctx = charm_get_ctx(p4est);
@@ -53,7 +63,7 @@ static void charm_model_ns_turb_sa_zero_quad_iter_fn(p4est_iter_volume_info_t * 
     charm_real_t volume;
     charm_real_t d = data->par.g.y;
     charm_real_t *grad_nu_ = data->par.model.ns.turb.model.sa.grad_nu_;
-    charm_real_t *c;
+    charm_vec_t  c;
     charm_cons_t cons;
     charm_prim_t prim;
     charm_real_t mu, nu;
@@ -124,21 +134,19 @@ static void charm_model_ns_turb_sa_surface_int_iter_bnd(p4est_iter_face_info_t *
     charm_ctx_t * ctx = charm_get_ctx(p4est);
     charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
-    charm_real_t n[3];
-    charm_real_t qu;
+    charm_vec_t   n;
+    charm_real_t  qu;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
     size_t              c_count = charm_get_comp_count(info->p4est);
 
     charm_bnd_types_t bnd_type;
     int8_t face;
-    charm_real_t c[2][3], l[3];
+    charm_vec_t c[2], l;
     charm_real_t nu_[2], nu[2], nut[2], *int_nu, un[2], dnu_dn[2], mu[2];
     charm_cons_t cons;
     charm_prim_t prim[2];
     charm_real_t *x, s;
-    charm_real_t intg[2][5];
-    int j;
 
 
     CHARM_ASSERT(info->tree_boundary);
@@ -197,16 +205,14 @@ static void charm_model_ns_turb_sa_surface_int_iter_bnd(p4est_iter_face_info_t *
                 nu_[1]*un[1]-(nu[1]+nu_[1])*dnu_dn[1]/sigma
         );
     }
-    {
-        x = udata->par.g.fc[face];
-        s = udata->par.g.area[face];
-        nu_[0] = udata->par.model.ns.turb.model.sa.nu;
-        if (!side[0]->is.full.is_ghost) {
+    x = udata->par.g.fc[face];
+    s = udata->par.g.area[face];
+    nu_[0] = udata->par.model.ns.turb.model.sa.nu;
+    if (!side[0]->is.full.is_ghost) {
 
-            *int_nu += qu * s;
-        }
-
+        *int_nu += qu * s;
     }
+
 }
 
 
@@ -216,13 +222,14 @@ static void charm_model_ns_turb_sa_surface_int_iter_inner(p4est_iter_face_info_t
     int                     i, j, h_side;
     charm_data_t           *ghost_data = (charm_data_t *) user_data;
     charm_data_t           *udata[2];
-    charm_real_t            n[3];
+    charm_vec_t             n;
     charm_real_t            qu;
     p4est_iter_face_side_t *side[2];
     sc_array_t             *sides = &(info->sides);
-    charm_real_t           *x, s;
-    charm_real_t            c[2][3];
-    charm_real_t            l[3];
+    charm_real_t            s;
+    charm_point_t           x;
+    charm_point_t           c[2];
+    charm_point_t           l;
     charm_cons_t            cons[2];
     charm_prim_t            prim[2];
     int8_t                  face[2];

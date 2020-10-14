@@ -89,33 +89,19 @@ static void charm_init_fetch_bnd(charm_ctx_t *ctx, const YAML::Node &node, charm
                 CHARM_LERRORF("Sum of concentrations for boundary '%s' is not equal to 1 in file 'task.yaml'\n", bnd->name);
                 charm_abort(nullptr, 1);
             }
-
-
-
-//            for (auto it : n3) {
-//                if (i > 7+c_count) {
-//                    CHARM_LERRORF("BOUND_MASS_FLOW: Too many components specified. Must be %d\n", c_count);
-//                }
-//                bnd->params[i++] = it.as<charm_real_t>();
-//            }
-//            if (i < 7+c_count) {
-//                CHARM_LERRORF("BOUND_MASS_FLOW: Too few components specified. Must be %d\n", c_count);
-//            }
-
             break;
         case BOUND_FREE_STREAM: // @todo
             bnd->bnd_fn = charm_bnd_cond_fn_free_stream;
             n2 = node["parameters"];
-            bnd->params = CHARM_ALLOC(charm_real_t, 7+c_count);
+            bnd->params = CHARM_ALLOC(charm_real_t, 6+c_count);
             bnd->params[0] = n2["M"].as<charm_real_t>();
             bnd->params[1] = n2["P"].as<charm_real_t>();
             bnd->params[2] = n2["T"].as<charm_real_t>();
-            bnd->params[3] = n2["R"].as<charm_real_t>();
-            bnd->params[4] = n2["CosX"].as<charm_real_t>();
-            bnd->params[5] = n2["CosY"].as<charm_real_t>();
-            bnd->params[6] = n2["CosZ"].as<charm_real_t>();
+            bnd->params[3] = n2["CosX"].as<charm_real_t>();
+            bnd->params[4] = n2["CosY"].as<charm_real_t>();
+            bnd->params[5] = n2["CosZ"].as<charm_real_t>();
             n3 = n2["components"];
-            i = 7;
+            i = 6;
             memset(&(bnd->params[i]), 0, sizeof(charm_real_t)*c_count);
             for (auto it : n3) {
                 id = it["id"].as<int>();

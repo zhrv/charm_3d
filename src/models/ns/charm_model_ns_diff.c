@@ -32,14 +32,26 @@ charm_real_t charm_model_ns_get_visc_mu(p4est_t* p4est, charm_real_t *x, charm_d
     }
     mu /= s;
 
-    if (ctx->model.ns.turb.model_type != TURB_MODEL_UNKNOWN) {
-        mu += data->par.model.ns.turb.mu_t;
-    }
-
     return mu/s;
 }
 
-charm_real_t charm_model_ns_get_visc_lambda(p4est_t* p4est, charm_data_t* data)
+charm_real_t charm_model_ns_get_turb_mu(p4est_t* p4est, charm_real_t *x, charm_data_t* data)
+{
+    return data->par.model.ns.turb.mu_t;
+}
+
+charm_real_t charm_model_ns_get_mu(p4est_t* p4est, charm_real_t *x, charm_data_t* data)
+{
+    charm_ctx_t *ctx = charm_get_ctx(p4est);
+    int mu = charm_model_ns_get_visc_mu(p4est, x, data);
+    if (ctx->model.ns.turb.model_type != TURB_MODEL_UNKNOWN) {
+        mu += charm_model_ns_get_turb_mu(p4est, x, data);;
+    }
+
+    return mu;
+}
+
+charm_real_t charm_model_ns_get_lambda(p4est_t* p4est, charm_data_t* data)
 {
     return 0;
 }

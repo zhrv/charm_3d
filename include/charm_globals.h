@@ -43,6 +43,15 @@ typedef enum {
 } charm_comp_ml_type_t;
 
 
+typedef enum {
+    EOS_R_E_TO_P_CZ,    // (r,e)    =>  (p,cz)
+    EOS_R_P_TO_E_T,     // (r,p)    =>  (e,t)
+    EOS_T_P_TO_R_CZ,    // (T,p)    =>  (r,cz)
+    EOS_T_P_TO_R_CZ_E,  // (T,p)    =>  (r, cz, e)
+    EOS_R_E_TO_P_CZ_T   // (r,e)    =>  (p, cz, T)
+} charm_eos_flag_t;
+
+
 typedef struct charm_comp
 {
     char    name[64];
@@ -127,7 +136,7 @@ typedef struct charm_tensor_c
 //} charm_vec_c_t;
 
 
-typedef void (*charm_eos_fn_t) (p4est_t * p4est, charm_prim_t * p, int flag);
+typedef void (*charm_eos_fn_t) (p4est_t * p4est, charm_prim_t * p, charm_eos_flag_t flag);
 
 typedef struct charm_mat
 {
@@ -268,6 +277,8 @@ typedef charm_real_t    (*charm_get_timestep_fn_t)          (p4est_t * p4est);
 typedef void            (*charm_turb_model_fn_t)            (p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 typedef void            (*charm_amr_init_fn_t)              (p4est_t *p4est);
 typedef void            (*charm_amr_fn_t)                   (p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data);
+typedef void            (*charm_init_fn_t)                  (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q);
+
 
 #ifndef GLOBALS_H_FILE
 extern const char *charm_bnd_types[];
@@ -351,6 +362,7 @@ typedef struct charm_ctx
             int                         use_diff;
             charm_real_t                t_ref;
             struct {
+                charm_init_fn_t             init_fn;
                 charm_turb_model_fn_t       model_fn;
                 charm_turb_models_t         model_type;
                 union {
@@ -401,6 +413,7 @@ typedef struct charm_ctx
     charm_limiter_fn_t          lim_fn;
     charm_amr_init_fn_t         amr_init_fn;
     charm_amr_fn_t              amr_fn;
+    charm_init_fn_t             model_init_fn;
 } charm_ctx_t;
 
 typedef struct charm_tree_attr

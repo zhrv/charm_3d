@@ -8,8 +8,8 @@
 #include "charm_globals.h"
 
 
-charm_real_t charm_model_ns_get_visc_mu(p4est_t *p4est, charm_real_t *x, charm_data_t *data);
-charm_real_t charm_model_ns_get_visc_lambda(p4est_t *p4est, charm_data_t *data);
+charm_real_t charm_model_ns_get_mu(p4est_t *p4est, charm_real_t *x, charm_data_t *data);
+charm_real_t charm_model_ns_get_lambda(p4est_t *p4est, charm_data_t *data);
 
 
 
@@ -37,8 +37,8 @@ static void charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info_
             x = data->par.g.quad_gp[igp];
 
             kt      = charm_get_heat_k(info->p4est, x, data);
-            lambda  = charm_model_ns_get_visc_lambda(info->p4est, data);
-            mu      = charm_model_ns_get_visc_mu(info->p4est, x, data);
+            lambda  = charm_model_ns_get_lambda(info->p4est, data);
+            mu      = charm_model_ns_get_mu(info->p4est, x, data);
             lp = (lambda+4.*mu/3.);
             lm = (lambda-2.*mu/3.);
             charm_get_fields(data, x, &c);
@@ -79,7 +79,7 @@ static void charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info_
  */
 
 
-static void charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * info, void *user_data) {
+static void charm_model_ns_diff_grad_surface_int_iter_bnd (p4est_iter_face_info_t * info, void *user_data) {
     int i, ibf, igp;
     p4est_t *p4est = info->p4est;
     charm_data_t *udata;
@@ -135,8 +135,8 @@ static void charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * i
         gw = udata->par.g.face_gw[face][igp];
         gj = udata->par.g.face_gj[face][igp];
 
-        lambda   = charm_model_ns_get_visc_lambda(p4est, udata);
-        mu       = charm_model_ns_get_visc_mu(p4est, x, udata);
+        lambda   = charm_model_ns_get_lambda(p4est, udata);
+        mu       = charm_model_ns_get_mu(p4est, x, udata);
         lp  = (lambda+4.*mu/3.);
         lm  = (lambda-2.*mu/3.);
         kt  = charm_get_heat_k(p4est, x, udata);
@@ -192,7 +192,7 @@ static void charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * i
 }
 
 
-static void charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t * info, void *user_data)
+static void charm_model_ns_diff_grad_surface_int_iter_inner (p4est_iter_face_info_t * info, void *user_data)
 {
     int                     i, j, h_side, igp, ibf;
     p4est_t                *p4est = info->p4est;
@@ -266,8 +266,8 @@ static void charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t *
                 for (i = 0; i < 2; i++) {
                     charm_get_fields(udata[i], x, &(cons[i]));
                     charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
-                    lambda[i]   = charm_model_ns_get_visc_lambda(p4est, udata[i]);
-                    mu[i]       = charm_model_ns_get_visc_mu(p4est, x, udata[i]);
+                    lambda[i]   = charm_model_ns_get_lambda(p4est, udata[i]);
+                    mu[i]       = charm_model_ns_get_mu(p4est, x, udata[i]);
                     kt         += charm_get_heat_k(p4est, x, udata[i]);
                 }
                 fmu     = 0.5*(mu[0]+mu[1]);
@@ -369,8 +369,8 @@ static void charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t *
             for (i = 0; i < 2; i++) {
                 charm_get_fields(udata[i], x, &(cons[i]));
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
-                lambda[i]   = charm_model_ns_get_visc_lambda(p4est, udata[i]);
-                mu[i]       = charm_model_ns_get_visc_mu(p4est, x, udata[i]);
+                lambda[i]   = charm_model_ns_get_lambda(p4est, udata[i]);
+                mu[i]       = charm_model_ns_get_mu(p4est, x, udata[i]);
                 kt         += charm_get_heat_k(p4est, x, udata[i]);
             }
             fmu     = 0.5*(mu[0]+mu[1]);
@@ -428,10 +428,10 @@ static void charm_model_ns_diff_grad_surface_int_iter_fn (p4est_iter_face_info_t
     sc_array_t         *sides = &(info->sides);
 
     if (sides->elem_count != 2) {
-        charm_model_ns_conv_surface_int_iter_bnd(info, user_data);
+        charm_model_ns_diff_grad_surface_int_iter_bnd(info, user_data);
     }
     else {
-        charm_model_ns_conv_surface_int_iter_inner(info, user_data);
+        charm_model_ns_diff_grad_surface_int_iter_inner(info, user_data);
     }
 
 }

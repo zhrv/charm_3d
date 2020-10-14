@@ -107,20 +107,31 @@ void charm_bnd_cond_fn_free_stream(charm_prim_t *par_in, charm_prim_t *par_out, 
     charm_real_t  parM    = param[0];
     charm_real_t  parP    = param[1];
     charm_real_t  parT    = param[2];
-    charm_real_t  parR    = param[3];
-    charm_real_t  parCosX = param[4];
-    charm_real_t  parCosY = param[5];
-    charm_real_t  parCosZ = param[6];
+    charm_real_t  parCosX = param[3];
+    charm_real_t  parCosY = param[4];
+    charm_real_t  parCosZ = param[5];
+    charm_real_t  parR;
+
 
     charm_real_t  vn, gam, parCZ, parVmag, parU, parV, parW, parVN, vp, vi,
                   vn_out, rg, ut, vt, wt, qt, Vmag;
     charm_int_t   ic;
 
+    charm_prim_t par_prim;
+
 
     charm_prim_cpy(par_out, par_in);
+    charm_prim_cpy(&par_prim, par_in);
+
+    par_prim.t = parT;
+    par_prim.p = parP;
+    glob_mat->eos_fn(p4est, &par_prim, EOS_T_P_TO_R_CZ);
+
+    parR = par_prim.r;
+    parCZ = par_prim.cz;
 
     gam = par_in->gam;
-    parCZ = sqrt(gam*parP/parR);
+    //parCZ = sqrt(gam*parP/parR);
     parVmag = parM*parCZ;
 
     parU = parVmag*parCosX;
@@ -147,7 +158,7 @@ void charm_bnd_cond_fn_free_stream(charm_prim_t *par_in, charm_prim_t *par_out, 
             vt = parV - parVN*n[1];
             wt = parW - parVN*n[2];
             for (ic=0; ic < c_count; ic++)
-                par_out->c[ic] = param[7+ic];
+                par_out->c[ic] = param[6+ic];
         }
         else {
             ut = par_in->u - parVN*n[0];
@@ -161,7 +172,7 @@ void charm_bnd_cond_fn_free_stream(charm_prim_t *par_in, charm_prim_t *par_out, 
         par_out->v = parV*vp;
         par_out->w = parW*vp;
 
-        glob_mat->eos_fn(p4est, par_out, 1); // (r,p) => (T, e)
+        glob_mat->eos_fn(p4est, par_out, EOS_R_P_TO_E_T);
     }
     else {
         if (parVN < 0.) {
