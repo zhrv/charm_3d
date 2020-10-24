@@ -21,8 +21,11 @@ void charm_model_ns_init_initial_condition (p4est_t * p4est, p4est_topidx_t whic
 
     attr = charm_get_tree_attr(p4est, which_tree);
     reg = attr->reg;
+    for (int i = 0; i < c_count; i++) {
+        data->par.model.ns.d[i] = 0.;
+    }
 
-    if (ctx->model_init_fn) ctx->model_init_fn(p4est, which_tree, q);
+    if (ctx->model.ns.turb.init_cond_fn) ctx->model.ns.turb.init_cond_fn(p4est, which_tree, q);
 }
 
 

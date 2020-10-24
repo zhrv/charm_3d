@@ -23,6 +23,6 @@ void charm_model_adv_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node ya
     ctx->timestep_single_fn     = charm_model_adv_timestep_single;
     ctx->amr_init_fn            = charm_model_adv_adapt_init;
     ctx->amr_fn                 = charm_model_adv_adapt;
-    ctx->model_init_fn          = nullptr;
+    ctx->model_init_cond_fn     = nullptr;
 }
 

@@ -20,7 +20,7 @@ charm_real_t charm_model_ns_get_visc_mu(p4est_t* p4est, charm_real_t *x, charm_d
 void charm_model_ns_turb_sa_grad(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 
 
-void charm_model_ns_turb_init_initial_condition(p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q)
+void charm_model_ns_turb_sa_init_initial_condition(p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q)
 {
     charm_ctx_t        *ctx     = (charm_ctx_t *) p4est->user_pointer;
     charm_data_t       *data    = (charm_data_t *) q->p.user_data;

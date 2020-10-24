@@ -362,7 +362,7 @@ typedef struct charm_ctx
             int                         use_diff;
             charm_real_t                t_ref;
             struct {
-                charm_init_fn_t             init_fn;
+                charm_init_fn_t             init_cond_fn;
                 charm_turb_model_fn_t       model_fn;
                 charm_turb_models_t         model_type;
                 union {
@@ -413,7 +413,7 @@ typedef struct charm_ctx
     charm_limiter_fn_t          lim_fn;
     charm_amr_init_fn_t         amr_init_fn;
     charm_amr_fn_t              amr_fn;
-    charm_init_fn_t             model_init_fn;
+    charm_init_fn_t             model_init_cond_fn;
 } charm_ctx_t;
 
 typedef struct charm_tree_attr
