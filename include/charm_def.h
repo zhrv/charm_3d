@@ -182,5 +182,4 @@ __attribute__ ((format (printf, 1, 2)));
 
 #define CHARM_ARR_SET_ZERO(A) {int i; for (i = 0; i < CHARM_BASE_FN_COUNT; i++) A[i] = 0.; }
 
-
 #endif //CHARM_3D_CHARM_DEF_H

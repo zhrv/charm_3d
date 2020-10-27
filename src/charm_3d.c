@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+#include <fenv.h>
 #include "charm_globals.h"
 #include "charm_amr.h"
 
@@ -6,8 +8,13 @@ void charm_init_context_yaml(charm_ctx_t *ctx);
 charm_ctx_t           ctx;
 p4est_t              *p4est;
 
+
+
 int main (int argc, char **argv)
 {
+#ifdef CHARM_DEBUG
+    feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
+#endif
     int                   mpiret;
     sc_MPI_Comm           mpicomm;
     p4est_connectivity_t *conn;

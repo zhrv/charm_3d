@@ -154,6 +154,9 @@ void charm_model_ns_init(charm_ctx_t *ctx, YAML::Node model_node, const YAML::No
     if (turb_node) {
         charm_model_ns_turb_init(ctx, turb_node);
     }
+    else {
+        ctx->model.ns.turb.model_type = TURB_MODEL_UNKNOWN;
+    }
 
     ctx->amr_init_fn            = charm_adapt_init;
     ctx->amr_fn                 = charm_adapt;
