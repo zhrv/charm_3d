@@ -340,7 +340,7 @@ charm_real_t charm_get_avg_rc(charm_data_t* p, int j)
 }
 
 
-void charm_get_visc_tau(charm_data_t *p, charm_real_t* x, charm_tensor_t *tau)
+void charm_get_visc_tau(charm_data_t *p, charm_point_t x, charm_tensor_t *tau)
 {
     int i;
 
@@ -357,7 +357,7 @@ void charm_get_visc_tau(charm_data_t *p, charm_real_t* x, charm_tensor_t *tau)
 }
 
 
-void charm_get_heat_q(charm_data_t *p, charm_real_t* x, charm_real_t *q) {
+void charm_get_heat_q(charm_data_t *p, charm_point_t x, charm_vec_t q) {
     int i, dim;
 
     memset(q, 0, sizeof(charm_real_t) * 3);

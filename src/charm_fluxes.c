@@ -352,7 +352,7 @@ static void _charm_calc_flux_hllc_x_1(p4est_t *p4est, charm_prim_t prim[2], char
 
 
     if (!((sl <= s_star) && (s_star <= sr))) {
-        CHARM_LERROR("HLLC: inequaluty SL <= S* <= SR is FALSE.\n");
+        CHARM_LERROR("HLLC: inequality SL <= S* <= SR is FALSE.\n");
         charm_abort(p4est, 1);
     }
 

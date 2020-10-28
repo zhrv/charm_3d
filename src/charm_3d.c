@@ -20,11 +20,13 @@ int main (int argc, char **argv)
     p4est_connectivity_t *conn;
     char                  charm_str[128];
 
-    sc_set_log_defaults(NULL, NULL, CHARM_LOG_LEVEL);
-
     mpiret = sc_MPI_Init (&argc, &argv);
     SC_CHECK_MPI (mpiret);
     mpicomm = sc_MPI_COMM_WORLD;
+    sc_init (mpicomm, 1, 1, NULL, SC_LP_ERROR);
+    p4est_init (NULL, SC_LP_ERROR);
+
+    sc_set_log_defaults(NULL, NULL, CHARM_LOG_LEVEL);
 
     sprintf(charm_str, "\nCHARM_3D, v.%s\n\n", CHARM_VERSION);
     CHARM_GLOBAL_ESSENTIAL(charm_str);
