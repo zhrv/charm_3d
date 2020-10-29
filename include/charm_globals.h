@@ -16,7 +16,6 @@
 typedef double              charm_real_t;
 typedef int                 charm_int_t;
 typedef unsigned int        charm_uint_t;
-typedef double              charm_point_t[CHARM_DIM];
 typedef double              charm_vec_t[CHARM_DIM];
 
 typedef double              charm_vect_t[CHARM_BASE_FN_COUNT];
@@ -211,16 +210,16 @@ typedef struct charm_param
     struct geom
     {
         charm_vec_t           n[CHARM_FACES];
-        charm_point_t         face_gp[CHARM_FACES][CHARM_FACE_GP_COUNT];
+        charm_vec_t         face_gp[CHARM_FACES][CHARM_FACE_GP_COUNT];
         charm_real_t          face_gw[CHARM_FACES][CHARM_FACE_GP_COUNT];
         charm_real_t          face_gj[CHARM_FACES][CHARM_FACE_GP_COUNT];
-        charm_point_t         quad_gp[CHARM_QUAD_GP_COUNT];
+        charm_vec_t         quad_gp[CHARM_QUAD_GP_COUNT];
         charm_real_t          quad_gw[CHARM_QUAD_GP_COUNT];
         charm_real_t          quad_gj[CHARM_QUAD_GP_COUNT];
         charm_real_t          area[CHARM_FACES];
         charm_real_t          volume;
-        charm_point_t         c;
-        charm_point_t         fc[CHARM_FACES];
+        charm_vec_t         c;
+        charm_vec_t         fc[CHARM_FACES];
         charm_vec_t           dh;
         charm_matr_t          a;
         charm_matr_t          a_inv;
@@ -439,9 +438,9 @@ charm_real_t charm_face_get_area(charm_data_t *d, int8_t face);
 
 charm_real_t charm_face_get_normal(charm_data_t *d, int8_t face, charm_vec_t n);
 
-void charm_quad_get_center(charm_data_t *d, charm_point_t c);
+void charm_quad_get_center(charm_data_t *d, charm_vec_t c);
 
-void charm_face_get_center(charm_data_t *d, int8_t face, charm_point_t c);
+void charm_face_get_center(charm_data_t *d, int8_t face, charm_vec_t c);
 
 charm_real_t charm_quad_get_volume(charm_data_t *d);
 
@@ -519,7 +518,7 @@ void charm_write_solution(p4est_t *p4est);
 void charm_log_statistics(p4est_t *p4est, int timestep, charm_real_t time, charm_real_t dt, charm_real_t calc_time);
 
 
-void charm_quad_get_vertices(p4est_t *p4est, p4est_quadrant_t *q, p4est_topidx_t treeid, charm_point_t v[8]);
+void charm_quad_get_vertices(p4est_t *p4est, p4est_quadrant_t *q, p4est_topidx_t treeid, charm_vec_t v[8]);
 
 void charm_geom_quad_calc(p4est_t *p4est, p4est_quadrant_t *q, p4est_topidx_t treeid);
 

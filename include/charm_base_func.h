@@ -24,7 +24,7 @@ void charm_get_fields(charm_data_t* p, charm_real_t* x, charm_cons_t* c);
 void charm_get_fields_avg(charm_data_t* p, charm_cons_t* c);
 void charm_get_fields_arr(charm_data_t* p, charm_real_t* fld[5]);
 
-void charm_get_visc_tau(charm_data_t *p, charm_point_t x, charm_tensor_t *tau);
-void charm_get_heat_q(charm_data_t *p, charm_point_t x, charm_vec_t q);
+void charm_get_visc_tau(charm_data_t *p, charm_vec_t x, charm_tensor_t *tau);
+void charm_get_heat_q(charm_data_t *p, charm_vec_t x, charm_vec_t q);
 
 #endif //CHARM_DG_CHARM_BASE_FUNC_H

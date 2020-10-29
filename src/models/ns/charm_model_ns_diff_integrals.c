@@ -75,8 +75,8 @@ static void charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * i
     charm_real_t c[2][3], l[3];
     charm_cons_t cons;
     charm_prim_t prim[2];
-    charm_point_t x;
     charm_real_t mu, kt;
+    charm_vec_t  x;
 
 
     CHARM_ASSERT(info->tree_boundary);

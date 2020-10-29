@@ -244,7 +244,7 @@ static void _charm_limiter_bj_calc_iter_fn(p4est_iter_volume_info_t * info, void
     charm_real_t **u, *f;
     charm_real_t *u_min, *u_max, *psi, psi_tmp;
     int i,j;
-    charm_point_t v[8];
+    charm_vec_t v[8];
     charm_cons_t cons;
     size_t                  c_count = charm_get_comp_count(info->p4est);
     size_t                  f_count = c_count+4;
