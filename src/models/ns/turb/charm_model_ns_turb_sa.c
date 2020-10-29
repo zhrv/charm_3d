@@ -109,7 +109,7 @@ static void charm_model_ns_turb_sa_update_quad_iter_fn(p4est_iter_volume_info_t 
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
     charm_real_t        dt = *((charm_real_t *) user_data);
     charm_real_t        nut, fv1, xi, nu, xi3;
-    charm_point_t       c;
+    charm_vec_t       c;
     charm_cons_t        cons;
     charm_prim_t        prim;
     int                 i, j;
@@ -227,9 +227,9 @@ static void charm_model_ns_turb_sa_surface_int_iter_inner(p4est_iter_face_info_t
     p4est_iter_face_side_t *side[2];
     sc_array_t             *sides = &(info->sides);
     charm_real_t            s;
-    charm_point_t           x;
-    charm_point_t           c[2];
-    charm_point_t           l;
+    charm_vec_t           x;
+    charm_vec_t           c[2];
+    charm_vec_t           l;
     charm_cons_t            cons[2];
     charm_prim_t            prim[2];
     int8_t                  face[2];

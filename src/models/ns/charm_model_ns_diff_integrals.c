@@ -75,7 +75,7 @@ static void charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * i
     charm_real_t c[2][3], l[3];
     charm_cons_t cons;
     charm_prim_t prim[2];
-    charm_real_t *x;
+    charm_vec_t  x;
     charm_real_t mu;
 
 
@@ -108,7 +108,7 @@ static void charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * i
             }
         }
 
-        x  = udata->par.g.fc[face];
+        charm_face_get_center(udata, face, x);
         mu = charm_model_ns_get_mu(p4est, x, udata);
         charm_get_fields_avg(udata, &cons);
         charm_param_cons_to_prim(p4est, &(prim[0]), &cons);

@@ -52,7 +52,7 @@ static void charm_model_ns_turb_sa_grad_surface_int_iter_bnd(p4est_iter_face_inf
     charm_cons_t  cons;
     charm_prim_t  prim[2];
     charm_real_t  s;
-    charm_point_t x;
+    charm_vec_t x;
     charm_real_t  intg[2][5];
 
 
@@ -136,7 +136,7 @@ static void charm_model_ns_turb_sa_grad_surface_int_iter_inner(p4est_iter_face_i
     int8_t                  face[2];
     charm_prim_t            prim[2];
     charm_cons_t            cons[2];
-    charm_point_t           x;
+    charm_vec_t           x;
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     side[1] = p4est_iter_fside_array_index_int(sides, 1);

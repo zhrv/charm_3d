@@ -78,14 +78,14 @@ charm_real_t charm_face_get_normal(charm_data_t *d, int8_t face, charm_vec_t n)
     return d->par.g.area[face];
 }
 
-void charm_quad_get_center(charm_data_t *d, charm_point_t c)
+void charm_quad_get_center(charm_data_t *d, charm_vec_t c)
 {
-    memcpy(c, d->par.g.c, sizeof(charm_point_t));
+    memcpy(c, d->par.g.c, sizeof(charm_vec_t));
 }
 
-void charm_face_get_center(charm_data_t *d, int8_t face, charm_point_t c)
+void charm_face_get_center(charm_data_t *d, int8_t face, charm_vec_t c)
 {
-    memcpy(c, d->par.g.fc[face], sizeof(charm_point_t));
+    memcpy(c, d->par.g.fc[face], sizeof(charm_vec_t));
 }
 
 charm_real_t charm_quad_get_volume(charm_data_t *d)
