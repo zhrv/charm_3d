@@ -70,6 +70,7 @@ static void charm_model_ns_turb_sa_zero_quad_iter_fn(p4est_iter_volume_info_t * 
     charm_real_t xi, xi3, fv1, fv2, Omega, S_, Pnu, Dnu, r, g, kd2, ft1, ft2, cw36, fw, Oij;
     charm_int_t i,j;
 
+    Omega = 0.;
     for (i = 0; i < CHARM_DIM; i++) {
         for (j = 0; j < CHARM_DIM; j++) {
             Oij = 2.*(data->par.model.ns.turb.model.sa.grad_u[i][j]
@@ -91,7 +92,12 @@ static void charm_model_ns_turb_sa_zero_quad_iter_fn(p4est_iter_volume_info_t * 
     //ft2 = ct3*exp(-ct4*xi*xi);
     kd2 = _SQR_(kappa*d);
     S_= Omega+fv2*nu_/kd2;
-    r = nu_/(S_*kd2);
+    if (S_ < CHARM_EPS) {
+        r = 10.;
+    }
+    else {
+        r = nu_ / (S_ * kd2);
+    }
     g = r+cw2*(pow(r,6.)-r);
     cw36 = pow(cw3, 6.);
     fw = g*pow((1+cw36)/(pow(g, 6.)+cw36), 1./6.);

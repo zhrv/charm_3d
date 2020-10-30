@@ -12,9 +12,9 @@ p4est_t              *p4est;
 
 int main (int argc, char **argv)
 {
-#ifdef CHARM_DEBUG
+//#ifdef CHARM_DEBUG
     feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
-#endif
+//#endif
     int                   mpiret;
     sc_MPI_Comm           mpicomm;
     p4est_connectivity_t *conn;
