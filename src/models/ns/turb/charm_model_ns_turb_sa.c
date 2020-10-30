@@ -187,10 +187,10 @@ static void charm_model_ns_turb_sa_surface_int_iter_bnd(p4est_iter_face_info_t *
     charm_get_fields(udata, x, &cons);
     charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
 
-    un[0]       = prim[i].u*n[0]+prim[i].v*n[1]+prim[i].w*n[2];
+    un[0]       = prim[0].u*n[0]+prim[0].v*n[1]+prim[0].w*n[2];
     mu[0]       = charm_model_ns_get_visc_mu(p4est, x, udata);
     nu_[0]      = udata->par.model.ns.turb.model.sa.nu_;
-    nu[0]       = mu[i]/prim[i].r;
+    nu[0]       = mu[0]/prim[0].r;
     int_nu      = &(udata->par.model.ns.turb.model.sa.int_nu_);
     dnu_dn[0]   = udata->par.model.ns.turb.model.sa.grad_nu_[0]*n[0]+
                     udata->par.model.ns.turb.model.sa.grad_nu_[1]*n[1]+

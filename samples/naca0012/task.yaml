@@ -1,24 +1,24 @@
 method: CHARM_3D
 version: 0.1.3
 control:
-  FLUX_TYPE: HLLC
-  LIMITER: BJ
-  MAX_ERROR: 0.01
-  REFINE_PERIOD: 0
-  REPARTITION_PERIOD: 0
-  MIN_LEVEL: 0
-  MAX_LEVEL: 0
-  CFL: 0.1                  # число Куранта
-  TAU: 1.0e-7               # шаг по времени, используется меньшее значение из этого или из полученного из числа Куранта
-  TMAX: 100000              # время, до которго выполняется расчет
-  STEP_MAX: 31000
-  FILE_OUTPUT_STEP: 1      # количество итераций, через которые выполняется вывод результатов в файл
-  LOG_OUTPUT_STEP: 1        # интервал вывода краткой информации в лог-файл
+  FLUX_TYPE:              HLLC
+  LIMITER:                BJ
+  MAX_ERROR:              0.01
+  REFINE_PERIOD:          0
+  REPARTITION_PERIOD:     0
+  MIN_LEVEL:              0
+  MAX_LEVEL:              0
+  CFL:                    0.1                  # число Куранта
+  TAU:                    1.0e-7               # шаг по времени, используется меньшее значение из этого или из полученного из числа Куранта
+  TMAX:                   100000              # время, до которго выполняется расчет
+  STEP_MAX:               31000
+  FILE_OUTPUT_STEP:       1      # количество итераций, через которые выполняется вывод результатов в файл
+  LOG_OUTPUT_STEP:        1        # интервал вывода краткой информации в лог-файл
   MODEL:
-    name: NS
-    use_visc: 1
-    use_diffusion: 0
-    t_ref: 298.15
+    name:           NS
+    use_visc:       1
+    use_diffusion:  0
+    t_ref:          298.15
     turbulence:
       #model: SST
       #parameters: { a1: 0.31, sigma_k1: 0.85, sigma_k2: 1.0, sigma_w1: 0.5, sigma_w2: 0.856, beta_star: 0.09, beta_1: 0.075, beta_2: 0.0828, kappa: 0.41}
@@ -26,35 +26,35 @@ control:
       parameters: {sigma: 0.66666667, kappa: 0.41, cb1: 0.1355, cb2: 0.622, cw1: 3.23906782, cw2: 0.3, cw3: 2, cv1: 7.1, ct1: 1, ct2: 2, ct3: 1.2, ct4: 0.5}
       # cw1 = cb1/kappa^2 + (1+cb2)/sigma
 mesh:
-  files_type: gmsh_msh
-  name: naca0012.msh       # имя файлов с данными сетки
+  files_type:   gmsh_msh
+  name:         naca0012.msh       # имя файлов с данными сетки
 components:
   -
-    id: 0
-    name: AIR
-    cp_type: CONST
-    kp_type: CONST
-    ml_type: CONST
-    M: 0.02896442                 # молярная масса
-    Cp: [1004.68506]              # уд. теплоемкость при пост. давлении
-    KP0: 0.0260305                # теплопроводность вещества при температуре T0
-    ML0: 1.85e-005                # динамическая вязкость вещества при температуре T0
-    T0: 273.15                    # константа для формулы Сазерленда
-    TS: 218.0                     # константа для формулы Сазерленда
-    Sig: 3.512                    # параметры Леннарда-Джонса
-    ek: 139.8                     # параметры Леннарда-Джонса
-    h0: -8.386329e+4              # энтальпия образования вещества
+    id:       0
+    name:     AIR
+    cp_type:  CONST
+    kp_type:  CONST
+    ml_type:  CONST
+    M:        0.02896442                 # молярная масса
+    Cp:       [1004.68506]              # уд. теплоемкость при пост. давлении
+    KP0:      0.0260305                # теплопроводность вещества при температуре T0
+    ML0:      1.85e-005                # динамическая вязкость вещества при температуре T0
+    T0:       273.15                    # константа для формулы Сазерленда
+    TS:       218.0                     # константа для формулы Сазерленда
+    Sig:      3.512                    # параметры Леннарда-Джонса
+    ek:       139.8                     # параметры Леннарда-Джонса
+    h0:       -8.386329e+4              # энтальпия образования вещества
 materials:
   -
-    id: 0
-    name: AIR
+    id:       0
+    name:     AIR
     eof_type: IDEAL # IDEAL, MIX
 regions:
   -
-    id: 0
-    name: FLUID
-    cell_type: 0
-    material_id: 0
+    id:           0
+    name:         FLUID
+    cell_type:    0
+    material_id:  0
     components:
       - {id: 0, concentration: 1}
     parameters:
@@ -73,12 +73,12 @@ boundaries:
     name: LEFT
     type: BOUND_FREE_STREAM
     parameters:
-      T: 248.019
-      P: 46066.16
-      CosX: 0.999662
-      CosY: 0.026002
-      CosZ: 0.0
-      M: 0.7
+      T:      248.019
+      P:      46066.16
+      CosX:   0.999662
+      CosY:   0.026002
+      CosZ:   0.0
+      M:      0.7
       components:
         - {id: 0, concentration: 1}
   -
@@ -93,12 +93,12 @@ boundaries:
     name: TOP
     type: BOUND_FREE_STREAM
     parameters:
-      T: 248.019
-      P: 46066.16
-      CosX: 0.999662
-      CosY: 0.026002
-      CosZ: 0.0
-      M: 0.7
+      T:      248.019
+      P:      46066.16
+      CosX:   0.999662
+      CosY:   0.026002
+      CosZ:   0.0
+      M:      0.7
       components:
         - {id: 0, concentration: 1}
   -
