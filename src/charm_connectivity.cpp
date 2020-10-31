@@ -350,6 +350,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
 
     charm_cmap_t        cmap;
     charm_fmap_t        fmap;
+    charm_int_t         mpi_size;
 
     char *filename;
 
@@ -483,8 +484,10 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
     /* Compute real tree_to_* fields and complete (edge and) corner fields. */
     p4est_connectivity_complete (conn);
 
-    #ifdef P4EST_WITH_METIS
-    p4est_connectivity_reorder (sc_MPI_COMM_WORLD, 2, conn, P4EST_CONNECT_FACE);
+#ifdef P4EST_WITH_METIS
+    sc_MPI_Comm_size(sc_MPI_COMM_WORLD, &mpi_size);
+    if (mpi_size > 1)
+        p4est_connectivity_reorder (sc_MPI_COMM_WORLD, 0, conn, P4EST_CONNECT_FACE);
 #endif /* P4EST_WITH_METIS */
 
 
