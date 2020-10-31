@@ -28,7 +28,7 @@
 
 #ifdef CHARM_DEBUG
 
-#define CHARM_LOG_LEVEL SC_LP_ESSENTIAL
+#define CHARM_LOG_LEVEL SC_LP_ALWAYS
 #define DBG_CH(R) {printf("Rank: %d. File: %s. Line: %d\n", (R), __FILE__, __LINE__);fflush(stdout);}
 #define CHARM_ASSERT P4EST_ASSERT
 

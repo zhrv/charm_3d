@@ -51,7 +51,7 @@ add_executable(	charm_3d
         include/charm_version.h
 
         src/charm_3d.c
-        src/charm_connectivity.c
+        src/charm_connectivity.cpp
         src/charm_timesteps.c
         src/charm_fluxes.c
         src/charm_amr.c

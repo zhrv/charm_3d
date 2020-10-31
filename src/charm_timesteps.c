@@ -42,7 +42,7 @@ void charm_timesteps(p4est_t * p4est)
         ctx->timestep_single_fn(p4est, &dt, &ghost, &ghost_data);
         calc_time = sc_MPI_Wtime() - calc_time;
         if (ctx->timestep % ctx->log_period == 0) {
-            charm_log_statistics(p4est, ctx->timestep, ctx->t, dt, calc_time);
+            charm_log_statistics(p4est, ctx->timestep+1, ctx->t+dt, dt, calc_time);
         }
     }
 

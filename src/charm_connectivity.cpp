@@ -3,6 +3,13 @@
 //
 
 #include "charm_globals.h"
+#include <map>
+#include <set>
+
+using std::map;
+using std::set;
+using std::array;
+using std::make_pair;
 
 typedef p4est_connectivity_t* (*charm_conn_reader_t)(charm_ctx_t*);
 
@@ -34,6 +41,11 @@ typedef struct {
     int   id;
     int   dim;
 } charm_patch_t;
+
+typedef array<p4est_topidx_t, CHARM_FACES>      charm_farr_t;
+typedef set<p4est_topidx_t>                     charm_vset_t;
+typedef map<charm_vset_t, p4est_topidx_t>       charm_cmap_t;
+typedef map<charm_vset_t, charm_farr_t>         charm_fmap_t;
 
 static sc_array_t *patches;
 
@@ -91,7 +103,7 @@ void charm_fhash_insert(charm_fhash_t* fh, const p4est_topidx_t* key, charm_face
     unsigned idx = charm_face_hash(key) % fh->size;
     while(fh->el[idx].key != NULL) {
         if (charm_face_cmp(fh->el[idx].key, key)) {
-            pval = sc_array_push(fh->el[idx].val);
+            pval = (charm_face_info_t*)sc_array_push(fh->el[idx].val);
             memcpy(pval, val, sizeof(charm_face_info_t));
             return;
         }
@@ -99,7 +111,7 @@ void charm_fhash_insert(charm_fhash_t* fh, const p4est_topidx_t* key, charm_face
     }
     fh->el[idx].key = CHARM_ALLOC(p4est_topidx_t, 4);
     memcpy(fh->el[idx].key, key, 4*sizeof(p4est_topidx_t));
-    pval = sc_array_push(fh->el[idx].val);
+    pval = (charm_face_info_t*)sc_array_push(fh->el[idx].val);
     memcpy(pval, val, sizeof(charm_face_info_t));
 }
 
@@ -182,7 +194,7 @@ charm_bnd_t * charm_conn_bnd_find_by_id(charm_ctx_t* ctx, int id)
     char *name = NULL;
     // find by name
     for (i = 0; i < patches->elem_count; i++) {
-        p = sc_array_index(patches, i);
+        p = (charm_patch_t*)sc_array_index(patches, i);
         if (p->id == id) {
             patch_found = 1;
             name = p->name;
@@ -194,7 +206,7 @@ charm_bnd_t * charm_conn_bnd_find_by_id(charm_ctx_t* ctx, int id)
     CHARM_ASSERT(patch_found);
 
     for (i = 0; i < ctx->bnd->elem_count; i++) {
-        bnd = sc_array_index(ctx->bnd, i);
+        bnd = (charm_bnd_t*)sc_array_index(ctx->bnd, i);
         if (strcmp(name, bnd->name) == 0) {
             return bnd;
         }
@@ -213,7 +225,7 @@ charm_reg_t * charm_conn_reg_find_by_id(charm_ctx_t* ctx, int id)
     char *name = NULL;
     // find by name
     for (i = 0; i < patches->elem_count; i++) {
-        p = sc_array_index(patches, i);
+        p = (charm_patch_t*)sc_array_index(patches, i);
         if (p->id == id) {
             patch_found = 1;
             name = p->name;
@@ -225,7 +237,7 @@ charm_reg_t * charm_conn_reg_find_by_id(charm_ctx_t* ctx, int id)
     CHARM_ASSERT(patch_found);
 
     for (i = 0; i < ctx->reg->elem_count; i++) {
-        reg = sc_array_index(ctx->reg, i);
+        reg = (charm_reg_t*)sc_array_index(ctx->reg, i);
         if (strcmp(name, reg->name) == 0) {
             return reg;
         }
@@ -235,7 +247,7 @@ charm_reg_t * charm_conn_reg_find_by_id(charm_ctx_t* ctx, int id)
 }
 
 
-int charm_conn_find_tree_by_face(charm_ctx_t *ctx, p4est_connectivity_t  *conn, charm_fhash_t* fh, p4est_topidx_t  *face_vert, int8_t face_type)
+void charm_conn_find_tree_by_face(charm_ctx_t *ctx, p4est_connectivity_t  *conn, charm_fhash_t* fh, p4est_topidx_t  *face_vert, int8_t face_type)
 {
     int i;
     charm_tree_attr_t *attr;
@@ -317,6 +329,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
     int                 retval;
     p4est_topidx_t      num_vertices = 0, num_patches = 0, num_trees = 0, num_trees_real = 0, tree;
     int                 i;
+    int                 ele_count;
     int8_t              face;
 
     char                *line;
@@ -333,6 +346,10 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
     p4est_topidx_t      fkey[4];
 
     charm_patch_t      *patch;
+    charm_int_t         mpi_rank;
+
+    charm_cmap_t        cmap;
+    charm_fmap_t        fmap;
 
     char *filename;
 
@@ -368,7 +385,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
                 for (i = 0; i < num_patches; i++) {
                     CHARM_FREE(line);
                     line = charm_connectivity_getline_upper (fid);
-                    patch = sc_array_push(patches);
+                    patch = (charm_patch_t*)sc_array_push(patches);
                     sscanf(line, "%d %d \"%[^\"]", &(patch->dim), &(patch->id), patch->name);
                 }
             }
@@ -462,8 +479,15 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
     }
     CHARM_ASSERT (p4est_connectivity_is_valid (conn));
 
+
     /* Compute real tree_to_* fields and complete (edge and) corner fields. */
     p4est_connectivity_complete (conn);
+
+    #ifdef P4EST_WITH_METIS
+    p4est_connectivity_reorder (sc_MPI_COMM_WORLD, 2, conn, P4EST_CONNECT_FACE);
+#endif /* P4EST_WITH_METIS */
+
+
 
     p4est_connectivity_set_attr(conn, sizeof(charm_tree_attr_t));
     charm_tree_attr_t * attr;
@@ -472,11 +496,30 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
             attr->bnd[face] = NULL;
         }
         attr->reg = NULL;
+        set<charm_int_t> sv;
+        for (int vert = 0; vert < CHARM_CHILDREN; vert++) {
+            sv.insert(conn->tree_to_vertex[tree*CHARM_CHILDREN+vert]);
+        }
+        cmap.insert(make_pair(sv, tree));
+
+        charm_farr_t farr;
+        farr.fill(-1);
+
+        for (int j = 0; j < CHARM_FACES; j++) {
+            sv.clear();
+            for (int k = 0; k < CHARM_HALF; k++) {
+                sv.insert(conn->tree_to_vertex[tree*CHARM_CHILDREN+charm_face_corners[j][k]]);
+            }
+            if (fmap.find(sv) == fmap.end()) {
+                fmap[sv] = farr;
+            }
+            fmap[sv][j] = tree;
+        }
     }
 
     fsetpos (fid, &fpos);
     line = charm_connectivity_getline_upper(fid);
-    int ele_count = 0;
+    ele_count = 0;
     sscanf(line, "%d", &ele_count);
     CHARM_FREE(line);
     p4est_topidx_t fv[32];
@@ -484,11 +527,27 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
     for (; ele_count > 0; ele_count--) {
         line = charm_connectivity_getline_upper(fid);
         if (charm_conn_parse_face(line, fv)) {
-            charm_conn_find_tree_by_face(ctx, conn, fh, fv, fv[4]);
+            //charm_conn_find_tree_by_face(ctx, conn, fh, fv, fv[4]);
+            set<charm_int_t> sv;
+            for (int v = 0; v < CHARM_HALF; v++) {
+                sv.insert(fv[v]);
+            }
+            charm_farr_t &fa = fmap[sv];
+            for (int f = 0; f < CHARM_FACES; f++) {
+                if (fa[f] > -1) {
+                    attr[fa[f]].bnd[f] = charm_conn_bnd_find_by_id(ctx, fv[4]);
+                }
+            }
         }
         else if (charm_conn_parse_cell(line, fv)) { // @todo предполагаем, что последовательность считывания совпадет с предыдущей последовательностью
-            attr->reg = charm_conn_reg_find_by_id(ctx, fv[8]);
-            attr++;
+            //charm_conn_find_tree_by_cell(ctx, conn, ch, fv, fv[4]);
+            set<charm_int_t> sv;
+            for (int v = 0; v < CHARM_CHILDREN; v++) {
+                sv.insert(fv[v]);
+            }
+            i = cmap[sv];
+            attr[i].reg = charm_conn_reg_find_by_id(ctx, fv[8]);
+            //attr++;
         }
         CHARM_FREE(line);
     }
@@ -500,6 +559,9 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
         CHARM_LERRORF ("Failed to close %s\n", filename);
         goto dead;
     }
+
+    cmap.clear();
+    fmap.clear();
 
     CHARM_GLOBAL_ESSENTIALF
     ("New connectivity with %lld trees and %lld vertices\n",
