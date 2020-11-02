@@ -342,6 +342,7 @@ typedef struct charm_ctx
     int                 refine_period;      /**< the number of time steps between mesh refinement */
     int                 repartition_period; /**< the number of time steps between repartitioning */
     int                 write_period;       /**< the number of time steps between writing vtk files */
+    int                 restart_period;       /**< the number of time steps between writing restart files */
     int                 log_period;         /**< the number of time steps between writing log */
     int                 min_level;          /**< the minimal level */
     int                 max_level;          /**< the allowed level */
@@ -350,6 +351,7 @@ typedef struct charm_ctx
     charm_real_t              t;                  /**< the current time */
     charm_real_t              time;               /**< the max time */
     int                 timestep;
+    int                 step_start;
 
     union {
         struct {
@@ -515,6 +517,10 @@ void charm_init_context(charm_ctx_t *ctx);
 
 void charm_write_solution(p4est_t *p4est);
 
+void charm_write_data(p4est_t *p4est);
+
+p4est_t* charm_load_data(charm_ctx_t *ctx, p4est_connectivity_t **conn);
+
 void charm_log_statistics(p4est_t *p4est, int timestep, charm_real_t time, charm_real_t dt, charm_real_t calc_time);
 
 
@@ -524,6 +530,8 @@ void charm_geom_quad_calc(p4est_t *p4est, p4est_quadrant_t *q, p4est_topidx_t tr
 
 
 p4est_connectivity_t *charm_conn_create(charm_ctx_t *ctx);
+
+charm_int_t charm_connectivity_set_attr(charm_ctx_t* ctx, p4est_connectivity_t *conn);
 
 charm_real_t charm_get_heat_k(p4est_t *p4est, charm_real_t *x, charm_data_t *data);
 

@@ -188,12 +188,12 @@ void charm_model_ns_timestep_single(p4est_t * p4est, charm_real_t *dt, p4est_gho
     p4est_ghost_t      *ghost       = *_ghost;
     charm_data_t       *ghost_data  = *_ghost_data;
 
-    if (!ctx->timestep) {
+    if (ctx->timestep == 1) {
         charm_model_ns_geom_calc(p4est);
     }
     if (refine_period) {
         if (!(ctx->timestep % refine_period)) {
-            if (ctx->timestep) {
+            if (ctx->timestep > 1) {
                 ctx->amr_fn(p4est, ghost, ghost_data); /* adapt */
                 charm_model_ns_geom_calc(p4est); //@todo выяснить нужно или нет
                 if (ghost) {
@@ -213,7 +213,7 @@ void charm_model_ns_timestep_single(p4est_t * p4est, charm_real_t *dt, p4est_gho
 
     /* repartition */
     if (repartition_period) {
-        if (ctx->timestep && !(ctx->timestep % repartition_period)) {
+        if (ctx->timestep > 1 && !(ctx->timestep % repartition_period)) {
 
             p4est_partition(p4est, allowcoarsening, NULL);
 

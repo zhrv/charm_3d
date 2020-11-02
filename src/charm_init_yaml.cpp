@@ -435,6 +435,8 @@ extern "C" void charm_init_context_yaml(charm_ctx_t *ctx);
 void charm_init_context_yaml(charm_ctx_t *ctx)
 {
     std::string str;
+    int start_step;
+
     try {
         YAML::Node config = YAML::LoadFile("task.yaml");
         str = config["method"].as<std::string>();
@@ -450,6 +452,12 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
 
 
         YAML::Node control = config["control"];
+
+        ctx->step_start = control["STEP_START"].as<int>();
+
+        if (ctx->step_start > 0) {
+            return;
+        }
 
         str = control["FLUX_TYPE"].as<std::string>();
         if (str == "LF") {
@@ -488,6 +496,7 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
         ctx->min_level              = control["MIN_LEVEL"].as<int>();
         ctx->max_level              = control["MAX_LEVEL"].as<int>();
         ctx->write_period           = control["FILE_OUTPUT_STEP"].as<int>();
+        ctx->restart_period         = control["RESTART_OUTPUT_STEP"].as<int>();
         ctx->log_period             = control["LOG_OUTPUT_STEP"].as<int>();
         ctx->dt                     = control["TAU"].as<charm_real_t>();
         ctx->CFL                    = control["CFL"].as<charm_real_t>();

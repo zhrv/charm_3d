@@ -37,12 +37,20 @@ void charm_timesteps(p4est_t * p4est)
     dt = ctx->get_dt_fn(p4est);
 
     CHARM_GLOBAL_ESSENTIAL("Starting time steps...\n");
-    for (ctx->t = 0., ctx->timestep = 0; ctx->t < ctx->time; ctx->t += dt, ctx->timestep++) {
+    ctx->t = 0.;
+    ctx->timestep = 0;
+    while ( ctx->t < ctx->time) {
+        ctx->t += dt;
+        ctx->timestep++;
+
         calc_time = sc_MPI_Wtime();
         ctx->timestep_single_fn(p4est, &dt, &ghost, &ghost_data);
         calc_time = sc_MPI_Wtime() - calc_time;
         if (ctx->timestep % ctx->log_period == 0) {
-            charm_log_statistics(p4est, ctx->timestep+1, ctx->t+dt, dt, calc_time);
+            charm_log_statistics(p4est, ctx->timestep, ctx->t, dt, calc_time);
+        }
+        if (ctx->timestep % ctx->restart_period == 0) {
+            charm_write_data(p4est);
         }
     }
 

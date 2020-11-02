@@ -89,7 +89,7 @@ static void charm_model_ns_turb_sa_zero_quad_iter_fn(p4est_iter_volume_info_t * 
     xi3 = pow(xi, 3.);
     fv1 = xi3/(xi3+pow(cv1, 3.));
     fv2 = 1-xi/(1+xi*fv1);
-    //ft2 = ct3*exp(-ct4*xi*xi);
+    ft2 = ct3*exp(-ct4*xi*xi);
     kd2 = _SQR_(kappa*d);
     S_= Omega+fv2*nu_/kd2;
     if (S_ < CHARM_EPS) {

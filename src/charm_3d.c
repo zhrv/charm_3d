@@ -36,17 +36,28 @@ int main (int argc, char **argv)
 
     charm_init_context_yaml(&ctx);
 
-    conn = charm_conn_create(&ctx);
-    if (!conn) {
-        charm_abort(NULL, 1);
+    if (ctx.step_start > 0) {
+        ctx.timestep = ctx.step_start;
+        p4est = charm_load_data(&ctx, &conn);
+        if (charm_connectivity_set_attr(&ctx, conn)) {
+            return 1;
+        }
+        charm_set_p4est(p4est);
     }
-    CHARM_ASSERT(p4est_connectivity_is_valid(conn));
+    else {
+        conn = charm_conn_create(&ctx);
+        if (!conn) {
+            charm_abort(NULL, 1);
+        }
+        CHARM_ASSERT(p4est_connectivity_is_valid(conn));
 
-    p4est = p4est_new_ext (mpicomm, conn,  0, ctx.min_level, 1, sizeof (charm_data_t),
-            charm_init_initial_condition, (void *) (&ctx));
-    charm_set_p4est(p4est);
-    charm_write_solution (p4est);
-    ctx.amr_init_fn(p4est);
+        p4est = p4est_new_ext(mpicomm, conn, 0, ctx.min_level, 1, sizeof(charm_data_t),
+                              charm_init_initial_condition, (void *) (&ctx));
+        charm_set_p4est(p4est);
+        charm_write_solution(p4est);
+        ctx.amr_init_fn(p4est);
+    }
+
     charm_timesteps (p4est);
     p4est_destroy (p4est);
     p4est_connectivity_destroy (conn);
