@@ -89,10 +89,6 @@ static void charm_model_ns_timestep_update_quad_iter_fn (p4est_iter_volume_info_
         for (j = 0; j < c_count; j++) {
             data->par.c.rc[j][i] -= _NORM_(dt * rhs_rc[j][i]);
         }
-
-        if (data->par.c.re[i] != data->par.c.re[i]) {
-            int zhrv=0;
-        }
     }
 }
 
