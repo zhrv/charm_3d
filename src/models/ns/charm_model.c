@@ -226,12 +226,6 @@ void charm_model_ns_timestep_single(p4est_t * p4est, charm_real_t *dt, p4est_gho
         }
     }
 
-    /* write out solution */
-    if (!(ctx->timestep % write_period)) {
-        charm_write_solution (p4est);
-        CHARM_GLOBAL_ESSENTIALF (" File for step #%d is saved \n", ctx->timestep);
-    }
-
     /* synchronize the ghost data */
     if (!ghost) {
         ghost = p4est_ghost_new (p4est, CHARM_CONNECT_FULL);
@@ -264,6 +258,12 @@ void charm_model_ns_timestep_single(p4est_t * p4est, charm_real_t *dt, p4est_gho
     p4est_ghost_exchange_data (p4est, ghost, ghost_data);
 
 #undef CHARM_RUNGE_KUTTA_STEP
+
+    /* write out solution */
+    if (!(ctx->timestep % write_period)) {
+        charm_write_solution (p4est);
+        CHARM_GLOBAL_ESSENTIALF (" File for step #%d is saved \n", ctx->timestep);
+    }
 
     *_ghost       = ghost;
     *_ghost_data  = ghost_data;

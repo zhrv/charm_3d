@@ -5,10 +5,12 @@
 #include "charm_globals.h"
 #include <map>
 #include <set>
+#include <vector>
 
 using std::map;
 using std::set;
 using std::array;
+using std::vector;
 using std::make_pair;
 
 typedef p4est_connectivity_t* (*charm_conn_reader_t)(charm_ctx_t*);
@@ -47,9 +49,9 @@ typedef set<p4est_topidx_t>                     charm_vset_t;
 typedef map<charm_vset_t, p4est_topidx_t>       charm_cmap_t;
 typedef map<charm_vset_t, charm_farr_t>         charm_fmap_t;
 
-static sc_array_t *patches = nullptr;
+//static sc_array_t *patches = nullptr;
 
-
+static vector<charm_patch_t> patches;
 
 
 
@@ -191,17 +193,22 @@ charm_bnd_t * charm_conn_bnd_find_by_id(charm_ctx_t* ctx, int id)
     int patch_found = 0;
     charm_patch_t *p;
     charm_bnd_t   *bnd;
-    char *name = NULL;
+    char name[128] = {"\0"};
     // find by name
-    for (i = 0; i < patches->elem_count; i++) {
-        p = (charm_patch_t*)sc_array_index(patches, i);
-        if (p->id == id) {
+//    for (i = 0; i < patches->elem_count; i++) {
+//        p = (charm_patch_t*)sc_array_index(patches, i);
+//        if (p->id == id) {
+//            patch_found = 1;
+//            name = p->name;
+//        }
+//    }
+    for (auto p: patches) {
+        if (p.id == id) {
             patch_found = 1;
-            name = p->name;
+            strcpy(name, p.name);
+            break;
         }
     }
-
-
 
     CHARM_ASSERT(patch_found);
 
@@ -222,13 +229,20 @@ charm_reg_t * charm_conn_reg_find_by_id(charm_ctx_t* ctx, int id)
     int patch_found = 0;
     charm_patch_t *p;
     charm_reg_t   *reg;
-    char *name = NULL;
+    char name[128] = {"\0"};
     // find by name
-    for (i = 0; i < patches->elem_count; i++) {
-        p = (charm_patch_t*)sc_array_index(patches, i);
-        if (p->id == id) {
+//    for (i = 0; i < patches->elem_count; i++) {
+//        p = (charm_patch_t*)sc_array_index(patches, i);
+//        if (p->id == id) {
+//            patch_found = 1;
+//            name = p->name;
+//        }
+//    }
+    for (auto p: patches) {
+        if (p.id == id) {
             patch_found = 1;
-            name = p->name;
+            strcpy(name, p.name);
+            break;
         }
     }
 
@@ -323,18 +337,19 @@ int8_t charm_conn_parse_cell(char *line, p4est_topidx_t *fv)
     return 0;
 }
 
+charm_cmap_t        cmap;
+charm_fmap_t        fmap;
+
 
 charm_int_t charm_connectivity_set_attr(charm_ctx_t* ctx, p4est_connectivity_t *conn)
 {
     charm_int_t         i, tree, face;
-    charm_cmap_t        cmap;
-    charm_fmap_t        fmap;
     FILE               *fid  = NULL;
     char               *filename;
     char               *line;
     int                 ele_count;
     p4est_topidx_t      num_patches = 0;
-    charm_patch_t      *patch;
+    charm_patch_t       patch;
 
     CHARM_ASSERT(ctx->msh->type != CHARM_MESH_UNKNOWN);
     CHARM_ASSERT(ctx->msh->filename);
@@ -389,16 +404,16 @@ charm_int_t charm_connectivity_set_attr(charm_ctx_t* ctx, p4est_connectivity_t *
         }
 
         if (line[0] == '$') {
-            if (strstr(line, "$PHYSICALNAMES") && patches == nullptr) {
+            if (strstr(line, "$PHYSICALNAMES") && patches.empty()) {
                 CHARM_FREE(line);
                 line = charm_connectivity_getline_upper (fid);
                 sscanf(line, "%d", &num_patches);
-                patches = sc_array_new(sizeof(charm_patch_t));
+                patches.clear();
                 for (i = 0; i < num_patches; i++) {
                     CHARM_FREE(line);
                     line = charm_connectivity_getline_upper (fid);
-                    patch = (charm_patch_t*)sc_array_push(patches);
-                    sscanf(line, "%d %d \"%[^\"]", &(patch->dim), &(patch->id), patch->name);
+                    sscanf(line, "%d %d \"%[^\"]", &(patch.dim), &(patch.id), patch.name);
+                    patches.push_back(patch);
                 }
             }
             else if (strstr(line, "$ELEMENTS")) {
@@ -465,7 +480,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
     charm_face_info_t   fi;
     p4est_topidx_t      fkey[4];
 
-    charm_patch_t      *patch;
+    charm_patch_t       patch;
     charm_int_t         mpi_rank;
     charm_int_t         mpi_size;
 
@@ -499,12 +514,12 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
                 CHARM_FREE(line);
                 line = charm_connectivity_getline_upper (fid);
                 sscanf(line, "%d", &num_patches);
-                patches = sc_array_new(sizeof(charm_patch_t));
+                patches.clear();
                 for (i = 0; i < num_patches; i++) {
                     CHARM_FREE(line);
                     line = charm_connectivity_getline_upper (fid);
-                    patch = (charm_patch_t*)sc_array_push(patches);
-                    sscanf(line, "%d %d \"%[^\"]", &(patch->dim), &(patch->id), patch->name);
+                    sscanf(line, "%d %d \"%[^\"]", &(patch.dim), &(patch.id), patch.name);
+                    patches.push_back(patch);
                 }
             }
             else if (strstr(line, "$NODES")) {
@@ -604,7 +619,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
 #endif /* P4EST_WITH_METIS */
 
 
-    sc_array_destroy(patches);
+//    sc_array_destroy(patches);
     retval = fclose (fid);
     fid = NULL;
     if (retval) {

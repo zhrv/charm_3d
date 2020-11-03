@@ -37,8 +37,6 @@ void charm_timesteps(p4est_t * p4est)
     dt = ctx->get_dt_fn(p4est);
 
     CHARM_GLOBAL_ESSENTIAL("Starting time steps...\n");
-    ctx->t = 0.;
-    ctx->timestep = 0;
     while ( ctx->t < ctx->time) {
         ctx->t += dt;
         ctx->timestep++;

@@ -346,12 +346,11 @@ typedef struct charm_ctx
     int                 log_period;         /**< the number of time steps between writing log */
     int                 min_level;          /**< the minimal level */
     int                 max_level;          /**< the allowed level */
-    charm_real_t              CFL;                /**< the CFL */
-    charm_real_t              dt;
-    charm_real_t              t;                  /**< the current time */
-    charm_real_t              time;               /**< the max time */
+    charm_real_t        CFL;                /**< the CFL */
+    charm_real_t        dt;
+    charm_real_t        t;                  /**< the current time */
+    charm_real_t        time;               /**< the max time */
     int                 timestep;
-    int                 step_start;
 
     union {
         struct {

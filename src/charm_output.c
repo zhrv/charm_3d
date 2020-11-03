@@ -132,28 +132,3 @@ void charm_log_statistics(p4est_t * p4est, int timestep, charm_real_t time, char
 }
 
 
-void charm_write_data(p4est_t *p4est)
-{
-    char                fname[BUFSIZ] = { '\0' };
-    charm_ctx_t        *ctx  = charm_get_ctx(p4est);
-    char*               names8[] = {"R", "P", "E", "E_TOT", "U", "V", "W", "T"};
-    charm_comp_t       *comp;
-
-    snprintf (fname, 64, CHARM_STRING "_%08d.chrm", ctx->timestep);
-
-    p4est_save(fname, p4est, 1);
-}
-
-
-p4est_t* charm_load_data(charm_ctx_t *ctx, p4est_connectivity_t **conn)
-{
-    p4est_t            *p4est;
-    char                fname[BUFSIZ] = { '\0' };
-    char*               names8[] = {"R", "P", "E", "E_TOT", "U", "V", "W", "T"};
-    charm_comp_t       *comp;
-
-    snprintf (fname, 64, CHARM_STRING "_%08d.chrm", ctx->step_start);
-
-    p4est = p4est_load(fname, sc_MPI_COMM_WORLD, sizeof(charm_data_t), 1, ctx, conn);
-    return p4est;
-}

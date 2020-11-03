@@ -453,12 +453,6 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
 
         YAML::Node control = config["control"];
 
-        ctx->step_start = control["STEP_START"].as<int>();
-
-        if (ctx->step_start > 0) {
-            return;
-        }
-
         str = control["FLUX_TYPE"].as<std::string>();
         if (str == "LF") {
             ctx->flux_fn = charm_calc_flux_lf;
@@ -501,6 +495,8 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
         ctx->dt                     = control["TAU"].as<charm_real_t>();
         ctx->CFL                    = control["CFL"].as<charm_real_t>();
         ctx->time                   = control["TMAX"].as<charm_real_t>();
+        ctx->timestep               = control["STEP_START"].as<charm_int_t>();
+        ctx->t                      = control["TIME_START"].as<charm_real_t>();
 
 
         charm_init_comps(     ctx, config["components"]);
@@ -525,10 +521,6 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
             CHARM_LERRORF("Unknown model type '%s'. Use: EULER.\n", str.c_str());
             charm_abort(nullptr, 1);
         }
-
-        ctx->timestep = 0;
-
-
 
     }
     catch(YAML::Exception &e) {

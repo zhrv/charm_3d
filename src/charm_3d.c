@@ -36,8 +36,7 @@ int main (int argc, char **argv)
 
     charm_init_context_yaml(&ctx);
 
-    if (ctx.step_start > 0) {
-        ctx.timestep = ctx.step_start;
+    if (ctx.timestep > 0) {
         p4est = charm_load_data(&ctx, &conn);
         if (charm_connectivity_set_attr(&ctx, conn)) {
             return 1;
