@@ -23,20 +23,6 @@ const int charm_face_corners[6][4] =
          { 0, 1, 2, 3 },
          { 4, 5, 6, 7 }};
 
-typedef struct charm_fhash_elem {
-    p4est_topidx_t* key;
-    sc_array_t*     val;
-} charm_hash_elem_t;
-
-typedef struct charm_fhash {
-    p4est_topidx_t      size;
-    charm_hash_elem_t*  el;
-} charm_fhash_t;
-
-typedef struct charm_face_info {
-    p4est_topidx_t  tree;
-    int             type;
-} charm_face_info_t;
 
 typedef struct {
     char  name[128];
@@ -49,7 +35,6 @@ typedef set<p4est_topidx_t>                     charm_vset_t;
 typedef map<charm_vset_t, p4est_topidx_t>       charm_cmap_t;
 typedef map<charm_vset_t, charm_farr_t>         charm_fmap_t;
 
-//static sc_array_t *patches = nullptr;
 
 static vector<charm_patch_t> patches;
 
@@ -86,51 +71,6 @@ unsigned charm_face_hash(const void *v)
 #endif
 }
 
-charm_fhash_t* charm_fhash_new(p4est_topidx_t size)
-{
-    int i;
-    charm_fhash_t * fh = CHARM_ALLOC(charm_fhash_t, 1);
-    fh->size = size;
-    fh->el = CHARM_ALLOC(charm_hash_elem_t, size);
-    for (i = 0; i < size; i++) {
-        fh->el[i].key = NULL;
-        fh->el[i].val = sc_array_new(sizeof(charm_face_info_t));
-    }
-    return fh;
-}
-
-void charm_fhash_insert(charm_fhash_t* fh, const p4est_topidx_t* key, charm_face_info_t* val)
-{
-    charm_face_info_t * pval;
-    unsigned idx = charm_face_hash(key) % fh->size;
-    while(fh->el[idx].key != NULL) {
-        if (charm_face_cmp(fh->el[idx].key, key)) {
-            pval = (charm_face_info_t*)sc_array_push(fh->el[idx].val);
-            memcpy(pval, val, sizeof(charm_face_info_t));
-            return;
-        }
-        idx = (idx + 1) % fh->size;
-    }
-    fh->el[idx].key = CHARM_ALLOC(p4est_topidx_t, 4);
-    memcpy(fh->el[idx].key, key, 4*sizeof(p4est_topidx_t));
-    pval = (charm_face_info_t*)sc_array_push(fh->el[idx].val);
-    memcpy(pval, val, sizeof(charm_face_info_t));
-}
-
-
-sc_array_t* charm_fhash_lookup(charm_fhash_t* fh, p4est_topidx_t* key)
-{
-    unsigned c = 0;
-    unsigned idx = charm_face_hash(key) % fh->size;
-    while(!charm_face_cmp(fh->el[idx].key, key)) {
-        idx = (idx + 1) % fh->size;
-        c++;
-        if (c > fh->size) {
-            return 0;
-        }
-    }
-    return fh->el[idx].val;
-}
 
 /*
  * Read a line from a file. Obtained from:
@@ -181,11 +121,6 @@ charm_connectivity_getline_upper (FILE * stream)
 }
 
 
-//int charm_conn_faces_is_equal(p4est_topidx_t  *face_vert_1, p4est_topidx_t  *face_vert_2)
-//{
-//    return charm_face_cmp(face_vert_1, face_vert_2);
-//}
-
 
 charm_bnd_t * charm_conn_bnd_find_by_id(charm_ctx_t* ctx, int id)
 {
@@ -194,14 +129,6 @@ charm_bnd_t * charm_conn_bnd_find_by_id(charm_ctx_t* ctx, int id)
     charm_patch_t *p;
     charm_bnd_t   *bnd;
     char name[128] = {"\0"};
-    // find by name
-//    for (i = 0; i < patches->elem_count; i++) {
-//        p = (charm_patch_t*)sc_array_index(patches, i);
-//        if (p->id == id) {
-//            patch_found = 1;
-//            name = p->name;
-//        }
-//    }
     for (auto p: patches) {
         if (p.id == id) {
             patch_found = 1;
@@ -230,14 +157,6 @@ charm_reg_t * charm_conn_reg_find_by_id(charm_ctx_t* ctx, int id)
     charm_patch_t *p;
     charm_reg_t   *reg;
     char name[128] = {"\0"};
-    // find by name
-//    for (i = 0; i < patches->elem_count; i++) {
-//        p = (charm_patch_t*)sc_array_index(patches, i);
-//        if (p->id == id) {
-//            patch_found = 1;
-//            name = p->name;
-//        }
-//    }
     for (auto p: patches) {
         if (p.id == id) {
             patch_found = 1;
@@ -258,21 +177,6 @@ charm_reg_t * charm_conn_reg_find_by_id(charm_ctx_t* ctx, int id)
     }
     CHARM_LERRORF("Region (id=%d, name='%s') is nod defined in task.yaml\n", id, name);
     return NULL;
-}
-
-
-void charm_conn_find_tree_by_face(charm_ctx_t *ctx, p4est_connectivity_t  *conn, charm_fhash_t* fh, p4est_topidx_t  *face_vert, int8_t face_type)
-{
-    int i;
-    charm_tree_attr_t *attr;
-
-    sc_array_t* arr = charm_fhash_lookup(fh, face_vert);
-    CHARM_ASSERT(arr != NULL);
-    for (i = 0; i < arr->elem_count; i++) {
-        charm_face_info_t * fi = (charm_face_info_t *)sc_array_index(arr, i);
-        attr = (charm_tree_attr_t *)&(conn->tree_to_attr[sizeof(charm_tree_attr_t)*fi->tree]);
-        attr->bnd[fi->type] = charm_conn_bnd_find_by_id(ctx, face_type);
-    }
 }
 
 
@@ -413,6 +317,7 @@ charm_int_t charm_connectivity_set_attr(charm_ctx_t* ctx, p4est_connectivity_t *
                     CHARM_FREE(line);
                     line = charm_connectivity_getline_upper (fid);
                     sscanf(line, "%d %d \"%[^\"]", &(patch.dim), &(patch.id), patch.name);
+                    patch.id--;
                     patches.push_back(patch);
                 }
             }
@@ -476,10 +381,6 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
     FILE                 *fid  = NULL;
     fpos_t                fpos;
 
-    charm_fhash_t *     fh;
-    charm_face_info_t   fi;
-    p4est_topidx_t      fkey[4];
-
     charm_patch_t       patch;
     charm_int_t         mpi_rank;
     charm_int_t         mpi_size;
@@ -519,6 +420,7 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
                     CHARM_FREE(line);
                     line = charm_connectivity_getline_upper (fid);
                     sscanf(line, "%d %d \"%[^\"]", &(patch.dim), &(patch.id), patch.name);
+                    patch.id--;
                     patches.push_back(patch);
                 }
             }
@@ -548,7 +450,6 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
                 line = charm_connectivity_getline_upper (fid);
                 sscanf(line, "%d", &num_trees);
                 trees = CHARM_ALLOC(p4est_topidx_t, num_trees*8);
-                fh = charm_fhash_new(num_trees*6);
                 for (i = 0; i < num_trees; i++) {
                     CHARM_FREE(line);
                     line = charm_connectivity_getline_upper (fid);
@@ -576,14 +477,6 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
                         for (j = 0; j < CHARM_CHILDREN; j++) {
                             --trees[num_trees_real*CHARM_CHILDREN+j];
                         }
-                        for (j = 0; j < CHARM_FACES; j++) {
-                            fi.type = j;
-                            fi.tree = num_trees_real;
-                            for (k = 0; k < CHARM_HALF; k++) {
-                                fkey[k] = trees[num_trees_real*CHARM_CHILDREN+charm_face_corners[j][k]];
-                            }
-                            charm_fhash_insert(fh, fkey, &fi);
-                        }
                         ++num_trees_real;
                     }
                 }
@@ -609,7 +502,6 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
     CHARM_ASSERT (p4est_connectivity_is_valid (conn));
 
 
-    /* Compute real tree_to_* fields and complete (edge and) corner fields. */
     p4est_connectivity_complete (conn);
 
 #ifdef P4EST_WITH_METIS
@@ -619,7 +511,6 @@ p4est_connectivity_t * charm_conn_reader_msh (charm_ctx_t* ctx)
 #endif /* P4EST_WITH_METIS */
 
 
-//    sc_array_destroy(patches);
     retval = fclose (fid);
     fid = NULL;
     if (retval) {
