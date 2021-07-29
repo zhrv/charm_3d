@@ -176,6 +176,39 @@ static void charm_init_fetch_bnd(charm_ctx_t *ctx, const YAML::Node &node, charm
 //            }
 
             break;
+        case BOUND_PRESS_COS: // @todo
+            bnd->bnd_fn = charm_bnd_cond_fn_press_cos;
+            n2 = node["parameters"];
+            bnd->params = CHARM_ALLOC(charm_real_t, 5+c_count);
+            bnd->params[0] = n2["T"].as<charm_real_t>();
+            bnd->params[1] = n2["P_shift"].as<charm_real_t>();
+            bnd->params[2] = n2["P_ampl"].as<charm_real_t>();
+            bnd->params[3] = n2["P_freq"].as<charm_real_t>();
+            bnd->params[4] = n2["P_ph"].as<charm_real_t>();
+            n3 = n2["components"];
+            i = 5;
+            memset(&(bnd->params[i]), 0, sizeof(charm_real_t)*c_count);
+            for (auto it : n3) {
+                id = it["id"].as<int>();
+                c  = it["concentration"].as<charm_real_t>();
+                if (charm_comp_index_find_by_id(ctx, id, &idx)) {
+                    bnd->params[i+idx] = c;
+                }
+                else {
+                    CHARM_LERRORF("Unknown component id %d for boundary '%s' in file 'task.yaml'\n", id, bnd->name);
+                    charm_abort(nullptr, 1);
+                }
+            }
+
+            c = 0;
+            for (idx = 0; idx < c_count; idx++) {
+                c += bnd->params[i+idx];
+            }
+            if (fabs(c-1.) > CHARM_EPS) {
+                CHARM_LERRORF("Sum of concentrations for boundary '%s' is not equal to 1 in file 'task.yaml'\n", bnd->name);
+                charm_abort(nullptr, 1);
+            }
+            break;
         case BOUND_UNKNOWN: // @todo
         default:
             CHARM_LERRORF("Unknown boundary type %s\n", bnd->name);
@@ -491,7 +524,7 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
         ctx->log_period             = control["LOG_OUTPUT_STEP"].as<int>();
         ctx->dt                     = control["TAU"].as<charm_real_t>();
         ctx->CFL                    = control["CFL"].as<charm_real_t>();
-        ctx->time                   = control["TMAX"].as<charm_real_t>();
+        ctx->maxTime                   = control["TMAX"].as<charm_real_t>();
 
 
         charm_init_comps(     ctx, config["components"]);

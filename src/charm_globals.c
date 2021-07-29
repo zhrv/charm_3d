@@ -19,6 +19,7 @@ const char *charm_bnd_types[] ={
         "BOUND_SYMMETRY",
         "BOUND_FREE_STREAM",
         "BOUND_PRESSURE",
+        "BOUND_PRESS_COS",
         NULL
 };
 

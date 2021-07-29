@@ -69,7 +69,7 @@ void                charm_vtk_write_file (p4est_t * p4est,
  * This is the first function that allocates the opaque context structure.
  * After allocation, further parameters can be set for the context.
  * Then, the header, possible data fields, and the footer must be written.
- * The process can be aborted any time by destroying the context.  In this
+ * The process can be aborted any maxTime by destroying the context.  In this
  * case, open files are closed cleanly with only partially written content.
  *
  * \param p4est     The p4est to be written.

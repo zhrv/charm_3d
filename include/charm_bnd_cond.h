@@ -30,6 +30,9 @@ void charm_bnd_cond_fn_free_stream(charm_prim_t *par_in, charm_prim_t *par_out, 
 void charm_bnd_cond_fn_pressure(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t *param,
                                 charm_vec_t n);
 
+void charm_bnd_cond_fn_press_cos(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t *param,
+                                charm_vec_t n);
+
 void charm_bnd_cond(p4est_t *p4est, p4est_topidx_t treeid, int8_t face,
                     charm_prim_t *par_in, charm_prim_t *par_out, charm_vec_t n);
 

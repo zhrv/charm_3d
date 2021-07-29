@@ -215,6 +215,25 @@ void charm_bnd_cond_fn_pressure(charm_prim_t *par_in, charm_prim_t *par_out, int
 }
 
 
+void charm_bnd_cond_fn_press_cos(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_vec_t n)
+{
+    p4est_t      *p4est    = charm_get_p4est();
+    charm_ctx_t  *ctx      = charm_get_ctx(p4est);
+    charm_int_t   c_count  = charm_get_comp_count(p4est);
+    charm_real_t  t        = ctx->t;
+    charm_real_t  parT     = param[0];
+    charm_real_t  parP     = param[1];
+    charm_real_t  parPampl = param[2];
+    charm_real_t  parPfreq = param[3];
+    charm_real_t  parPph   = param[4];
+
+    charm_prim_cpy(par_out, par_in);
+
+    par_out->p = parP + parPampl * cos(parPfreq*t+parPph);
+    par_out->t = parT;
+}
+
+
 // @todo
 void charm_bnd_cond_fn_wall_no_slip(charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_vec_t n)
 {

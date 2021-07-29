@@ -299,6 +299,7 @@ typedef enum {
     BOUND_SYMMETRY,
     BOUND_FREE_STREAM,
     BOUND_PRESSURE,
+    BOUND_PRESS_COS,
     BOUND_UNKNOWN
 } charm_bnd_types_t;
 
@@ -338,17 +339,17 @@ typedef struct charm_reaction
 
 typedef struct charm_ctx
 {
-    charm_real_t              max_err;            /**< maximum allowed global interpolation error */
-    int                 refine_period;      /**< the number of time steps between mesh refinement */
-    int                 repartition_period; /**< the number of time steps between repartitioning */
-    int                 write_period;       /**< the number of time steps between writing vtk files */
-    int                 log_period;         /**< the number of time steps between writing log */
+    charm_real_t        max_err;            /**< maximum allowed global interpolation error */
+    int                 refine_period;      /**< the number of maxTime steps between mesh refinement */
+    int                 repartition_period; /**< the number of maxTime steps between repartitioning */
+    int                 write_period;       /**< the number of maxTime steps between writing vtk files */
+    int                 log_period;         /**< the number of maxTime steps between writing log */
     int                 min_level;          /**< the minimal level */
     int                 max_level;          /**< the allowed level */
-    charm_real_t              CFL;                /**< the CFL */
-    charm_real_t              dt;
-    charm_real_t              t;                  /**< the current time */
-    charm_real_t              time;               /**< the max time */
+    charm_real_t        CFL;                /**< the CFL */
+    charm_real_t        dt;
+    charm_real_t        t;                  /**< the current maxTime */
+    charm_real_t        maxTime;               /**< the max maxTime */
     int                 timestep;
 
     union {

@@ -18,7 +18,7 @@
  * Update the state, refine, repartition, and write the solution to file.
  *
  * \param [in,out] p4est the forest, whose state is updated
- * \param [in] time      the end time
+ * \param [in] time      the end maxTime
  */
 void charm_timesteps(p4est_t * p4est)
 {
@@ -37,7 +37,7 @@ void charm_timesteps(p4est_t * p4est)
     dt = ctx->get_dt_fn(p4est);
 
     CHARM_GLOBAL_ESSENTIAL("Starting time steps...\n");
-    for (ctx->t = 0., ctx->timestep = 0; ctx->t < ctx->time; ctx->t += dt, ctx->timestep++) {
+    for (ctx->t = 0., ctx->timestep = 0; ctx->t < ctx->maxTime; ctx->t += dt, ctx->timestep++) {
         calc_time = sc_MPI_Wtime();
         ctx->timestep_single_fn(p4est, &dt, &ghost, &ghost_data);
         calc_time = sc_MPI_Wtime() - calc_time;

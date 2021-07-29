@@ -119,8 +119,8 @@ static
 #define CHARM_VTK_BINARY
 
 #ifndef CHARM_VTK_charm_real_tS
-#define CHARM_VTK_FLOAT_NAME "Float32"
-#define CHARM_VTK_FLOAT_TYPE float
+#define CHARM_VTK_FLOAT_NAME "Float64"
+#define CHARM_VTK_FLOAT_TYPE double
 #else
 #define CHARM_VTK_FLOAT_NAME "Float64"
 #define CHARM_VTK_FLOAT_TYPE charm_real_t
@@ -624,7 +624,7 @@ charm_vtk_write_header (charm_vtk_context_t * cont)
   fprintf (cont->vtufile, "          ");
   /* TODO: Don't allocate the full size of the array, only allocate
    * the chunk that will be passed to zlib and do this a chunk
-   * at a time.
+   * at a maxTime.
    */
   retval = charm_vtk_write_binary (cont->vtufile, (char *) float_data,
                                    sizeof (*float_data) * 3 * Npoints);
@@ -1454,7 +1454,7 @@ charm_vtk_write_point_scalar (charm_vtk_context_t * cont,
   fprintf (cont->vtufile, "          ");
   /* TODO: Don't allocate the full size of the array, only allocate
    * the chunk that will be passed to zlib and do this a chunk
-   * at a time.
+   * at a maxTime.
    */
   retval = charm_vtk_write_binary (cont->vtufile, (char *) float_data,
                                    sizeof (*float_data) * Npoints);
