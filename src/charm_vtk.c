@@ -118,9 +118,9 @@ static
 
 #define CHARM_VTK_BINARY
 
-#ifndef CHARM_VTK_charm_real_tS
-#define CHARM_VTK_FLOAT_NAME "Float64"
-#define CHARM_VTK_FLOAT_TYPE double
+#ifndef CHARM_VTK_charm_real_t
+#define CHARM_VTK_FLOAT_NAME "Float32"
+#define CHARM_VTK_FLOAT_TYPE float
 #else
 #define CHARM_VTK_FLOAT_NAME "Float64"
 #define CHARM_VTK_FLOAT_TYPE charm_real_t
