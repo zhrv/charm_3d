@@ -49,3 +49,24 @@ ComponentInfo getComponentInfo(Component component) {
             return info;
     }
 }
+
+// nu_stage_table
+const int nst[7][7] =
+        {
+                { -1, 1, 1, -1, 1, -1, 1}, //H
+                { 1, -1, -1, 1, 0, 0, 0}, //O
+                { 0, 0, -1, 1, -1, 1, -1}, //H2
+                { -1, 1, 0, 0, 0, 0, -1}, //O2
+                { 1, -1, 1, -1, -1, 1, 0}, //OH
+                { 0, 0, 0, 0, 1, -1, 0}, //H2O
+                { 0, 0, 0, 0, 0, 0, 1} //HO2
+        };
+
+const int nst_H[7] = { -1, 1, 1, -1, 1, -1, 1}; //H
+const int nst_O[7] = { 1, -1, -1, 1, 0, 0, 0}; //O
+const int nst_H2[7] = { 0, 0, -1, 1, -1, 1, -1}; //H2
+const int nst_O2[7] = { -1, 1, 0, 0, 0, 0, -1}; //O2
+const int nst_OH[7] = { 1, -1, 1, -1, -1, 1, 0}; //OH
+const int nst_H2O[7] = { 0, 0, 0, 0, 1, -1, 0}; //H2O
+const int nst_HO2[7] = { 0, 0, 0, 0, 0, 0, 1}; //HO2
+//const int* nu_stage_table_ = nu_stage_table[0];

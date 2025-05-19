@@ -70,38 +70,42 @@ static charm_real_t calc_kn(int stage_number, charm_data_t *pData, charm_prim_t 
 }
 
 //второй индекс 0:
-static charm_real_t calc_wn(int stage_number, charm_data_t *pData, charm_prim_t p, charm_real_t M, int nu) {
+static charm_real_t calc_wn(int stage_number, charm_data_t *pData, charm_prim_t p, charm_real_t M) {
     return calc_kn(stage_number, pData, p) * (
-            pow(p.r * pData->int_rc[1][0] / M, nu) * pow(p.r * pData->int_rc[2][0] / M, nu)
-            * pow(p.r * pData->int_rc[3][0] / M, nu) * pow(p.r * pData->int_rc[4][0] / M, nu)
+            pow(p.r * pData->int_rc[0][0] / M_H, nst[0][stage_number-1]) //зависит от номера стадии, тк n индексе
+            * pow(p.r * pData->int_rc[1][0] / M_O, nst[1][stage_number-1])
+            * pow(p.r * pData->int_rc[2][0] / getComponentInfo(H2).M, nst[2][stage_number-1])
+            * pow(p.r * pData->int_rc[3][0] / getComponentInfo(O2).M, nst[3][stage_number-1])
+            * pow(p.r * pData->int_rc[4][0] / getComponentInfo(OH).M, nst[4][stage_number-1])
+            * pow(p.r * pData->int_rc[5][0] / getComponentInfo(H2O).M, nst[5][stage_number-1])
+            * pow(p.r * pData->int_rc[6][0] / getComponentInfo(HO2).M, nst[6][stage_number-1])
     );
 }
 
 static charm_real_t calc_Qi(Component component, charm_data_t *data, charm_prim_t p) {
     charm_real_t M = getComponentInfo(component).M;
-    // nu stage table
     switch (component) {
         case H:
-            return M * (-1 * calc_wn(1, data, p, M, -1) + 1 * calc_wn(2, data, p, M, 1) + 1 * calc_wn(3, data, p, M, 1)
-                        -1 * calc_wn(4, data, p, M, -1) + 1 * calc_wn(5, data, p, M, 1) - 1 * calc_wn(6, data, p, M, -1) +
-                        1 * calc_wn(7, data, p, M, 1));
+            return M * (nst_H[0] * calc_wn(1, data, p, M) + nst_H[1] * calc_wn(2, data, p, M) + nst_H[2] * calc_wn(3, data, p, M)
+                        + nst_H[3] * calc_wn(4, data, p, M) + nst_H[4] * calc_wn(5, data, p, M) + nst_H[5] * calc_wn(6, data, p, M)
+                        + nst_H[6] * calc_wn(7, data, p, M));
         case O:
-            return M * (1 * calc_wn(1, data, p, M, 1) - 1 * calc_wn(2, data, p, M, -1) - 1 * calc_wn(3, data, p, M, -1)
-                        + 1 * calc_wn(4, data, p, M, 1) + 0.0 + 0.0 + 0.0);
+            return M * (nst_O[0] * calc_wn(1, data, p, M) + nst_O[1] * calc_wn(2, data, p, M) + nst_O[2] * calc_wn(3, data, p, M)
+                        + nst_O[3] * calc_wn(4, data, p, M) + 0.0 + 0.0 + 0.0);
         case H2:
-            return M * (0.0 + 0.0 - 1 * calc_wn(3, data, p, M, -1) + 1 * calc_wn(4, data, p, M, 1) - 1 * calc_wn(5, data, p, M, -1)
-                        + 1 * calc_wn(6, data, p, M, 1) - 1 * calc_wn(7, data, p, M, -1));
+            return M * (0.0 + 0.0 + nst_H2[2] * calc_wn(3, data, p, M) + nst_H2[3] * calc_wn(4, data, p, M) + nst_H2[4] * calc_wn(5, data, p, M)
+                        + nst_H2[5] * calc_wn(6, data, p, M) + nst_H2[6] * calc_wn(7, data, p, M));
         case O2:
-            return M * (-1 * calc_wn(1, data, p, M, -1) + 1 * calc_wn(2, data, p, M, 1)
-                        + 0.0 + 0.0 + 0.0 + 0.0 - 1 * calc_wn(7, data, p, M, -1));
+            return M * (nst_O2[0] * calc_wn(1, data, p, M) + nst_O2[1] * calc_wn(2, data, p, M)
+                        + 0.0 + 0.0 + 0.0 + 0.0 + nst_O2[6] * calc_wn(7, data, p, M));
         case OH:
-            return M * (1 * calc_wn(1, data, p, M, 1) - 1 * calc_wn(2, data, p, M, -1) + 1 * calc_wn(3, data, p, M, 1)
-                        - 1 * calc_wn(4, data, p, M, -1) - 1 * calc_wn(5, data, p, M, -1) + 1 * calc_wn(6, data, p, M, 1) + 0.0);
+            return M * (nst_OH[0] * calc_wn(1, data, p, M) + nst_OH[1] * calc_wn(2, data, p, M) + nst_OH[2] * calc_wn(3, data, p, M)
+                        + nst_OH[3] * calc_wn(4, data, p, M) + nst_OH[4] * calc_wn(5, data, p, M) + nst_OH[5] * calc_wn(6, data, p, M) + 0.0);
         case H2O:
-            return M * (1 * calc_wn(5, data, p, M, 1) - 1 * calc_wn(6, data, p, M, -1) + 0.0);
+            return M * (nst_H2O[4] * calc_wn(5, data, p, M) + nst_H2O[5] * calc_wn(6, data, p, M) + 0.0);
 
         case HO2:
-            return M * (1 * calc_wn(7, data, p, M, 1));
+            return M * (nst_HO2[6] * calc_wn(7, data, p, M));
     }
 }
 
@@ -121,7 +125,6 @@ static void _charm_convect_volume_int_iter_fn(p4est_iter_volume_info_t * info, v
     charm_real_t              fu, fv, fw, fe, *fc;
     charm_real_t              gu, gv, gw, ge, *gc;
     charm_real_t              hu, hv, hw, he, *hc;
-//    charm_real_t              su, sv, sw, se, *sc;
     charm_real_t              phi_x, phi_y, phi_z, phi;
     charm_real_t             *x;
     size_t              c_count = charm_get_comp_count(info->p4est);
@@ -130,7 +133,6 @@ static void _charm_convect_volume_int_iter_fn(p4est_iter_volume_info_t * info, v
     fc = CHARM_ALLOC(charm_real_t, c_count);
     gc = CHARM_ALLOC(charm_real_t, c_count);
     hc = CHARM_ALLOC(charm_real_t, c_count);
-//    sc = CHARM_ALLOC(charm_real_t, c_count);
 
     for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
         for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
@@ -153,11 +155,6 @@ static void _charm_convect_volume_int_iter_fn(p4est_iter_volume_info_t * info, v
             hv = c.rw*p.v;
             hw = c.rw*p.w+p.p;
             he = c.rw*p.e_tot+p.p*p.w;
-
-//            su = 0.;
-//            sv = 0.;
-//            sw = 0.;
-//            se = 0.;
 
             for(cj = 0; cj < c_count; ++cj) {
                 fc[cj] = c.ru*p.c[cj];
