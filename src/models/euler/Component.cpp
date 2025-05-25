@@ -2,8 +2,8 @@
 
 #ifndef CHARM_3D_COMPONENT_H
 #define CHARM_3D_COMPONENT_H
-#define M_H 1.00797
-#define M_O 15.9994
+#define M_H 0.00100797
+#define M_O 0.0159994
 
 #endif
 
@@ -11,7 +11,7 @@ typedef enum {
     H, O, H2, O2, OH, H2O, HO2
 } Component;
 
-typedef struct { ////! добавить данные по аналогии с task.yml components
+typedef struct {
     Component component;
     charm_real_t M;
 } ComponentInfo;
@@ -62,11 +62,10 @@ const int nst[7][7] =
                 { 0, 0, 0, 0, 0, 0, 1} //HO2
         };
 
-const int nst_H[7] = { -1, 1, 1, -1, 1, -1, 1}; //H
-const int nst_O[7] = { 1, -1, -1, 1, 0, 0, 0}; //O
-const int nst_H2[7] = { 0, 0, -1, 1, -1, 1, -1}; //H2
-const int nst_O2[7] = { -1, 1, 0, 0, 0, 0, -1}; //O2
-const int nst_OH[7] = { 1, -1, 1, -1, -1, 1, 0}; //OH
-const int nst_H2O[7] = { 0, 0, 0, 0, 1, -1, 0}; //H2O
-const int nst_HO2[7] = { 0, 0, 0, 0, 0, 0, 1}; //HO2
-//const int* nu_stage_table_ = nu_stage_table[0];
+const int nst_H[7] = {-1, 1, 1, -1, 1, -1, 1}; //H
+const int nst_O[7] = {1, -1, -1, 1, 0, 0, 0}; //O
+const int nst_H2[7] = {0, 0, -1, 1, -1, 1, -1}; //H2
+const int nst_O2[7] = {-1, 1, 0, 0, 0, 0, -1}; //O2
+const int nst_OH[7] = {1, -1, 1, -1, -1, 1, 0}; //OH
+const int nst_H2O[7] = {0, 0, 0, 0, 1, -1, 0}; //H2O
+const int nst_HO2[7] = {0, 0, 0, 0, 0, 0, 1}; //HO2

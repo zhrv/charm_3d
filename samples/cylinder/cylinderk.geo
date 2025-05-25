@@ -29,3 +29,5 @@ Physical Surface("LEFT_INLET", 7) = {5};
 Physical Surface("RIGHT", 8) = {2};
 //+
 Physical Surface("WALL", 9) = {1};
+//+
+Physical Volume("CYLINDER", 10) = {1};
