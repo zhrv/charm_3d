@@ -1,3 +1,4 @@
+Mesh.MshFileVersion=2.2;
 // Gmsh project created on Sun May 18 00:21:41 2025
 SetFactory("OpenCASCADE");
 //+
