@@ -8,15 +8,15 @@ control:
   REPARTITION_PERIOD: 10
   MIN_LEVEL: 0
   MAX_LEVEL: 1
-  CFL: 0.1                    # число Куранта
-  TAU: 1.0e-2                 # шаг по времени, используется меньшее значение из этого или из полученного из числа Куранта
+  CFL: 0.01                    # число Куранта
+  TAU: 1.0e-7                 # шаг по времени, используется меньшее значение из этого или из полученного из числа Куранта
   TMAX: 50                    # время, до которго выполняется расчет
-  FILE_OUTPUT_STEP: 100       # количество итераций, через которые выполняется вывод результатов в файл
-  LOG_OUTPUT_STEP: 10         # интервал вывода краткой информации в лог-файл
+  FILE_OUTPUT_STEP: 100 #1      # количество итераций, через которые выполняется вывод результатов в файл
+  LOG_OUTPUT_STEP: 10 #1         # интервал вывода краткой информации в лог-файл
   MODEL: {name: EULER, use_visc: 0, use_diffusion: 0, t_ref: 298.15}
 mesh:
   files_type: gmsh_msh
-  name: cylinderk.msh
+  name: cylinder_hex.msh
 components:
   - id: 0
     name: H # Hydrogen atomic
@@ -145,7 +145,7 @@ boundaries:
     name: LEFT_WALL
     type: BOUND_WALL_SLIP
   -
-    name: LEFT_INLET_WALL
+    name: LEFT_INLET
     type: BOUND_MASS_FLOW
     parameters:
       CosX: 1.0
