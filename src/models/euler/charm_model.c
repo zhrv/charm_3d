@@ -69,17 +69,50 @@ static charm_real_t calc_kn(int stage_number, charm_data_t *pData, charm_prim_t 
     }
 }
 
-//второй индекс 0:
 static charm_real_t calc_wn(int stage_number, charm_data_t *pData, charm_prim_t p, charm_real_t M) {
-    return calc_kn(stage_number, pData, p) * (
-            pow(p.r * pData->int_rc[0][0] / M_H, nst[0][stage_number-1]) //зависит от номера стадии, тк n индексе
-            * pow(p.r * pData->int_rc[1][0] / M_O, nst[1][stage_number-1])
-            * pow(p.r * pData->int_rc[2][0] / getComponentInfo(H2).M, nst[2][stage_number-1])
-            * pow(p.r * pData->int_rc[3][0] / getComponentInfo(O2).M, nst[3][stage_number-1])
-            * pow(p.r * pData->int_rc[4][0] / getComponentInfo(OH).M, nst[4][stage_number-1])
-            * pow(p.r * pData->int_rc[5][0] / getComponentInfo(H2O).M, nst[5][stage_number-1])
-            * pow(p.r * pData->int_rc[6][0] / getComponentInfo(HO2).M, nst[6][stage_number-1])
-    );
+    charm_real_t mult = calc_kn(stage_number, pData, p);
+    int non_zero_c_count = 0; //число компонент с НЕнулевой концентрацией
+
+    if (pData->int_rc[0][0] != 0) {
+        mult *= pow(p.r * pData->int_rc[0][0] / getComponentInfo(H).M, nst[0][stage_number-1]);
+        non_zero_c_count++;
+    }
+    if (pData->int_rc[1][0] != 0) {
+        mult *= pow(p.r * pData->int_rc[1][0] / getComponentInfo(O).M, nst[1][stage_number-1]);
+        non_zero_c_count++;
+    }
+    if (pData->int_rc[2][0] != 0) {
+        mult *= pow(p.r * pData->int_rc[2][0] / getComponentInfo(H2).M, nst[2][stage_number-1]);
+        non_zero_c_count++;
+    }
+    if (pData->int_rc[3][0] != 0) {
+        mult *= pow(p.r * pData->int_rc[3][0] / getComponentInfo(O2).M, nst[3][stage_number-1]);
+        non_zero_c_count++;
+    }
+    if (pData->int_rc[4][0] != 0) {
+        mult *= pow(p.r * pData->int_rc[4][0] / getComponentInfo(OH).M, nst[4][stage_number-1]);
+        non_zero_c_count++;
+    }
+    if (pData->int_rc[5][0] != 0) {
+        mult *= pow(p.r * pData->int_rc[5][0] / getComponentInfo(H2O).M, nst[5][stage_number-1]);
+        non_zero_c_count++;
+    }
+    if (pData->int_rc[6][0] != 0) {
+        mult *= pow(p.r * pData->int_rc[6][0] / getComponentInfo(HO2).M, nst[6][stage_number-1]);
+        non_zero_c_count++;
+    }
+    if (non_zero_c_count < 1)
+        return 0;
+    return mult;
+//    return calc_kn(stage_number, pData, p) * (
+//            pow(p.r * pData->int_rc[0][0] / getComponentInfo(H).M, nst[0][stage_number-1])
+//            * pow(p.r * pData->int_rc[1][0] / getComponentInfo(O).M, nst[1][stage_number-1])
+//            * pow(p.r * pData->int_rc[2][0] / getComponentInfo(H2).M, nst[2][stage_number-1])
+//            * pow(p.r * pData->int_rc[3][0] / getComponentInfo(O2).M, nst[3][stage_number-1])
+//            * pow(p.r * pData->int_rc[4][0] / getComponentInfo(OH).M, nst[4][stage_number-1])
+//            * pow(p.r * pData->int_rc[5][0] / getComponentInfo(H2O).M, nst[5][stage_number-1])
+//            * pow(p.r * pData->int_rc[6][0] / getComponentInfo(HO2).M, nst[6][stage_number-1])
+//    );
 }
 
 static charm_real_t calc_Qi(Component component, charm_data_t *data, charm_prim_t p) {
@@ -180,15 +213,14 @@ static void _charm_convect_volume_int_iter_fn(p4est_iter_volume_info_t * info, v
             //ниже семь компонент i = 1...7
             // N = 7 стадий
             // Qi = M_wi*sum(n=1...7, v_in*wn)
-            // wn = kn * Mult(i=1...M, ro * v_in*wn),
-            // M - число компонент в стадии (4) - исправить на общее число компонент (7)
-            data->int_rq[ibf][0] += calc_Qi(H, data, p);  //H
-            data->int_rq[ibf][1] += calc_Qi(O, data, p);  //O
-            data->int_rq[ibf][2] += calc_Qi(H2, data, p);  //H2
-            data->int_rq[ibf][3] += calc_Qi(O2, data, p);  //O2
-            data->int_rq[ibf][4] += calc_Qi(OH, data, p);  //OH
-            data->int_rq[ibf][5] += calc_Qi(H2O, data, p);  //H2O
-            data->int_rq[ibf][6] += calc_Qi(HO2, data, p);  //HO2
+            // wn = kn * Mult(i=1...M, ro * v_in*wn), M = 7
+            data->int_rc[0][ibf] += calc_Qi(H, data, p);  //H
+            data->int_rc[1][ibf] += calc_Qi(O, data, p);  //O
+            data->int_rc[2][ibf] += calc_Qi(H2, data, p);  //H2
+            data->int_rc[3][ibf] += calc_Qi(O2, data, p);  //O2
+            data->int_rc[4][ibf] += calc_Qi(OH, data, p);  //OH
+            data->int_rc[5][ibf] += calc_Qi(H2O, data, p);  //H2O
+            data->int_rc[6][ibf] += calc_Qi(HO2, data, p);  //HO2
         }
     }
     CHARM_FREE(fc);

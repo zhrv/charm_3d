@@ -207,7 +207,7 @@ void charm_get_fields(charm_data_t* p, charm_real_t* x, charm_cons_t* c){
     c->rw = charm_get_field_rw(p, x);
     c->re = charm_get_field_re(p, x);
     for (k = 0; k < c_count; k++) {
-        c->rc[k] = charm_get_field_rc(p, x, k);////!
+        c->rc[k] = charm_get_field_rc(p, x, k);
     }
 
     c->mat_id = p->par.mat_id;
