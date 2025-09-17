@@ -192,6 +192,9 @@ charm_real_t charm_get_field_rc(charm_data_t* p, charm_real_t* x, int k)
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
         result += p->par.c.rc[k][i]*charm_base_func(x, i, p);
     }
+//    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+//        result = p->par.c.rc[k][0];
+//    }
     return result;
 }
 

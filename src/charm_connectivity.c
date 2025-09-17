@@ -235,7 +235,7 @@ charm_reg_t * charm_conn_reg_find_by_id(charm_ctx_t* ctx, int id)
 }
 
 
-int charm_conn_find_tree_by_face(charm_ctx_t *ctx, p4est_connectivity_t  *conn, charm_fhash_t* fh, p4est_topidx_t  *face_vert, int8_t face_type)
+int charm_conn_find_tree_by_face(charm_ctx_t *ctx, p4est_connectivity_t  *conn, charm_fhash_t* fh, p4est_topidx_t  *face_vert, int face_type)
 {
     int i;
     charm_tree_attr_t *attr;

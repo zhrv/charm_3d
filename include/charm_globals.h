@@ -218,6 +218,7 @@ typedef struct charm_data
     charm_real_t              int_rv[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     charm_real_t              int_rw[CHARM_BASE_FN_COUNT];          /**< the time derivative */
     charm_real_t              int_re[CHARM_BASE_FN_COUNT];          /**< the time derivative */
+//    charm_real_t              int_rq[CHARM_BASE_FN_COUNT][CHARM_UNIQUE_COMPONENT_COUNT];          /**< the time derivative */
     charm_real_t              int_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];              /**< the time derivative */
 
     charm_real_t              int_q_x[CHARM_BASE_FN_COUNT];
