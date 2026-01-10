@@ -18,8 +18,8 @@ typedef int                 charm_int_t;
 typedef unsigned int        charm_uint_t;
 typedef double              charm_vec_t[CHARM_DIM];
 
-typedef double              charm_vect_t[CHARM_BASE_FN_COUNT];
-typedef double              charm_matr_t[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
+typedef charm_real_t        charm_vect_t[CHARM_BASE_FN_COUNT];
+typedef charm_real_t        charm_matr_t[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
 
 typedef charm_vect_t         charm_vec_c_t[CHARM_DIM];
 
@@ -102,6 +102,7 @@ typedef struct charm_cons
     int             mat_id;
 } charm_cons_t;
 
+
 typedef struct charm_tensor
 {
     charm_real_t xx;
@@ -111,6 +112,7 @@ typedef struct charm_tensor
     charm_real_t xz;
     charm_real_t yz;
 } charm_tensor_t;
+
 
 typedef struct charm_tensor_c
 {
@@ -122,18 +124,6 @@ typedef struct charm_tensor_c
     charm_vect_t yz;
 } charm_tensor_c_t;
 
-//typedef struct charm_vec {
-//    charm_real_t x;
-//    charm_real_t y;
-//    charm_real_t z;
-//} charm_vec_t;
-//
-//typedef struct charm_vec_c {
-//    charm_vect_t x;
-//    charm_vect_t y;
-//    charm_vect_t z;
-//} charm_vec_c_t;
-
 
 typedef void (*charm_eos_fn_t) (p4est_t * p4est, charm_prim_t * p, charm_eos_flag_t flag);
 
@@ -143,6 +133,7 @@ typedef struct charm_mat
     char                name[64];
     charm_eos_fn_t      eos_fn;
 } charm_mat_t;
+
 
 typedef struct charm_reg
 {
@@ -156,25 +147,21 @@ typedef struct charm_reg
     charm_vec_t     grav;
 } charm_reg_t;
 
+
+typedef struct charm_fields {
+    charm_vect_t    ru;
+    charm_vect_t    rv;
+    charm_vect_t    rw;
+    charm_vect_t    re;
+    charm_vect_t    rc[CHARM_MAX_COMPONETS_COUNT];
+} charm_fields_t;
+
+
 typedef struct charm_param
 {
-    struct
-    {
-        charm_vect_t          ru;
-        charm_vect_t          rv;
-        charm_vect_t          rw;
-        charm_vect_t          re;
-        charm_vect_t          rc[CHARM_MAX_COMPONETS_COUNT];
-    } c;
+    charm_fields_t c;
 
-    struct
-    {
-        charm_vect_t          ru;
-        charm_vect_t          rv;
-        charm_vect_t          rw;
-        charm_vect_t          re;
-        charm_vect_t          rc[CHARM_MAX_COMPONETS_COUNT];
-    } c_old;
+    charm_fields_t c_old;
 
     union {
         struct {
@@ -302,6 +289,7 @@ typedef enum {
     BOUND_UNKNOWN
 } charm_bnd_types_t;
 
+
 typedef struct charm_bnd
 {
     char name[64];
@@ -310,6 +298,7 @@ typedef struct charm_bnd
     charm_bnd_cond_fn_t bnd_fn;
 
 } charm_bnd_t;
+
 
 typedef enum {
     CHARM_MESH_UNKNOWN,
@@ -321,11 +310,13 @@ typedef enum {
     CHARM_MESH_TETGEN
 } charm_mesh_type_t;
 
+
 typedef struct charm_mesh_info
 {
     charm_mesh_type_t   type;
     char                filename[128];
 } charm_mesh_info_t;
+
 
 typedef struct charm_reaction
 {
@@ -335,6 +326,7 @@ typedef struct charm_reaction
     charm_real_t  e;                   /**< энергия активации */
     charm_real_t  n;                   /**< степень температуры */
 } charm_reaction_t;
+
 
 typedef struct charm_ctx
 {
@@ -414,6 +406,7 @@ typedef struct charm_ctx
     charm_amr_fn_t              amr_fn;
     charm_init_fn_t             model_init_cond_fn;
 } charm_ctx_t;
+
 
 typedef struct charm_tree_attr
 {

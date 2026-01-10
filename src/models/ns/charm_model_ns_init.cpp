@@ -122,8 +122,15 @@ void charm_model_ns_turb_sa_fetch_param(charm_ctx_t *ctx, YAML::Node par)
 
 static void charm_model_ns_turb_init(charm_ctx_t *ctx, YAML::Node node)
 {
+    if (!node.IsDefined()) {
+        ctx->model.ns.turb.init_cond_fn  = nullptr;
+        ctx->model.ns.turb.model_fn = nullptr;
+        ctx->model.ns.turb.model_type = TURB_MODEL_UNKNOWN;
+        return;
+    }
+     
     ctx->model.ns.turb.model_type = charm_turb_model_by_name(node["model"].as<std::string>().c_str());
-    ctx->model.ns.turb.init_cond_fn  = nullptr;
+    
     switch (ctx->model.ns.turb.model_type) {
         case TURB_MODEL_SST:
             ctx->model.ns.turb.model_fn = charm_model_ns_turb_sst;
@@ -135,6 +142,7 @@ static void charm_model_ns_turb_init(charm_ctx_t *ctx, YAML::Node node)
             charm_model_ns_turb_sa_fetch_param(ctx, node["parameters"]);
             break;
         default:
+            ctx->model.ns.turb.init_cond_fn  = nullptr;
             ctx->model.ns.turb.model_fn = nullptr;
             break;
     }
@@ -150,13 +158,7 @@ void charm_model_ns_init(charm_ctx_t *ctx, YAML::Node model_node, const YAML::No
     ctx->model.ns.use_diff = model_node["use_diffusion"].as<int>();
     ctx->model.ns.t_ref    = model_node["t_ref"].as<charm_real_t>();
 
-    turb_node = model_node["turbulence"];
-    if (turb_node) {
-        charm_model_ns_turb_init(ctx, turb_node);
-    }
-    else {
-        ctx->model.ns.turb.model_type = TURB_MODEL_UNKNOWN;
-    }
+    charm_model_ns_turb_init(ctx, model_node["turbulence"]);
 
     ctx->amr_init_fn            = charm_adapt_init;
     ctx->amr_fn                 = charm_adapt;
