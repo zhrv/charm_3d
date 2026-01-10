@@ -5,6 +5,7 @@
 #include "charm_globals.h"
 #include <map>
 #include <set>
+#include <array>
 
 using std::map;
 using std::set;

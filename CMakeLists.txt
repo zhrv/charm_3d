@@ -6,9 +6,9 @@ if(NOT CMAKE_BUILD_TYPE)
    message(STATUS "Build type not specified: Use Release by default")
 endif(NOT CMAKE_BUILD_TYPE)
 
+find_package(MPI)
+include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 
-set(CMAKE_C_COMPILER "mpicc")
-set(CMAKE_CXX_COMPILER "mpicxx")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O2") # for production
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -DCHARM_DEBUG") # for developing
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2") # for production
@@ -21,20 +21,17 @@ endif()
 
 set(CONTRIB_DIR "${CMAKE_SOURCE_DIR}/contrib")
 
+add_subdirectory(${CONTRIB_DIR}/yaml-cpp)
+
 set(P4EST_INSTALL "${CONTRIB_DIR}/p4est/local")
 set(P4EST_INCLUDE "${P4EST_INSTALL}/include" "${P4EST_INSTALL}/include/sc_builtin")
 set(P4EST_LIB "${P4EST_INSTALL}/lib")
 
-set(YAML_INCLUDE "${CONTRIB_DIR}/yaml-cpp/local/include")
-
-set(YAML_LIB "${CONTRIB_DIR}/yaml-cpp/local/lib")
-set(YAML_LIB64 "${CONTRIB_DIR}/yaml-cpp/local/lib64")
-
 set(CHARM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
 
 
-include_directories(${CHARM_INCLUDE} ${P4EST_INCLUDE} ${YAML_INCLUDE})
-link_directories(${P4EST_LIB} ${YAML_LIB} ${YAML_LIB64})
+include_directories(${CHARM_INCLUDE} ${P4EST_INCLUDE})
+link_directories(${P4EST_LIB})
 
 add_executable(	charm_3d
 
@@ -84,9 +81,13 @@ add_executable(	charm_3d
         src/models/ns/charm_model_ns_chem.c
         src/models/ns/charm_model_ns_turb.c
         src/models/ns/turb/charm_model_ns_turb_sst.c
-        src/models/ns/charm_model_ns_geom.c src/models/ns/turb/charm_model_ns_turb_sa.c src/models/ns/turb/charm_model_ns_turb_sa_grad.c src/models/ns/charm_model_ns_init_cond.c)
+        src/models/ns/charm_model_ns_geom.c 
+        src/models/ns/turb/charm_model_ns_turb_sa.c 
+        src/models/ns/turb/charm_model_ns_turb_sa_grad.c 
+        src/models/ns/charm_model_ns_init_cond.c
+)
 
-target_link_libraries(charm_3d p4est sc m yaml-cpp)
+target_link_libraries(charm_3d p4est sc m yaml-cpp ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES})
 set_property(TARGET charm_3d PROPERTY C_STANDARD 99)
 set_property(TARGET charm_3d PROPERTY CXX_STANDARD 14)
 
