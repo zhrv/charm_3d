@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
-project(charm_3d)
+project(charm_3d VERSION 0.1.3)
+
+
 
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE "Release")
@@ -8,6 +10,9 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 find_package(MPI)
 include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -DCHARM_PROJECT_VERSION=${CMAKE_PROJECT_VERSION}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHARM_PROJECT_VERSION=${CMAKE_PROJECT_VERSION}")
 
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O2") # for production
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -DCHARM_DEBUG") # for developing
