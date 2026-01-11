@@ -198,7 +198,6 @@ typedef struct charm_param
             charm_fields_t c_Jtmp1;
             charm_fields_t c_Jtmp2;
             charm_fields_t c_Jtmp3;
-            charm_tensor_c_t tau;
         } ns;
     } model;
 
