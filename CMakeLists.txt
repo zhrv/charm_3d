@@ -1,5 +1,20 @@
 cmake_minimum_required(VERSION 3.5)
-project(charm_3d VERSION 0.1.3)
+include(cmake/git.cmake)
+
+# project(P4EST
+# LANGUAGES C
+# HOMEPAGE_URL https://www.p4est.org/
+# DESCRIPTION "p4est manages a collection---a forest---of octrees in parallel."
+# VERSION ${PROJECT_VERSION})
+
+project(charm_3d 
+VERSION ${PROJECT_VERSION})
+
+message(STATUS "")
+message(STATUS "*************************************************")
+message(STATUS "*  Building CHARM_3D version " ${CHARM_VERSION})
+message(STATUS "*************************************************")
+message(STATUS "")
 
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -9,8 +24,11 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 find_package(MPI)
 
-set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -DCHARM_PROJECT_VERSION=${CMAKE_PROJECT_VERSION}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHARM_PROJECT_VERSION=${CMAKE_PROJECT_VERSION}")
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -DCHARM_PROJECT_VERSION=${CHARM_VERSION}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHARM_PROJECT_VERSION=${CHARM_VERSION}")
+
+# set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -DCHARM_PROJECT_VERSION=${CMAKE_PROJECT_VERSION}")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHARM_PROJECT_VERSION=${CMAKE_PROJECT_VERSION}")
 
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O2") # for production
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -DCHARM_DEBUG") # for developing
@@ -24,7 +42,7 @@ endif()
 
 set(CONTRIB_DIR "${CMAKE_SOURCE_DIR}/contrib")
 
-include(AddGitSubmodule.cmake)
+include(cmake/AddGitSubmodule.cmake)
 add_git_submodule(${CONTRIB_DIR}/yaml-cpp)
 
 ### TODO For using MPI in p4est and sc
