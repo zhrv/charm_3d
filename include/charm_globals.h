@@ -160,7 +160,6 @@ typedef struct charm_fields {
 typedef struct charm_param
 {
     charm_fields_t c;
-
     charm_fields_t c_old;
 
     union {
@@ -191,26 +190,35 @@ typedef struct charm_param
                     } sst;
                 } model;
             } turb;
+            charm_fields_t c_result;
+            charm_fields_t c_rhs;
+            charm_fields_t c_residual;
+            charm_fields_t c_Ju;
+            charm_fields_t c_Jr;
+            charm_fields_t c_Jtmp1;
+            charm_fields_t c_Jtmp2;
+            charm_fields_t c_Jtmp3;
+            charm_tensor_c_t tau;
         } ns;
     } model;
 
     struct geom
     {
-        charm_vec_t           n[CHARM_FACES];
-        charm_vec_t         face_gp[CHARM_FACES][CHARM_FACE_GP_COUNT];
-        charm_real_t          face_gw[CHARM_FACES][CHARM_FACE_GP_COUNT];
-        charm_real_t          face_gj[CHARM_FACES][CHARM_FACE_GP_COUNT];
-        charm_vec_t         quad_gp[CHARM_QUAD_GP_COUNT];
-        charm_real_t          quad_gw[CHARM_QUAD_GP_COUNT];
-        charm_real_t          quad_gj[CHARM_QUAD_GP_COUNT];
-        charm_real_t          area[CHARM_FACES];
-        charm_real_t          volume;
-        charm_vec_t         c;
-        charm_vec_t         fc[CHARM_FACES];
-        charm_vec_t           dh;
-        charm_matr_t          a;
-        charm_matr_t          a_inv;
-        charm_real_t          y;
+        charm_vec_t     n[CHARM_FACES];
+        charm_vec_t     face_gp[CHARM_FACES][CHARM_FACE_GP_COUNT];
+        charm_real_t    face_gw[CHARM_FACES][CHARM_FACE_GP_COUNT];
+        charm_real_t    face_gj[CHARM_FACES][CHARM_FACE_GP_COUNT];
+        charm_vec_t     quad_gp[CHARM_QUAD_GP_COUNT];
+        charm_real_t    quad_gw[CHARM_QUAD_GP_COUNT];
+        charm_real_t    quad_gj[CHARM_QUAD_GP_COUNT];
+        charm_real_t    area[CHARM_FACES];
+        charm_real_t    volume;
+        charm_vec_t     c;
+        charm_vec_t     fc[CHARM_FACES];
+        charm_vec_t     dh;
+        charm_matr_t    a;
+        charm_matr_t    a_inv;
+        charm_real_t    y;
     } g;
 
     int             mat_id;

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 project(charm_3d VERSION 0.1.3)
 
 
@@ -90,6 +90,15 @@ add_executable(	charm_3d
         src/models/ns/turb/charm_model_ns_turb_sa.c 
         src/models/ns/turb/charm_model_ns_turb_sa_grad.c 
         src/models/ns/charm_model_ns_init_cond.c
+
+        src/models/ns_jfnk/charm_model_ns_jfnk_conv.c 
+        src/models/ns_jfnk/charm_model_ns_jfnk_diff_grad.c 
+        src/models/ns_jfnk/charm_model_ns_jfnk_diff_integrals.c 
+        src/models/ns_jfnk/charm_model_ns_jfnk_diff.c 
+        src/models/ns_jfnk/charm_model_ns_jfnk_geom.c 
+        src/models/ns_jfnk/charm_model_ns_jfnk_init_cond.c 
+        src/models/ns_jfnk/charm_model_ns_jfnk_init.cpp 
+        src/models/ns_jfnk/charm_model.c
 )
 
 target_link_libraries(charm_3d p4est sc m yaml-cpp ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES})
