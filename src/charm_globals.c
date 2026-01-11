@@ -604,11 +604,11 @@ charm_real_t charm_comp_calc_cp(charm_comp_t * comp, charm_real_t t)
     charm_real_t res = 0.;
     charm_real_t tt  = 1.;
     charm_real_t *cp;
-    if (comp->cp_type == COMP_ML_CONST) {
+    if (comp->cp_type == COMP_CP_CONST) {
         cp = sc_array_index(comp->cp, 0);
         return *cp;
     }
-    else if (comp->ml_type == COMP_CP_POLYNOM) {
+    else if (comp->cp_type == COMP_CP_POLYNOM) {
         for (i= 0; i < comp->cp->elem_count; i++) {
             cp = sc_array_index(comp->cp, i);
             res += tt*(*cp);

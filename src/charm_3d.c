@@ -13,7 +13,9 @@ p4est_t              *p4est;
 int main (int argc, char **argv)
 {
 #ifdef CHARM_DEBUG
+#ifndef __APPLE__     
     feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
+#endif
 #endif
     int                   mpiret;
     sc_MPI_Comm           mpicomm;

@@ -26,6 +26,10 @@ set(CONTRIB_DIR "${CMAKE_SOURCE_DIR}/contrib")
 
 include(AddGitSubmodule.cmake)
 add_git_submodule(${CONTRIB_DIR}/yaml-cpp)
+
+### TODO For using MPI in p4est and sc
+set(P4EST_ENABLE_MPI on)
+set(SC_ENABLE_MPI on)
 add_git_submodule(${CONTRIB_DIR}/p4est)
 
 
