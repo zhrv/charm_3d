@@ -495,7 +495,7 @@ void charm_abort(p4est_t *p4est, int err_code)
     }
 
     sc_finalize ();
-    MPI_Finalize ();
+    sc_MPI_Finalize ();
     exit(1);
 }
 

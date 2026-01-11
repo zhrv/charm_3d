@@ -2,14 +2,12 @@ cmake_minimum_required(VERSION 3.5)
 project(charm_3d VERSION 0.1.3)
 
 
-
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE "Release")
    message(STATUS "Build type not specified: Use Release by default")
 endif(NOT CMAKE_BUILD_TYPE)
 
 find_package(MPI)
-include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -DCHARM_PROJECT_VERSION=${CMAKE_PROJECT_VERSION}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHARM_PROJECT_VERSION=${CMAKE_PROJECT_VERSION}")
@@ -26,17 +24,12 @@ endif()
 
 set(CONTRIB_DIR "${CMAKE_SOURCE_DIR}/contrib")
 
-add_subdirectory(${CONTRIB_DIR}/yaml-cpp)
-
-set(P4EST_INSTALL "${CONTRIB_DIR}/p4est/local")
-set(P4EST_INCLUDE "${P4EST_INSTALL}/include" "${P4EST_INSTALL}/include/sc_builtin")
-set(P4EST_LIB "${P4EST_INSTALL}/lib")
-
-set(CHARM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
+include(AddGitSubmodule.cmake)
+add_git_submodule(${CONTRIB_DIR}/yaml-cpp)
+add_git_submodule(${CONTRIB_DIR}/p4est)
 
 
-include_directories(${CHARM_INCLUDE} ${P4EST_INCLUDE})
-link_directories(${P4EST_LIB})
+include_directories(SYSTEM ${MPI_INCLUDE_PATH} ${CMAKE_SOURCE_DIR}/include)
 
 add_executable(	charm_3d
 
@@ -101,7 +94,10 @@ add_executable(	charm_3d
         src/models/ns_jfnk/charm_model.c
 )
 
-target_link_libraries(charm_3d p4est sc m yaml-cpp ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES})
+target_link_libraries(charm_3d 
+        p4est sc m yaml-cpp ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES}
+)
+
 set_property(TARGET charm_3d PROPERTY C_STANDARD 99)
 set_property(TARGET charm_3d PROPERTY CXX_STANDARD 14)
 
