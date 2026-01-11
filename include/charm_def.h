@@ -28,7 +28,7 @@
 
 #ifdef CHARM_DEBUG
 
-#define CHARM_LOG_LEVEL SC_LP_ESSENTIAL
+#define CHARM_LOG_LEVEL SC_LP_ALWAYS
 #define DBG_CH(R) {printf("Rank: %d. File: %s. Line: %d\n", (R), __FILE__, __LINE__);fflush(stdout);}
 #define CHARM_ASSERT P4EST_ASSERT
 
@@ -181,6 +181,5 @@ __attribute__ ((format (printf, 1, 2)));
 #define CHARM_MAX_COMPONETS_COUNT 128
 
 #define CHARM_ARR_SET_ZERO(A) {int i; for (i = 0; i < CHARM_BASE_FN_COUNT; i++) A[i] = 0.; }
-
 
 #endif //CHARM_3D_CHARM_DEF_H

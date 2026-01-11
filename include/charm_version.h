@@ -5,7 +5,18 @@
 #ifndef CHARM_3D_CHARM_VERSION_H
 #define CHARM_3D_CHARM_VERSION_H
 
-static const char CHARM_VERSION[]   = "0.0.3";
-static const char YAML_VERSION[]    = "0.1.1";
+
+#ifndef CHARM_PROJECT_VERSION
+#error "CHARM_PROJECT_VERSION is not defined"
+#define CHARM_PROJECT_VERSION 0.0.0
+#endif
+
+#define STRINGIZE(x) #x
+#define STRINGIZE_VALUE_OF(x) STRINGIZE(x)
+
+
+
+static const char CHARM_VERSION[]   = STRINGIZE_VALUE_OF(CHARM_PROJECT_VERSION);
+static const char YAML_VERSION[]    = STRINGIZE_VALUE_OF(CHARM_PROJECT_VERSION);
 
 #endif //CHARM_3D_CHARM_VERSION_H

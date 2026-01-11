@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+#include <fenv.h>
 #include "charm_globals.h"
 #include "charm_amr.h"
 
@@ -6,18 +8,27 @@ void charm_init_context_yaml(charm_ctx_t *ctx);
 charm_ctx_t           ctx;
 p4est_t              *p4est;
 
+
+
 int main (int argc, char **argv)
 {
+#ifdef CHARM_DEBUG
+#ifndef __APPLE__     
+    feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
+#endif
+#endif
     int                   mpiret;
     sc_MPI_Comm           mpicomm;
     p4est_connectivity_t *conn;
     char                  charm_str[128];
 
-    sc_set_log_defaults(NULL, NULL, CHARM_LOG_LEVEL);
-
     mpiret = sc_MPI_Init (&argc, &argv);
     SC_CHECK_MPI (mpiret);
     mpicomm = sc_MPI_COMM_WORLD;
+    sc_init (mpicomm, 1, 1, NULL, SC_LP_ERROR);
+    p4est_init (NULL, SC_LP_ERROR);
+
+    sc_set_log_defaults(NULL, NULL, CHARM_LOG_LEVEL);
 
     sprintf(charm_str, "\nCHARM_3D, v.%s\n\n", CHARM_VERSION);
     CHARM_GLOBAL_ESSENTIAL(charm_str);
@@ -37,7 +48,7 @@ int main (int argc, char **argv)
             charm_init_initial_condition, (void *) (&ctx));
     charm_set_p4est(p4est);
     charm_write_solution (p4est);
-    charm_adapt_init(p4est);
+    ctx.amr_init_fn(p4est);
     charm_timesteps (p4est);
     p4est_destroy (p4est);
     p4est_connectivity_destroy (conn);

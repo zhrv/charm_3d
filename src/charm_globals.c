@@ -1,7 +1,7 @@
 //
 // Created by zhrv on 26.10.17.
 //
-#define GLOBAL_H_FILE
+#define GLOBALS_H_FILE
 
 #include <charm_base_func.h>
 #include "charm_globals.h"
@@ -16,6 +16,15 @@ const char *charm_bnd_types[] ={
         "BOUND_WALL_SLIP",
         "BOUND_WALL_NO_SLIP",
         "BOUND_MASS_FLOW",
+        "BOUND_SYMMETRY",
+        "BOUND_FREE_STREAM",
+        "BOUND_PRESSURE",
+        NULL
+};
+
+const char *charm_turb_models[] ={
+        "SA",
+        "SST",
         NULL
 };
 
@@ -25,18 +34,32 @@ void charm_set_p4est(p4est_t *p4est) { g_p4est = p4est; }
 
 
 
-charm_real_t scalar_prod(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM])
+charm_real_t scalar_prod(charm_vec_t v1, charm_vec_t v2)
 {
     return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
 }
 
 
-charm_real_t vect_length(charm_real_t v[CHARM_DIM])
+charm_real_t vector_length(charm_vec_t v)
 {
     return sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
 }
 
-void vect_prod(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM], charm_real_t res[CHARM_DIM])
+void vector_sub(charm_vec_t v1, charm_vec_t v2, charm_vec_t res)
+{
+    res[0] = v1[0]-v2[0];
+    res[1] = v1[1]-v2[1];
+    res[2] = v1[2]-v2[2];
+}
+
+charm_real_t vector_dist(charm_vec_t v1, charm_vec_t v2)
+{
+    charm_vec_t res;
+    vector_sub(v1, v2, res);
+    return vector_length(res);
+}
+
+void vector_prod(charm_vec_t v1, charm_vec_t v2, charm_vec_t res)
 {
     res[0] =  v1[1]*v2[2]-v1[2]*v2[1];
     res[1] = -v1[0]*v2[2]+v1[2]*v2[0];
@@ -49,20 +72,20 @@ charm_real_t charm_face_get_area(charm_data_t *d, int8_t face)
     return d->par.g.area[face];
 }
 
-charm_real_t charm_face_get_normal(charm_data_t *d, int8_t face, charm_real_t* n)
+charm_real_t charm_face_get_normal(charm_data_t *d, int8_t face, charm_vec_t n)
 {
-    memcpy(n, d->par.g.n[face], CHARM_DIM*sizeof(charm_real_t));
+    memcpy(n, d->par.g.n[face], sizeof(charm_vec_t));
     return d->par.g.area[face];
 }
 
-void charm_quad_get_center(charm_data_t *d, charm_real_t* c)
+void charm_quad_get_center(charm_data_t *d, charm_vec_t c)
 {
-    memcpy(c, d->par.g.c, 3*sizeof(charm_real_t));
+    memcpy(c, d->par.g.c, sizeof(charm_vec_t));
 }
 
-void charm_face_get_center(charm_data_t *d, int8_t face, charm_real_t* c)
+void charm_face_get_center(charm_data_t *d, int8_t face, charm_vec_t c)
 {
-    memcpy(c, d->par.g.fc[face], CHARM_DIM*sizeof(charm_real_t));
+    memcpy(c, d->par.g.fc[face], sizeof(charm_vec_t));
 }
 
 charm_real_t charm_quad_get_volume(charm_data_t *d)
@@ -237,7 +260,14 @@ void charm_prim_cpy(charm_prim_t * dest, charm_prim_t * src)
     dest->cp     = src->cp;
     dest->cv     = src->cv;
     dest->gam    = src->gam;
+    dest->m      = src->m;
     memcpy(dest->c, src->c, CHARM_MAX_COMPONETS_COUNT*sizeof(charm_real_t));
+}
+
+
+charm_real_t charm_prim_vel_mag(charm_prim_t * prim)
+{
+    return sqrt(prim->u*prim->u+prim->v*prim->v+prim->w*prim->w);
 }
 
 
@@ -282,7 +312,7 @@ void charm_matr3_inv(charm_real_t a[3][3], charm_real_t a_inv[3][3])
     }
 }
 
-void charm_matr_inv(charm_real_t a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], charm_real_t am[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
+void charm_matr_inv(charm_matr_t a_src, charm_matr_t am)
 {
     int	       *mask;
     charm_real_t	    fmaxval;
@@ -394,7 +424,7 @@ void charm_matr_inv(charm_real_t a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]
 }
 
 
-void charm_matr_vect_mult(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], charm_real_t b[CHARM_BASE_FN_COUNT], charm_real_t res[CHARM_BASE_FN_COUNT])
+void charm_matr_vect_mult(charm_matr_t a, charm_vect_t b, charm_vect_t res)
 {
     int i, j;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -406,7 +436,7 @@ void charm_matr_vect_mult(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUN
 }
 
 
-void charm_matr_add(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], charm_real_t b[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
+void charm_matr_add(charm_matr_t a, charm_matr_t b)
 {
     int i, j;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -418,7 +448,7 @@ void charm_matr_add(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], ch
 }
 
 
-void charm_matr_zero(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
+void charm_matr_zero(charm_matr_t a)
 {
     int i, j;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -430,7 +460,7 @@ void charm_matr_zero(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT])
 }
 
 
-void charm_vect_add(charm_real_t a[CHARM_BASE_FN_COUNT], charm_real_t b[CHARM_BASE_FN_COUNT])
+void charm_vect_add(charm_vect_t a, charm_vect_t b)
 {
     int i, j;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -440,7 +470,7 @@ void charm_vect_add(charm_real_t a[CHARM_BASE_FN_COUNT], charm_real_t b[CHARM_BA
 }
 
 
-void charm_vect_zero(charm_real_t a[CHARM_BASE_FN_COUNT])
+void charm_vect_zero(charm_vect_t a)
 {
     int i;
     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
@@ -465,7 +495,7 @@ void charm_abort(p4est_t *p4est, int err_code)
     }
 
     sc_finalize ();
-    MPI_Finalize ();
+    sc_MPI_Finalize ();
     exit(1);
 }
 
@@ -503,38 +533,6 @@ size_t charm_get_reactions_count(p4est_t* p4est)
 {
     charm_ctx_t * ctx       = charm_get_ctx(p4est);
     return ctx->reactions == NULL ? 0 : ctx->reactions->elem_count;
-}
-
-
-charm_real_t charm_get_visc_lambda(p4est_t* p4est, charm_data_t* data)
-{
-    return 0;
-}
-
-
-charm_real_t charm_get_visc_mu(p4est_t* p4est, charm_real_t *x, charm_data_t* data)
-{
-    charm_ctx_t *ctx = charm_get_ctx(p4est);
-    size_t c_count = charm_get_comp_count(p4est);
-    charm_comp_t *comp;
-    charm_cons_t cons;
-    charm_prim_t prim;
-    charm_real_t mu, cm, s;
-    int i;
-
-    charm_get_fields(data, x, &cons);
-    charm_param_cons_to_prim(p4est, &prim, &cons);
-    s  = 0.;
-    mu = 0.;
-    for (i = 0; i < c_count; i++) {
-        comp = charm_get_comp(p4est, i);
-        cm = prim.c[i]/comp->m;
-        s += cm;
-        mu += cm*charm_comp_calc_ml(comp, prim.t);
-    }
-    return mu/s;
-
-
 }
 
 
@@ -606,11 +604,11 @@ charm_real_t charm_comp_calc_cp(charm_comp_t * comp, charm_real_t t)
     charm_real_t res = 0.;
     charm_real_t tt  = 1.;
     charm_real_t *cp;
-    if (comp->cp_type == COMP_ML_CONST) {
+    if (comp->cp_type == COMP_CP_CONST) {
         cp = sc_array_index(comp->cp, 0);
         return *cp;
     }
-    else if (comp->ml_type == COMP_CP_POLYNOM) {
+    else if (comp->cp_type == COMP_CP_POLYNOM) {
         for (i= 0; i < comp->cp->elem_count; i++) {
             cp = sc_array_index(comp->cp, i);
             res += tt*(*cp);
@@ -692,4 +690,5 @@ charm_real_t charm_comp_calc_enthalpy(charm_comp_t * comp, charm_real_t t)
     }
     return h;
 }
+
 

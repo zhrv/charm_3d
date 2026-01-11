@@ -1,5 +1,5 @@
 //
-// Created by zhrv on 27.08.19.
+// Created by zhrv on 10.01.26.
 //
 
 
@@ -16,7 +16,7 @@
  */
 
 
-static void charm_model_ns_conv_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+static void charm_model_ns_jfnk_conv_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     p4est_quadrant_t   *q = info->quad;
     charm_data_t       *data = charm_get_quad_data(q);
@@ -89,7 +89,7 @@ static void charm_model_ns_conv_volume_int_iter_fn (p4est_iter_volume_info_t * i
  * Surface integrals
  */
 
-static void charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * info, void *user_data) {
+static void charm_model_ns_jfnk_conv_surface_int_iter_bnd (p4est_iter_face_info_t * info, void *user_data) {
     int i, ibf, igp;
     p4est_t *p4est = info->p4est;
     charm_ctx_t * ctx = charm_get_ctx(p4est);
@@ -167,7 +167,7 @@ static void charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * i
 }
 
 
-static void charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t * info, void *user_data)
+static void charm_model_ns_jfnk_conv_surface_int_iter_inner (p4est_iter_face_info_t * info, void *user_data)
 {
     int                     i, j, h_side, igp, ibf,cj;
     p4est_t                *p4est = info->p4est;
@@ -327,26 +327,26 @@ static void charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t *
 }
 
 
-static void charm_model_ns_conv_surface_int_iter_fn (p4est_iter_face_info_t * info, void *user_data)
+static void charm_model_ns_jfnk_conv_surface_int_iter_fn (p4est_iter_face_info_t * info, void *user_data)
 {
     sc_array_t         *sides = &(info->sides);
 
     if (sides->elem_count != 2) {
-        charm_model_ns_conv_surface_int_iter_bnd(info, user_data);
+        charm_model_ns_jfnk_conv_surface_int_iter_bnd(info, user_data);
     }
     else {
-        charm_model_ns_conv_surface_int_iter_inner(info, user_data);
+        charm_model_ns_jfnk_conv_surface_int_iter_inner(info, user_data);
     }
 
 }
 
 
-void charm_model_ns_timestep_conv(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data)
+void charm_model_ns_jfnk_dg_operator_conv(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data)
 {
     p4est_iterate (p4est,
                    ghost,
                    (void *) ghost_data,
-                   charm_model_ns_conv_volume_int_iter_fn,
-                   charm_model_ns_conv_surface_int_iter_fn,
+                   charm_model_ns_jfnk_conv_volume_int_iter_fn,
+                   charm_model_ns_jfnk_conv_surface_int_iter_fn,
                    NULL, NULL);
 }

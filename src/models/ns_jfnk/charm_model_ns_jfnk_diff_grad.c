@@ -1,5 +1,5 @@
 //
-// Created by zhrv on 27.08.19.
+// Created by zhrv on 10.01.26.
 //
 
 #include <p8est_iterate.h>
@@ -8,8 +8,8 @@
 #include "charm_globals.h"
 
 
-charm_real_t charm_model_ns_get_mu(p4est_t *p4est, charm_real_t *x, charm_data_t *data);
-charm_real_t charm_model_ns_get_lambda(p4est_t *p4est, charm_data_t *data);
+charm_real_t charm_model_ns_jfnk_get_mu(p4est_t *p4est, charm_real_t *x, charm_data_t *data);
+charm_real_t charm_model_ns_jfnk_get_lambda(p4est_t *p4est, charm_data_t *data);
 
 
 
@@ -18,7 +18,7 @@ charm_real_t charm_model_ns_get_lambda(p4est_t *p4est, charm_data_t *data);
  */
 
 
-static void charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+static void charm_model_ns_jfnk_diff_grad_volume_int_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     p4est_quadrant_t   *q = info->quad;
     charm_data_t       *data = charm_get_quad_data(q);
@@ -37,8 +37,8 @@ static void charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info_
             x = data->par.g.quad_gp[igp];
 
             kt      = charm_get_heat_k(info->p4est, x, data);
-            lambda  = charm_model_ns_get_lambda(info->p4est, data);
-            mu      = charm_model_ns_get_mu(info->p4est, x, data);
+            lambda  = charm_model_ns_jfnk_get_lambda(info->p4est, data);
+            mu      = charm_model_ns_jfnk_get_mu(info->p4est, x, data);
             lp = (lambda+4.*mu/3.);
             lm = (lambda-2.*mu/3.);
             charm_get_fields(data, x, &c);
@@ -79,7 +79,7 @@ static void charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info_
  */
 
 
-static void charm_model_ns_diff_grad_surface_int_iter_bnd (p4est_iter_face_info_t * info, void *user_data) {
+static void charm_model_ns_jfnk_diff_grad_surface_int_iter_bnd (p4est_iter_face_info_t * info, void *user_data) {
     int i, ibf, igp;
     p4est_t *p4est = info->p4est;
     charm_data_t *udata;
@@ -135,8 +135,8 @@ static void charm_model_ns_diff_grad_surface_int_iter_bnd (p4est_iter_face_info_
         gw = udata->par.g.face_gw[face][igp];
         gj = udata->par.g.face_gj[face][igp];
 
-        lambda   = charm_model_ns_get_lambda(p4est, udata);
-        mu       = charm_model_ns_get_mu(p4est, x, udata);
+        lambda   = charm_model_ns_jfnk_get_lambda(p4est, udata);
+        mu       = charm_model_ns_jfnk_get_mu(p4est, x, udata);
         lp  = (lambda+4.*mu/3.);
         lm  = (lambda-2.*mu/3.);
         kt  = charm_get_heat_k(p4est, x, udata);
@@ -192,7 +192,7 @@ static void charm_model_ns_diff_grad_surface_int_iter_bnd (p4est_iter_face_info_
 }
 
 
-static void charm_model_ns_diff_grad_surface_int_iter_inner (p4est_iter_face_info_t * info, void *user_data)
+static void charm_model_ns_jfnk_diff_grad_surface_int_iter_inner (p4est_iter_face_info_t * info, void *user_data)
 {
     int                     i, j, h_side, igp, ibf;
     p4est_t                *p4est = info->p4est;
@@ -266,8 +266,8 @@ static void charm_model_ns_diff_grad_surface_int_iter_inner (p4est_iter_face_inf
                 for (i = 0; i < 2; i++) {
                     charm_get_fields(udata[i], x, &(cons[i]));
                     charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
-                    lambda[i]   = charm_model_ns_get_lambda(p4est, udata[i]);
-                    mu[i]       = charm_model_ns_get_mu(p4est, x, udata[i]);
+                    lambda[i]   = charm_model_ns_jfnk_get_lambda(p4est, udata[i]);
+                    mu[i]       = charm_model_ns_jfnk_get_mu(p4est, x, udata[i]);
                     kt         += charm_get_heat_k(p4est, x, udata[i]);
                 }
                 fmu     = 0.5*(mu[0]+mu[1]);
@@ -369,8 +369,8 @@ static void charm_model_ns_diff_grad_surface_int_iter_inner (p4est_iter_face_inf
             for (i = 0; i < 2; i++) {
                 charm_get_fields(udata[i], x, &(cons[i]));
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
-                lambda[i]   = charm_model_ns_get_lambda(p4est, udata[i]);
-                mu[i]       = charm_model_ns_get_mu(p4est, x, udata[i]);
+                lambda[i]   = charm_model_ns_jfnk_get_lambda(p4est, udata[i]);
+                mu[i]       = charm_model_ns_jfnk_get_mu(p4est, x, udata[i]);
                 kt         += charm_get_heat_k(p4est, x, udata[i]);
             }
             fmu     = 0.5*(mu[0]+mu[1]);
@@ -423,21 +423,21 @@ static void charm_model_ns_diff_grad_surface_int_iter_inner (p4est_iter_face_inf
     }
 }
 
-static void charm_model_ns_diff_grad_surface_int_iter_fn (p4est_iter_face_info_t * info, void *user_data)
+static void charm_model_ns_jfnk_diff_grad_surface_int_iter_fn (p4est_iter_face_info_t * info, void *user_data)
 {
     sc_array_t         *sides = &(info->sides);
 
     if (sides->elem_count != 2) {
-        charm_model_ns_diff_grad_surface_int_iter_bnd(info, user_data);
+        charm_model_ns_jfnk_diff_grad_surface_int_iter_bnd(info, user_data);
     }
     else {
-        charm_model_ns_diff_grad_surface_int_iter_inner(info, user_data);
+        charm_model_ns_jfnk_diff_grad_surface_int_iter_inner(info, user_data);
     }
 
 }
 
 
-static void charm_model_ns_diff_grad_update_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+static void charm_model_ns_jfnk_diff_grad_update_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
 
@@ -454,7 +454,7 @@ static void charm_model_ns_diff_grad_update_quad_iter_fn (p4est_iter_volume_info
 }
 
 
-static void charm_model_ns_diff_grad_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+static void charm_model_ns_jfnk_diff_grad_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     int                 i;
@@ -476,24 +476,24 @@ static void charm_model_ns_diff_grad_zero_quad_iter_fn (p4est_iter_volume_info_t
 
 
 
-void charm_model_ns_timestep_diff_grad(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data)
+void charm_model_ns_jfnk_dg_operator_diff_grad(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data)
 {
     p4est_iterate (p4est,
                    ghost,
                    (void *) ghost_data,
-                   charm_model_ns_diff_grad_zero_quad_iter_fn,
+                   charm_model_ns_jfnk_diff_grad_zero_quad_iter_fn,
                    NULL, NULL, NULL);
 
     p4est_iterate (p4est,
                    ghost,
                    (void *) ghost_data,
-                   charm_model_ns_diff_grad_volume_int_iter_fn,
-                   charm_model_ns_diff_grad_surface_int_iter_fn,
+                   charm_model_ns_jfnk_diff_grad_volume_int_iter_fn,
+                   charm_model_ns_jfnk_diff_grad_surface_int_iter_fn,
                    NULL, NULL);
 
     p4est_iterate (p4est, NULL,
                    NULL,
-                   charm_model_ns_diff_grad_update_quad_iter_fn,
+                   charm_model_ns_jfnk_diff_grad_update_quad_iter_fn,
                    NULL, NULL, NULL);
 
 

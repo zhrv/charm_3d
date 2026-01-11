@@ -404,11 +404,11 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
     charm_real_t              dt = *((charm_real_t *) user_data);
-    charm_real_t              rhs_ru[CHARM_BASE_FN_COUNT];
-    charm_real_t              rhs_rv[CHARM_BASE_FN_COUNT];
-    charm_real_t              rhs_rw[CHARM_BASE_FN_COUNT];
-    charm_real_t              rhs_re[CHARM_BASE_FN_COUNT];
-    charm_real_t              rhs_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];
+    charm_vect_t              rhs_ru;
+    charm_vect_t              rhs_rv;
+    charm_vect_t              rhs_rw;
+    charm_vect_t              rhs_re;
+    charm_vect_t              rhs_rc[CHARM_MAX_COMPONETS_COUNT];
     size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
@@ -470,7 +470,7 @@ void charm_model_euler_timestep_single(p4est_t * p4est, charm_real_t *dt, p4est_
     if (refine_period) {
         if (!(ctx->timestep % refine_period)) {
             if (ctx->timestep) {
-                charm_adapt(p4est, ghost, ghost_data); /* adapt */
+                ctx->amr_fn(p4est, ghost, ghost_data); /* adapt */
                 if (ghost) {
                     p4est_ghost_destroy(ghost);
                     CHARM_FREE (ghost_data);

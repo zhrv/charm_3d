@@ -16,6 +16,13 @@
 typedef double              charm_real_t;
 typedef int                 charm_int_t;
 typedef unsigned int        charm_uint_t;
+typedef double              charm_vec_t[CHARM_DIM];
+
+typedef charm_real_t        charm_vect_t[CHARM_BASE_FN_COUNT];
+typedef charm_real_t        charm_matr_t[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
+
+typedef charm_vect_t         charm_vec_c_t[CHARM_DIM];
+
 
 typedef enum {
     COMP_CP_CONST,
@@ -33,6 +40,15 @@ typedef enum {
     COMP_ML_SATHERLAND,
     COMP_ML_NV
 } charm_comp_ml_type_t;
+
+
+typedef enum {
+    EOS_R_E_TO_P_CZ,    // (r,e)    =>  (p,cz)
+    EOS_R_P_TO_E_T,     // (r,p)    =>  (e,t)
+    EOS_T_P_TO_R_CZ,    // (T,p)    =>  (r,cz)
+    EOS_T_P_TO_R_CZ_E,  // (T,p)    =>  (r, cz, e)
+    EOS_R_E_TO_P_CZ_T   // (r,e)    =>  (p, cz, T)
+} charm_eos_flag_t;
 
 
 typedef struct charm_comp
@@ -86,6 +102,7 @@ typedef struct charm_cons
     int             mat_id;
 } charm_cons_t;
 
+
 typedef struct charm_tensor
 {
     charm_real_t xx;
@@ -96,30 +113,19 @@ typedef struct charm_tensor
     charm_real_t yz;
 } charm_tensor_t;
 
+
 typedef struct charm_tensor_c
 {
-    charm_real_t xx[CHARM_BASE_FN_COUNT];
-    charm_real_t yy[CHARM_BASE_FN_COUNT];
-    charm_real_t zz[CHARM_BASE_FN_COUNT];
-    charm_real_t xy[CHARM_BASE_FN_COUNT];
-    charm_real_t xz[CHARM_BASE_FN_COUNT];
-    charm_real_t yz[CHARM_BASE_FN_COUNT];
+    charm_vect_t xx;
+    charm_vect_t yy;
+    charm_vect_t zz;
+    charm_vect_t xy;
+    charm_vect_t xz;
+    charm_vect_t yz;
 } charm_tensor_c_t;
 
-typedef struct charm_vec {
-    charm_real_t x[CHARM_BASE_FN_COUNT];
-    charm_real_t y[CHARM_BASE_FN_COUNT];
-    charm_real_t z[CHARM_BASE_FN_COUNT];
-} charm_vec_t;
 
-typedef struct charm_vec_c {
-    charm_real_t x[CHARM_BASE_FN_COUNT];
-    charm_real_t y[CHARM_BASE_FN_COUNT];
-    charm_real_t z[CHARM_BASE_FN_COUNT];
-} charm_vec_c_t;
-
-
-typedef void (*charm_eos_fn_t) (p4est_t * p4est, charm_prim_t * p, int flag);
+typedef void (*charm_eos_fn_t) (p4est_t * p4est, charm_prim_t * p, charm_eos_flag_t flag);
 
 typedef struct charm_mat
 {
@@ -128,39 +134,38 @@ typedef struct charm_mat
     charm_eos_fn_t      eos_fn;
 } charm_mat_t;
 
+
 typedef struct charm_reg
 {
     char            name[64];
     int             id;
     int             mat_id;
-    charm_real_t          v[CHARM_DIM];
-    charm_real_t          t;
-    charm_real_t          p;
-    charm_real_t          c[CHARM_MAX_COMPONETS_COUNT];
-    charm_real_t          grav[CHARM_DIM];
+    charm_vec_t     v;
+    charm_real_t    t;
+    charm_real_t    p;
+    charm_real_t    c[CHARM_MAX_COMPONETS_COUNT];
+    charm_vec_t     grav;
 } charm_reg_t;
+
+
+typedef struct charm_fields {
+    charm_vect_t    ru;
+    charm_vect_t    rv;
+    charm_vect_t    rw;
+    charm_vect_t    re;
+    charm_vect_t    rc[CHARM_MAX_COMPONETS_COUNT];
+} charm_fields_t;
+
 
 typedef struct charm_param
 {
-    struct
-    {
-        charm_real_t          ru[CHARM_BASE_FN_COUNT];             /**< the state variable */
-        charm_real_t          rv[CHARM_BASE_FN_COUNT];             /**< the state variable */
-        charm_real_t          rw[CHARM_BASE_FN_COUNT];             /**< the state variable */
-        charm_real_t          re[CHARM_BASE_FN_COUNT];             /**< the state variable */
-        charm_real_t          rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];             /**< the state variable */
-    } c;
-
-    struct
-    {
-        charm_real_t          ru[CHARM_BASE_FN_COUNT];             /**< the state variable */
-        charm_real_t          rv[CHARM_BASE_FN_COUNT];             /**< the state variable */
-        charm_real_t          rw[CHARM_BASE_FN_COUNT];             /**< the state variable */
-        charm_real_t          re[CHARM_BASE_FN_COUNT];             /**< the state variable */
-        charm_real_t          rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];             /**< the state variable */
-    } c_old;
+    charm_fields_t c;
+    charm_fields_t c_old;
 
     union {
+        struct {
+            charm_real_t v[3];
+        } adv;
         struct {
 
         } euler;
@@ -169,29 +174,54 @@ typedef struct charm_param
             charm_vec_c_t q;
             charm_real_t d[CHARM_MAX_COMPONETS_COUNT];
             charm_real_t chem_rhs;
+            struct {
+                charm_real_t mu_t;
+                union {
+                    struct {
+                        charm_real_t    nu_; // nu with tilde
+                        charm_vec_t     grad_nu_;
+                        charm_real_t    nu; // kinematic viscosity
+                        charm_real_t    int_nu_;
+                        charm_vec_t     grad_u[CHARM_DIM];
+                    } sa;
+                    struct {
+                        charm_real_t k;
+                        charm_real_t w;
+                    } sst;
+                } model;
+            } turb;
+            charm_fields_t c_result;
+            charm_fields_t c_rhs;
+            charm_fields_t c_residual;
+            charm_fields_t c_Ju;
+            charm_fields_t c_Jr;
+            charm_fields_t c_Jtmp1;
+            charm_fields_t c_Jtmp2;
+            charm_fields_t c_Jtmp3;
         } ns;
     } model;
 
     struct geom
     {
-        charm_real_t          n[CHARM_FACES][CHARM_DIM];
-        charm_real_t          face_gp[CHARM_FACES][CHARM_FACE_GP_COUNT][CHARM_DIM];
-        charm_real_t          face_gw[CHARM_FACES][CHARM_FACE_GP_COUNT];
-        charm_real_t          face_gj[CHARM_FACES][CHARM_FACE_GP_COUNT];
-        charm_real_t          quad_gp[CHARM_QUAD_GP_COUNT][CHARM_DIM];
-        charm_real_t          quad_gw[CHARM_QUAD_GP_COUNT];
-        charm_real_t          quad_gj[CHARM_QUAD_GP_COUNT];
-        charm_real_t          area[CHARM_FACES];
-        charm_real_t          volume;
-        charm_real_t          c[CHARM_DIM];
-        charm_real_t          fc[CHARM_FACES][CHARM_DIM];
-        charm_real_t          dh[CHARM_DIM];
-        charm_real_t          a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
-        charm_real_t          a_inv[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT];
+        charm_vec_t     n[CHARM_FACES];
+        charm_vec_t     face_gp[CHARM_FACES][CHARM_FACE_GP_COUNT];
+        charm_real_t    face_gw[CHARM_FACES][CHARM_FACE_GP_COUNT];
+        charm_real_t    face_gj[CHARM_FACES][CHARM_FACE_GP_COUNT];
+        charm_vec_t     quad_gp[CHARM_QUAD_GP_COUNT];
+        charm_real_t    quad_gw[CHARM_QUAD_GP_COUNT];
+        charm_real_t    quad_gj[CHARM_QUAD_GP_COUNT];
+        charm_real_t    area[CHARM_FACES];
+        charm_real_t    volume;
+        charm_vec_t     c;
+        charm_vec_t     fc[CHARM_FACES];
+        charm_vec_t     dh;
+        charm_matr_t    a;
+        charm_matr_t    a_inv;
+        charm_real_t    y;
     } g;
 
-    int         mat_id;
-    charm_real_t      grav[CHARM_DIM];
+    int             mat_id;
+    charm_vec_t     grav;
 
 
     struct lim
@@ -205,7 +235,7 @@ typedef struct charm_param
     } l;
 
     struct amr {
-        charm_real_t      grad_u[CHARM_DIM];
+        charm_vec_t      grad_u;
     } a;
 
 } charm_param_t;
@@ -214,34 +244,45 @@ typedef struct charm_param
 typedef struct charm_data
 {
     charm_param_t       par;
-    charm_real_t              int_ru[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    charm_real_t              int_rv[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    charm_real_t              int_rw[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    charm_real_t              int_re[CHARM_BASE_FN_COUNT];          /**< the time derivative */
-    charm_real_t              int_rc[CHARM_MAX_COMPONETS_COUNT][CHARM_BASE_FN_COUNT];              /**< the time derivative */
 
-    charm_real_t              int_q_x[CHARM_BASE_FN_COUNT];
-    charm_real_t              int_q_y[CHARM_BASE_FN_COUNT];
-    charm_real_t              int_q_z[CHARM_BASE_FN_COUNT];
+    charm_vect_t        int_ru;
+    charm_vect_t        int_rv;
+    charm_vect_t        int_rw;
+    charm_vect_t        int_re;
+    charm_vect_t        int_rc[CHARM_MAX_COMPONETS_COUNT];
 
-    charm_real_t              int_tau_xx[CHARM_BASE_FN_COUNT];
-    charm_real_t              int_tau_yy[CHARM_BASE_FN_COUNT];
-    charm_real_t              int_tau_zz[CHARM_BASE_FN_COUNT];
-    charm_real_t              int_tau_xy[CHARM_BASE_FN_COUNT];
-    charm_real_t              int_tau_xz[CHARM_BASE_FN_COUNT];
-    charm_real_t              int_tau_yz[CHARM_BASE_FN_COUNT];
+    charm_vec_c_t       int_q;
+
+    charm_vect_t        int_tau_xx;
+    charm_vect_t        int_tau_yy;
+    charm_vect_t        int_tau_zz;
+    charm_vect_t        int_tau_xy;
+    charm_vect_t        int_tau_xz;
+    charm_vect_t        int_tau_yz;
     int                 ref_flag;
 } charm_data_t;
 
-typedef void    (*charm_limiter_fn_t)           (p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data);
-typedef void    (*charm_bnd_cond_fn_t)          (charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_real_t* n);
-typedef void    (*charm_flux_fn_t)              (p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu, charm_real_t* qv, charm_real_t* qw, charm_real_t* qe, charm_real_t qc[], charm_real_t n[3]);
-typedef void    (*charm_timestep_single_fn_t)   (p4est_t * p4est, charm_real_t *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data);
-typedef charm_real_t  (*charm_get_timestep_fn_t)      (p4est_t * p4est);
+typedef void            (*charm_limiter_fn_t)               (p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data);
+typedef void            (*charm_bnd_cond_fn_t)              (charm_prim_t *par_in, charm_prim_t *par_out, int8_t face, charm_real_t* param, charm_vec_t n);
+typedef void            (*charm_flux_fn_t)                  (p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu, charm_real_t* qv, charm_real_t* qw, charm_real_t* qe, charm_real_t qc[], charm_vec_t n);
+typedef void            (*charm_timestep_single_fn_t)       (p4est_t * p4est, charm_real_t *dt, p4est_ghost_t ** _ghost, charm_data_t ** _ghost_data);
+typedef charm_real_t    (*charm_get_timestep_fn_t)          (p4est_t * p4est);
+typedef void            (*charm_turb_model_fn_t)            (p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
+typedef void            (*charm_amr_init_fn_t)              (p4est_t *p4est);
+typedef void            (*charm_amr_fn_t)                   (p4est_t *p4est, p4est_ghost_t *ghost, charm_data_t *ghost_data);
+typedef void            (*charm_init_fn_t)                  (p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q);
+
 
 #ifndef GLOBALS_H_FILE
 extern const char *charm_bnd_types[];
+extern const char *charm_turb_models[];
 #endif
+
+typedef enum {
+    TURB_MODEL_SA,
+    TURB_MODEL_SST,
+    TURB_MODEL_UNKNOWN
+} charm_turb_models_t;
 
 typedef enum {
     BOUND_INLET,
@@ -249,8 +290,12 @@ typedef enum {
     BOUND_WALL_SLIP,
     BOUND_WALL_NO_SLIP,
     BOUND_MASS_FLOW,
+    BOUND_SYMMETRY,
+    BOUND_FREE_STREAM,
+    BOUND_PRESSURE,
     BOUND_UNKNOWN
 } charm_bnd_types_t;
+
 
 typedef struct charm_bnd
 {
@@ -260,6 +305,7 @@ typedef struct charm_bnd
     charm_bnd_cond_fn_t bnd_fn;
 
 } charm_bnd_t;
+
 
 typedef enum {
     CHARM_MESH_UNKNOWN,
@@ -271,11 +317,13 @@ typedef enum {
     CHARM_MESH_TETGEN
 } charm_mesh_type_t;
 
+
 typedef struct charm_mesh_info
 {
     charm_mesh_type_t   type;
     char                filename[128];
 } charm_mesh_info_t;
+
 
 typedef struct charm_reaction
 {
@@ -285,6 +333,7 @@ typedef struct charm_reaction
     charm_real_t  e;                   /**< энергия активации */
     charm_real_t  n;                   /**< степень температуры */
 } charm_reaction_t;
+
 
 typedef struct charm_ctx
 {
@@ -305,10 +354,45 @@ typedef struct charm_ctx
         struct {
 
         } euler;
+        
         struct {
-            int                 use_visc;
-            int                 use_diff;
-            charm_real_t              t_ref;
+            int                         use_visc;
+            int                         use_diff;
+            charm_real_t                t_ref;
+            struct {
+                charm_init_fn_t             init_cond_fn;
+                charm_turb_model_fn_t       model_fn;
+                charm_turb_models_t         model_type;
+                union {
+                    struct {
+                        charm_real_t a1;
+                        charm_real_t sigma_k1;
+                        charm_real_t sigma_k2;
+                        charm_real_t sigma_w1;
+                        charm_real_t sigma_w2;
+                        charm_real_t beta_star;
+                        charm_real_t beta_1;
+                        charm_real_t beta_2;
+                        charm_real_t kappa;
+                    } sst;
+
+                    struct {
+                        charm_real_t sigma;
+                        charm_real_t kappa;
+                        charm_real_t cb1;
+                        charm_real_t cb2;
+                        charm_real_t cw1;
+                        charm_real_t cw2;
+                        charm_real_t cw3;
+                        charm_real_t cv1;
+                        charm_real_t ct1;
+                        charm_real_t ct2;
+                        charm_real_t ct3;
+                        charm_real_t ct4;
+                    } sa;
+                } param;
+            } turb;
+
         } ns;
     } model;
 //    charm_real_t              visc_m;
@@ -325,7 +409,11 @@ typedef struct charm_ctx
     charm_get_timestep_fn_t     get_dt_fn;
     charm_flux_fn_t             flux_fn;
     charm_limiter_fn_t          lim_fn;
+    charm_amr_init_fn_t         amr_init_fn;
+    charm_amr_fn_t              amr_fn;
+    charm_init_fn_t             model_init_cond_fn;
 } charm_ctx_t;
+
 
 typedef struct charm_tree_attr
 {
@@ -337,20 +425,22 @@ typedef struct charm_tree_attr
     extern "C" {
 #endif
 
-charm_real_t scalar_prod(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM]);
+charm_real_t scalar_prod(charm_vec_t v1, charm_vec_t v2);
 
-charm_real_t vect_length(charm_real_t v[CHARM_DIM]);
+charm_real_t vector_length(charm_vec_t v);
 
-void vect_prod(charm_real_t v1[CHARM_DIM], charm_real_t v2[CHARM_DIM], charm_real_t res[CHARM_DIM]);
+void vector_prod(charm_vec_t v1, charm_vec_t v2, charm_vec_t res);
+void vector_sub(charm_vec_t v1, charm_vec_t v2, charm_vec_t res);
+charm_real_t vector_dist(charm_vec_t v1, charm_vec_t v2);
 
 
 charm_real_t charm_face_get_area(charm_data_t *d, int8_t face);
 
-charm_real_t charm_face_get_normal(charm_data_t *d, int8_t face, charm_real_t *n);
+charm_real_t charm_face_get_normal(charm_data_t *d, int8_t face, charm_vec_t n);
 
-void charm_quad_get_center(charm_data_t *d, charm_real_t *c);
+void charm_quad_get_center(charm_data_t *d, charm_vec_t c);
 
-void charm_face_get_center(charm_data_t *d, int8_t face, charm_real_t *c);
+void charm_face_get_center(charm_data_t *d, int8_t face, charm_vec_t c);
 
 charm_real_t charm_quad_get_volume(charm_data_t *d);
 
@@ -387,24 +477,24 @@ void charm_param_prim_to_cons(p4est_t *p4est, charm_cons_t *c, charm_prim_t *p);
 
 void charm_prim_cpy(charm_prim_t *dest, charm_prim_t *src);
 
+charm_real_t charm_prim_vel_mag(charm_prim_t * prim);
+
 charm_real_t charm_matr3_det(charm_real_t a[3][3]);
 
 void charm_matr3_inv(charm_real_t a[3][3], charm_real_t a_inv[3][3]);
 
-void charm_matr_inv(charm_real_t a_src[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT],
-                    charm_real_t am[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
+void charm_matr_inv(charm_matr_t a_src, charm_matr_t am);
 
-void charm_matr_vect_mult(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], charm_real_t b[CHARM_BASE_FN_COUNT],
-                          charm_real_t res[CHARM_BASE_FN_COUNT]);
+void charm_matr_vect_mult(charm_matr_t a, charm_vect_t b, charm_vect_t res);
 
 void
-charm_matr_add(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT], charm_real_t b[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
+charm_matr_add(charm_matr_t a, charm_matr_t b);
 
-void charm_vect_add(charm_real_t a[CHARM_BASE_FN_COUNT], charm_real_t b[CHARM_BASE_FN_COUNT]);
+void charm_vect_add(charm_vect_t a, charm_vect_t b);
 
-void charm_matr_zero(charm_real_t a[CHARM_BASE_FN_COUNT][CHARM_BASE_FN_COUNT]);
+void charm_matr_zero(charm_matr_t a);
 
-void charm_vect_zero(charm_real_t a[CHARM_BASE_FN_COUNT]);
+void charm_vect_zero(charm_vect_t a);
 
 charm_ctx_t *charm_get_ctx(p4est_t *p4est);
 
@@ -428,7 +518,7 @@ void charm_write_solution(p4est_t *p4est);
 void charm_log_statistics(p4est_t *p4est, int timestep, charm_real_t time, charm_real_t dt, charm_real_t calc_time);
 
 
-void charm_quad_get_vertices(p4est_t *p4est, p4est_quadrant_t *q, p4est_topidx_t treeid, charm_real_t v[8][CHARM_DIM]);
+void charm_quad_get_vertices(p4est_t *p4est, p4est_quadrant_t *q, p4est_topidx_t treeid, charm_vec_t v[8]);
 
 void charm_geom_quad_calc(p4est_t *p4est, p4est_quadrant_t *q, p4est_topidx_t treeid);
 
@@ -436,10 +526,6 @@ void charm_geom_quad_calc(p4est_t *p4est, p4est_quadrant_t *q, p4est_topidx_t tr
 p4est_connectivity_t *charm_conn_create(charm_ctx_t *ctx);
 
 charm_real_t charm_get_heat_k(p4est_t *p4est, charm_real_t *x, charm_data_t *data);
-
-charm_real_t charm_get_visc_lambda(p4est_t *p4est, charm_data_t *data);
-
-charm_real_t charm_get_visc_mu(p4est_t *p4est, charm_real_t *x, charm_data_t *data);
 
 void charm_tensor_zero(charm_tensor_t *t);
 
@@ -463,6 +549,7 @@ charm_real_t charm_comp_calc_ml(charm_comp_t *comp, charm_real_t t);
 charm_real_t charm_comp_calc_kp(charm_comp_t *comp, charm_real_t t);
 
 charm_real_t charm_comp_calc_enthalpy(charm_comp_t *comp, charm_real_t t);
+
 
 
 #ifdef __cplusplus
