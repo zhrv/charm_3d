@@ -9,6 +9,8 @@ function(add_git_submodule dir)
 # include(AddGitSubmodule.cmake)
 # add_git_submodule(mysubmod_dir)
 
+message(STATUS "=====   ${dir}   =====")
+
 if(NOT EXISTS ${dir}/CMakeLists.txt)
   execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive -- ${dir}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}

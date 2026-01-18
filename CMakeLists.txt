@@ -27,6 +27,9 @@ find_package(MPI)
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -DCHARM_PROJECT_VERSION=${CHARM_VERSION}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHARM_PROJECT_VERSION=${CHARM_VERSION}")
 
+# set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -DP4EST_WITH_METIS")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DP4EST_WITH_METIS")
+
 # set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -DCHARM_PROJECT_VERSION=${CMAKE_PROJECT_VERSION}")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHARM_PROJECT_VERSION=${CMAKE_PROJECT_VERSION}")
 
@@ -40,18 +43,29 @@ if (DEFINED POGGI)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPOGGI") # for RMI modeling
 endif()
 
-set(CONTRIB_DIR "${CMAKE_SOURCE_DIR}/contrib")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules")
+find_package(METIS REQUIRED)
+
+set(CHARM_CONTRIB_DIR "${CMAKE_SOURCE_DIR}/contrib")
 
 include(cmake/AddGitSubmodule.cmake)
-add_git_submodule(${CONTRIB_DIR}/yaml-cpp)
+include(cmake/p4est.cmake)
+
+
+add_git_submodule(${CHARM_CONTRIB_DIR}/yaml-cpp)
+
+# add_git_submodule(${CHARM_CONTRIB_DIR}/metis)
+
 
 ### TODO For using MPI in p4est and sc
-set(P4EST_ENABLE_MPI on)
-set(SC_ENABLE_MPI on)
-add_git_submodule(${CONTRIB_DIR}/p4est)
+# set(P4EST_ENABLE_METIS on)
+# set(P4EST_ENABLE_MPI on)
+# set(SC_ENABLE_MPI on)
+# add_git_submodule(${CHARM_CONTRIB_DIR}/p4est)
 
 
-include_directories(SYSTEM ${MPI_INCLUDE_PATH} ${CMAKE_SOURCE_DIR}/include)
+include_directories(SYSTEM ${MPI_INCLUDE_PATH} ${METIS_INCLUDE_DIRS} ${CHARM_P4EST_INCLUDE} ${CMAKE_SOURCE_DIR}/include)
+link_directories(${CHARM_P4EST_LIB})
 
 add_executable(	charm_3d
 
@@ -117,7 +131,7 @@ add_executable(	charm_3d
 )
 
 target_link_libraries(charm_3d 
-        p4est sc m yaml-cpp ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES}
+        p4est sc m yaml-cpp ${CHARM_P4EST_LIBRARIES} ${METIS_LIBRARIES} ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES}
 )
 
 set_property(TARGET charm_3d PROPERTY C_STANDARD 99)
