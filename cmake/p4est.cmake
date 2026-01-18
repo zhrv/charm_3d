@@ -6,7 +6,7 @@ message(STATUS "=====   Building P4EST   =====")
 set(CHARM_P4EST_DIR ${CHARM_CONTRIB_DIR}/p4est)
 
 
-if(NOT EXISTS ${CHARM_P4EST_DIR})
+if(NOT EXISTS ${CHARM_P4EST_DIR}/CMakeLists.txt)
   execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive -- ${CHARM_P4EST_DIR}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMAND_ERROR_IS_FATAL ANY)
