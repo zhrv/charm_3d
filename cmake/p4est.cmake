@@ -20,6 +20,10 @@ if(NOT EXISTS ${CHARM_P4EST_DIR}/local/lib/libp4est.a)
       OUTPUT_VARIABLE _out
       OUTPUT_STRIP_TRAILING_WHITESPACE)
   endif()
+  if(APPLE) 
+    set(ENV{LDFLAGS} "-L/usr/local/lib")
+    set(ENV{CFLAGS} "-I/usr/local/include")
+  endif()
   execute_process(COMMAND ./configure CC=mpicc --enable-mpi --enable-openmp --with-metis
     WORKING_DIRECTORY ${CHARM_P4EST_DIR}
     RESULT_VARIABLE _err
