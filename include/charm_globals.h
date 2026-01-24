@@ -2,8 +2,8 @@
 // Created by zhrv on 19.10.17.
 //
 
-#ifndef CHAMR_3D_CHARM_GLOBALS_H
-#define CHAMR_3D_CHARM_GLOBALS_H
+#ifndef CHARM_3D_CHARM_GLOBALS_H
+#define CHARM_3D_CHARM_GLOBALS_H
 
 #include <p4est_to_p8est.h>
 
@@ -557,5 +557,5 @@ charm_real_t charm_comp_calc_enthalpy(charm_comp_t *comp, charm_real_t t);
 #endif
 
 
-#endif //CHAMR_3D_CHARM_GLOBALS_H
+#endif //CHARM_3D_CHARM_GLOBALS_H
 

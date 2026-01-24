@@ -136,87 +136,99 @@ charm_real_t charm_base_func_dz(charm_real_t* x, int k, charm_data_t *p) {
 //}
 
 
-charm_real_t charm_get_field_ru(charm_data_t* p, charm_real_t* x)
-{
-    charm_real_t result = 0.;
-    int i;
+// charm_real_t charm_get_field_ru(charm_data_t* p, charm_real_t* x)
+// {
+//     charm_real_t result = 0.;
+//     int i;
 
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        result += p->par.c.ru[i]*charm_base_func(x, i, p);
-    }
-    return result;
-}
-
-
-charm_real_t charm_get_field_rv(charm_data_t* p, charm_real_t* x)
-{
-    charm_real_t result = 0.;
-    int i;
-
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        result += p->par.c.rv[i]*charm_base_func(x, i, p);
-    }
-    return result;
-}
+//     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+//         result += p->par.c.ru[i]*charm_base_func(x, i, p);
+//     }
+//     return result;
+// }
 
 
-charm_real_t charm_get_field_rw(charm_data_t* p, charm_real_t* x)
-{
-    charm_real_t result = 0.;
-    int i;
+// charm_real_t charm_get_field_rv(charm_data_t* p, charm_real_t* x)
+// {
+//     charm_real_t result = 0.;
+//     int i;
 
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        result += p->par.c.rw[i]*charm_base_func(x, i, p);
-    }
-    return result;
-}
-
-
-charm_real_t charm_get_field_re(charm_data_t* p, charm_real_t* x)
-{
-    charm_real_t result = 0.;
-    int i;
-
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        result += p->par.c.re[i]*charm_base_func(x, i, p);
-    }
-    return result;
-}
+//     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+//         result += p->par.c.rv[i]*charm_base_func(x, i, p);
+//     }
+//     return result;
+// }
 
 
-charm_real_t charm_get_field_rc(charm_data_t* p, charm_real_t* x, int k)
-{
-    charm_real_t result = 0.;
-    int i;
+// charm_real_t charm_get_field_rw(charm_data_t* p, charm_real_t* x)
+// {
+//     charm_real_t result = 0.;
+//     int i;
 
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        result += p->par.c.rc[k][i]*charm_base_func(x, i, p);
-    }
-    return result;
-}
+//     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+//         result += p->par.c.rw[i]*charm_base_func(x, i, p);
+//     }
+//     return result;
+// }
+
+
+// charm_real_t charm_get_field_re(charm_data_t* p, charm_real_t* x)
+// {
+//     charm_real_t result = 0.;
+//     int i;
+
+//     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+//         result += p->par.c.re[i]*charm_base_func(x, i, p);
+//     }
+//     return result;
+// }
+
+
+// charm_real_t charm_get_field_rc(charm_data_t* p, charm_real_t* x, int k)
+// {
+//     charm_real_t result = 0.;
+//     int i;
+
+//     for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+//         result += p->par.c.rc[k][i]*charm_base_func(x, i, p);
+//     }
+//     return result;
+// }
 
 void charm_get_fields(charm_data_t* p, charm_real_t* x, charm_cons_t* c){
-    int k;
-    size_t c_count = CHARM_MAX_COMPONETS_COUNT; // @todo fix by real components count
+    p4est_t *p4est = charm_get_p4est();
+    int i, k;
+    size_t c_count = charm_get_comp_count(p4est);; // @todo fix by real components count
+    charm_real_t fnx;
 //    c->ro = charm_get_field_ro(p, x);
-    c->ru = charm_get_field_ru(p, x);
-    c->rv = charm_get_field_rv(p, x);
-    c->rw = charm_get_field_rw(p, x);
-    c->re = charm_get_field_re(p, x);
+    c->ru = 0.;
+    c->rv = 0.;
+    c->rw = 0.;
+    c->re = 0.;
     for (k = 0; k < c_count; k++) {
-        c->rc[k] = charm_get_field_rc(p, x, k);
+        c->rc[k] = 0.;
     }
-
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        fnx = charm_base_func(x, i, p);
+        c->ru += p->par.c.ru[i]*fnx;
+        c->rv += p->par.c.rv[i]*fnx;
+        c->rw += p->par.c.rw[i]*fnx;
+        c->re += p->par.c.re[i]*fnx;
+        for (k = 0; k < c_count; k++) {
+            c->rc[k] += p->par.c.rc[k][i]*fnx;
+        }
+    }
     c->mat_id = p->par.mat_id;
 }
 
 
 void charm_get_fields_avg(charm_data_t* p, charm_cons_t* c)
 {
+    p4est_t *p4est = charm_get_p4est();
     int k, igp;
-    size_t c_count = CHARM_MAX_COMPONETS_COUNT; // @todo fix by real components count
+    size_t c_count = charm_get_comp_count(p4est);; // @todo fix by real components count
     charm_real_t *gx, gjw;
-
+    charm_cons_t _c;
     c->ru = 0.;
     c->rv = 0.;
     c->rw = 0.;
@@ -227,13 +239,14 @@ void charm_get_fields_avg(charm_data_t* p, charm_cons_t* c)
 
     for (igp = 0; igp < CHARM_QUAD_GP_COUNT; igp++) {
         gx = p->par.g.quad_gp[igp];
+        charm_get_fields(p, gx, &_c);
         gjw = p->par.g.quad_gj[igp]*p->par.g.quad_gw[igp]/p->par.g.volume;
-        c->ru += charm_get_field_ru(p, gx) * gjw;
-        c->rv += charm_get_field_rv(p, gx) * gjw;
-        c->rw += charm_get_field_rw(p, gx) * gjw;
-        c->re += charm_get_field_re(p, gx) * gjw;
+        c->ru += _c.ru * gjw;
+        c->rv += _c.rv * gjw;
+        c->rw += _c.rw * gjw;
+        c->re += _c.re * gjw;
         for (k = 0; k < c_count; k++) {
-            c->rc[k] += charm_get_field_rc(p, gx, k) * gjw;
+            c->rc[k] += _c.rc[k] * gjw;
         }
     }
     c->mat_id = p->par.mat_id;
@@ -265,79 +278,79 @@ void charm_get_fields_avg(charm_data_t* p, charm_cons_t* c)
 //}
 
 
-charm_real_t charm_get_avg_ru(charm_data_t* p)
-{
-    charm_real_t result = 0.;
-    int i;
-    charm_real_t vol = charm_quad_get_volume(p);
-    charm_real_t *x;
+// charm_real_t charm_get_avg_ru(charm_data_t* p)
+// {
+//     charm_real_t result = 0.;
+//     int i;
+//     charm_real_t vol = charm_quad_get_volume(p);
+//     charm_real_t *x;
 
-    for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
-        x = p->par.g.quad_gp[i];
-        result += charm_get_field_ru(p, x)*p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
-    }
-    return result/vol;
-}
-
-
-charm_real_t charm_get_avg_rv(charm_data_t* p)
-{
-    charm_real_t result = 0.;
-    int i;
-    charm_real_t vol = charm_quad_get_volume(p);
-    charm_real_t *x;
-
-    for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
-        x = p->par.g.quad_gp[i];
-        result += charm_get_field_rv(p, x)*p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
-    }
-    return result/vol;
-}
+//     for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
+//         x = p->par.g.quad_gp[i];
+//         result += charm_get_field_ru(p, x)*p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
+//     }
+//     return result/vol;
+// }
 
 
-charm_real_t charm_get_avg_rw(charm_data_t* p)
-{
-    charm_real_t result = 0.;
-    int i;
-    charm_real_t vol = charm_quad_get_volume(p);
-    charm_real_t *x;
+// charm_real_t charm_get_avg_rv(charm_data_t* p)
+// {
+//     charm_real_t result = 0.;
+//     int i;
+//     charm_real_t vol = charm_quad_get_volume(p);
+//     charm_real_t *x;
 
-    for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
-        x = p->par.g.quad_gp[i];
-        result += charm_get_field_rw(p, x)*p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
-    }
-    return result/vol;
-}
-
-
-charm_real_t charm_get_avg_re(charm_data_t* p)
-{
-    charm_real_t result = 0.;
-    int i;
-    charm_real_t vol = charm_quad_get_volume(p);
-    charm_real_t *x;
-
-    for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
-        x = p->par.g.quad_gp[i];
-        result += charm_get_field_re(p, x)*p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
-    }
-    return result/vol;
-}
+//     for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
+//         x = p->par.g.quad_gp[i];
+//         result += charm_get_field_rv(p, x)*p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
+//     }
+//     return result/vol;
+// }
 
 
-charm_real_t charm_get_avg_rc(charm_data_t* p, int j)
-{
-    charm_real_t result = 0.;
-    int i;
-    charm_real_t vol = charm_quad_get_volume(p);
-    charm_real_t *x;
+// charm_real_t charm_get_avg_rw(charm_data_t* p)
+// {
+//     charm_real_t result = 0.;
+//     int i;
+//     charm_real_t vol = charm_quad_get_volume(p);
+//     charm_real_t *x;
 
-    for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
-        x = p->par.g.quad_gp[i];
-        result += charm_get_field_rc(p, x, j)*p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
-    }
-    return result/vol;
-}
+//     for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
+//         x = p->par.g.quad_gp[i];
+//         result += charm_get_field_rw(p, x)*p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
+//     }
+//     return result/vol;
+// }
+
+
+// charm_real_t charm_get_avg_re(charm_data_t* p)
+// {
+//     charm_real_t result = 0.;
+//     int i;
+//     charm_real_t vol = charm_quad_get_volume(p);
+//     charm_real_t *x;
+
+//     for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
+//         x = p->par.g.quad_gp[i];
+//         result += charm_get_field_re(p, x)*p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
+//     }
+//     return result/vol;
+// }
+
+
+// charm_real_t charm_get_avg_rc(charm_data_t* p, int j)
+// {
+//     charm_real_t result = 0.;
+//     int i;
+//     charm_real_t vol = charm_quad_get_volume(p);
+//     charm_real_t *x;
+
+//     for (i = 0; i < CHARM_QUAD_GP_COUNT; i++) {
+//         x = p->par.g.quad_gp[i];
+//         result += charm_get_field_rc(p, x, j)*p->par.g.quad_gw[i]*p->par.g.quad_gj[i];
+//     }
+//     return result/vol;
+// }
 
 
 void charm_get_visc_tau(charm_data_t *p, charm_vec_t x, charm_tensor_t *tau)
