@@ -117,13 +117,13 @@ static void _charm_convect_volume_int_iter_fn(p4est_iter_volume_info_t * info, v
             phi = charm_base_func(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
 
             for(cj = 0; cj < c_count; ++cj) {
-                data->int_rc[cj][ibf] -= (fc[cj]*phi_x+gc[cj]*phi_y+hc[cj]*phi_z);
+                data->int_r.rc[cj][ibf] -= (fc[cj]*phi_x+gc[cj]*phi_y+hc[cj]*phi_z);
             }
 
-            data->int_ru[ibf] -= ((fu*phi_x+gu*phi_y+hu*phi_z) + p.r*data->par.grav[0]*phi);
-            data->int_rv[ibf] -= ((fv*phi_x+gv*phi_y+hv*phi_z) + p.r*data->par.grav[1]*phi);
-            data->int_rw[ibf] -= ((fw*phi_x+gw*phi_y+hw*phi_z) + p.r*data->par.grav[2]*phi);
-            data->int_re[ibf] -= (fe*phi_x+ge*phi_y+he*phi_z);
+            data->int_r.ru[ibf] -= ((fu*phi_x+gu*phi_y+hu*phi_z) + p.r*data->par.grav[0]*phi);
+            data->int_r.rv[ibf] -= ((fv*phi_x+gv*phi_y+hv*phi_z) + p.r*data->par.grav[1]*phi);
+            data->int_r.rw[ibf] -= ((fw*phi_x+gw*phi_y+hw*phi_z) + p.r*data->par.grav[2]*phi);
+            data->int_r.re[ibf] -= (fe*phi_x+ge*phi_y+he*phi_z);
         }
     }
     CHARM_FREE(fc);
@@ -198,13 +198,13 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
             if (!side[0]->is.full.is_ghost) {
                 bfv = charm_base_func(x, ibf, udata) * gw * gj;
                 for (j = 0; j < c_count; j++) {
-                    udata->int_rc[j][ibf] += qc[j] * bfv;
+                    udata->int_r.rc[j][ibf] += qc[j] * bfv;
                 }
 
-                udata->int_ru[ibf] += qu * bfv;
-                udata->int_rv[ibf] += qv * bfv;
-                udata->int_rw[ibf] += qw * bfv;
-                udata->int_re[ibf] += qe * bfv;
+                udata->int_r.ru[ibf] += qu * bfv;
+                udata->int_r.rv[ibf] += qv * bfv;
+                udata->int_r.rw[ibf] += qw * bfv;
+                udata->int_r.re[ibf] += qe * bfv;
             }
         }
     }
@@ -294,24 +294,24 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
                             if (!side[i]->is.hanging.is_ghost[j]) {
                                 bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
                                 for (cj = 0; cj < c_count; cj++) {
-                                    udata[i]->int_rc[cj][ibf] += qc[cj] * bfv;
+                                    udata[i]->int_r.rc[cj][ibf] += qc[cj] * bfv;
                                 }
-                                udata[i]->int_ru[ibf] += qu * bfv;
-                                udata[i]->int_rv[ibf] += qv * bfv;
-                                udata[i]->int_rw[ibf] += qw * bfv;
-                                udata[i]->int_re[ibf] += qe * bfv;
+                                udata[i]->int_r.ru[ibf] += qu * bfv;
+                                udata[i]->int_r.rv[ibf] += qv * bfv;
+                                udata[i]->int_r.rw[ibf] += qw * bfv;
+                                udata[i]->int_r.re[ibf] += qe * bfv;
                             }
                         }
                         else {
                             if (!side[i]->is.full.is_ghost) {
                                 bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
                                 for (cj = 0; cj < c_count; cj++) {
-                                    udata[i]->int_rc[cj][ibf] += qc[cj] * bfv;
+                                    udata[i]->int_r.rc[cj][ibf] += qc[cj] * bfv;
                                 }
-                                udata[i]->int_ru[ibf] += qu * bfv;
-                                udata[i]->int_rv[ibf] += qv * bfv;
-                                udata[i]->int_rw[ibf] += qw * bfv;
-                                udata[i]->int_re[ibf] += qe * bfv;
+                                udata[i]->int_r.ru[ibf] += qu * bfv;
+                                udata[i]->int_r.rv[ibf] += qv * bfv;
+                                udata[i]->int_r.rw[ibf] += qw * bfv;
+                                udata[i]->int_r.re[ibf] += qe * bfv;
                             }
                         }
                     }
@@ -357,12 +357,12 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
                     if (!side[i]->is.full.is_ghost) {
                         bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
                         for (j = 0; j < c_count; j++) {
-                            udata[i]->int_rc[j][ibf] += qc[j] * bfv;
+                            udata[i]->int_r.rc[j][ibf] += qc[j] * bfv;
                         }
-                        udata[i]->int_ru[ibf] += qu * bfv;
-                        udata[i]->int_rv[ibf] += qv * bfv;
-                        udata[i]->int_rw[ibf] += qw * bfv;
-                        udata[i]->int_re[ibf] += qe * bfv;
+                        udata[i]->int_r.ru[ibf] += qu * bfv;
+                        udata[i]->int_r.rv[ibf] += qv * bfv;
+                        udata[i]->int_r.rw[ibf] += qw * bfv;
+                        udata[i]->int_r.re[ibf] += qe * bfv;
                     }
                 }
             }
@@ -404,49 +404,54 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
     charm_real_t              dt = *((charm_real_t *) user_data);
-    charm_vect_t              rhs_ru;
-    charm_vect_t              rhs_rv;
-    charm_vect_t              rhs_rw;
-    charm_vect_t              rhs_re;
-    charm_vect_t              rhs_rc[CHARM_MAX_COMPONETS_COUNT];
+    charm_fields_t      rhs;;
+    // charm_vect_t              rhs_ru;
+    // charm_vect_t              rhs_rv;
+    // charm_vect_t              rhs_rw;
+    // charm_vect_t              rhs_re;
+    // charm_vect_t              rhs_rc[CHARM_MAX_COMPONETS_COUNT];
     size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_ru, rhs_ru);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_rv, rhs_rv);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_rw, rhs_rw);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_re, rhs_re);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_r.ru, rhs.ru);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_r.rv, rhs.rv);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_r.rw, rhs.rw);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_r.re, rhs.re);
 
     for (j = 0; j < c_count; j++) {
-        charm_matr_vect_mult(data->par.g.a_inv, data->int_rc[j], rhs_rc[j]);
+        charm_matr_vect_mult(data->par.g.a_inv, data->int_r.rc[j], rhs.rc[j]);
     }
 
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->par.c.ru[i] -= _NORM_(dt * rhs_ru[i]);
-        data->par.c.rv[i] -= _NORM_(dt * rhs_rv[i]);
-        data->par.c.rw[i] -= _NORM_(dt * rhs_rw[i]);
-        data->par.c.re[i] -= _NORM_(dt * rhs_re[i]);
-        for (j = 0; j < c_count; j++) {
-            data->par.c.rc[j][i] -= _NORM_(dt * rhs_rc[j][i]);
-        }
-    }
+    FIELDS_AXPY(rhs, data->par.c, -dt);
+
+    // for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+    //     data->par.c.ru[i] -= _NORM_(dt * rhs_ru[i]);
+    //     data->par.c.rv[i] -= _NORM_(dt * rhs_rv[i]);
+    //     data->par.c.rw[i] -= _NORM_(dt * rhs_rw[i]);
+    //     data->par.c.re[i] -= _NORM_(dt * rhs_re[i]);
+    //     for (j = 0; j < c_count; j++) {
+    //         data->par.c.rc[j][i] -= _NORM_(dt * rhs_rc[j][i]);
+    //     }
+    // }
 }
 
 
 static void charm_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
+    size_t              c_count = charm_get_comp_count(info->p4est);
     int                 i, j;
 
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->int_ru[i] = 0.;
-        data->int_rv[i] = 0.;
-        data->int_rw[i] = 0.;
-        data->int_re[i] = 0.;
-        for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
-            data->int_rc[j][i] = 0.;
-        }
-    }
+    FIELDS_SET_SCALAR(data->int_r, 0.);
+    // for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+    //     data->int_r.ru[i] = 0.;
+    //     data->int_r.rv[i] = 0.;
+    //     data->int_r.rw[i] = 0.;
+    //     data->int_r.re[i] = 0.;
+    //     for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
+    //         data->int_r.rc[j][i] = 0.;
+    //     }
+    // }
 }
 
 

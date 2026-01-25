@@ -178,8 +178,73 @@ __attribute__ ((format (printf, 1, 2)));
 #define CHARM_FACE_GP_COUNT 6
 #define CHARM_QUAD_GP_COUNT 8
 
+#ifndef CHARM_MAX_COMPONETS_COUNT
 #define CHARM_MAX_COMPONETS_COUNT 128
+#endif
 
 #define CHARM_ARR_SET_ZERO(A) {int i; for (i = 0; i < CHARM_BASE_FN_COUNT; i++) A[i] = 0.; }
+
+/** 
+ *  @warning Variables i, j, c_count must be initialized
+ */ 
+#define FIELDS_SET_SCALAR(FLD_DST, A) \
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {\
+        FLD_DST.ru[i] = (A);\
+        FLD_DST.rv[i] = (A);\
+        FLD_DST.rw[i] = (A);\
+        FLD_DST.re[i] = (A);\
+        for (j = 0; j < c_count; j++) {\
+            FLD_DST.rc[j][i] = (A);\
+        }\
+    }\
+
+
+/** 
+ *  @warning Variables i, j, c_count must be initialized
+ */ 
+#define FIELDS_COPY(FLD_DST, FLD_SRC) \
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {\
+        FLD_DST.ru[i] = FLD_SRC.ru[i];\
+        FLD_DST.rv[i] = FLD_SRC.rv[i];\
+        FLD_DST.rw[i] = FLD_SRC.rw[i];\
+        FLD_DST.re[i] = FLD_SRC.re[i];\
+        for (j = 0; j < c_count; j++) {\
+            FLD_DST.rc[j][i] = FLD_SRC.rc[j][i];\
+        }\
+    }\
+
+
+/**
+ *  Y += A*X
+ *  @warning Variables i, j, c_count must be initialized
+ */
+#define FIELDS_AXPY(FLD_X, FLD_Y, A) \
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {\
+        FLD_Y.ru[i] += (A)*FLD_X.ru[i];\
+        FLD_Y.rv[i] += (A)*FLD_X.rv[i];\
+        FLD_Y.rw[i] += (A)*FLD_X.rw[i];\
+        FLD_Y.re[i] += (A)*FLD_X.re[i];\
+        for (j = 0; j < c_count; j++) {\
+            FLD_Y.rc[j][i] += (A)*FLD_X.rc[j][i];\
+        }\
+    }
+
+/**
+ *  Y *= A
+ *  @warning Variables i, j, c_count must be initialized
+ */
+#define FIELDS_MULT(FLD_Y, A) \
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {\
+        FLD_Y.ru[i] *= (A);\
+        FLD_Y.rv[i] *= (A);\
+        FLD_Y.rw[i] *= (A);\
+        FLD_Y.re[i] *= (A);\
+        for (j = 0; j < c_count; j++) {\
+            FLD_Y.rc[j][i] *= (A);\
+        }\
+    }
+
+
+
 
 #endif //CHARM_3D_CHARM_DEF_H

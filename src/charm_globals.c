@@ -436,6 +436,20 @@ void charm_matr_vect_mult(charm_matr_t a, charm_vect_t b, charm_vect_t res)
 }
 
 
+void charm_matr_fields_mult(charm_matr_t a, charm_fields_t b, charm_fields_t res, size_t c_count)
+{
+    int j;
+    charm_matr_vect_mult(a, b.ru, res.ru);
+    charm_matr_vect_mult(a, b.rv, res.rv);
+    charm_matr_vect_mult(a, b.rw, res.rw);
+    charm_matr_vect_mult(a, b.re, res.re);
+
+    for (j = 0; j < c_count; j++) {
+        charm_matr_vect_mult(a, b.rc[j], res.rc[j]);
+    }
+}
+
+
 void charm_matr_add(charm_matr_t a, charm_matr_t b)
 {
     int i, j;

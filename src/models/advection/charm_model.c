@@ -78,7 +78,7 @@ static void _charm_adv_surface_int_iter_bnd (p4est_iter_face_info_t * info, void
 
     charm_real_t u = udata->par.c.rc[0][0];
     qu = u*(V[0]*n[0]+V[1]*n[1]+V[2]*n[2]);
-    udata->int_rc[0][0] += qu * s;
+    udata->int_r.rc[0][0] += qu * s;
 }
 
 
@@ -163,13 +163,13 @@ static void _charm_adv_surface_int_iter_inner (p4est_iter_face_info_t * info, vo
                 if (i == h_side) {
                     if (!side[i]->is.hanging.is_ghost[j]) {
                         bfv = (i ? -1. : 1.)  * s;
-                        udata[i]->int_rc[0][0] += qu * bfv;
+                        udata[i]->int_r.rc[0][0] += qu * bfv;
                     }
                 }
                 else {
                     if (!side[i]->is.full.is_ghost) {
                         bfv = (i ? -1. : 1.) * s;
-                        udata[i]->int_rc[0][0] += qu * bfv;
+                        udata[i]->int_r.rc[0][0] += qu * bfv;
                     }
                 }
             }
@@ -212,7 +212,7 @@ static void _charm_adv_surface_int_iter_inner (p4est_iter_face_info_t * info, vo
         for (i = 0; i < 2; i++) {
             if (!side[i]->is.full.is_ghost) {
                 bfv = (i ? -1. : 1.) * s;
-                udata[i]->int_rc[0][0] += qu * bfv;
+                udata[i]->int_r.rc[0][0] += qu * bfv;
             }
         }
     }
@@ -239,7 +239,7 @@ static void _charm_adv_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * 
     charm_real_t        dt = *((charm_real_t *) user_data);
     charm_real_t        v = charm_quad_get_volume(data);
 
-    data->par.c.rc[0][0] -= dt * data->int_rc[0][0] / v;
+    data->par.c.rc[0][0] -= dt * data->int_r.rc[0][0] / v;
     data->par.c.rc[1][0] = 1. - data->par.c.rc[0][0];
 }
 
@@ -249,7 +249,7 @@ static void _charm_adv_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * in
     charm_data_t       *data = charm_get_quad_data(info->quad);
     int                 i, j;
 
-    data->int_rc[0][0] = 0.;
+    data->int_r.rc[0][0] = 0.;
 }
 
 

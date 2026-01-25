@@ -127,6 +127,9 @@ add_executable(	charm_3d
         src/models/ns_jfnk/charm_model_ns_jfnk_geom.c 
         src/models/ns_jfnk/charm_model_ns_jfnk_init_cond.c 
         src/models/ns_jfnk/charm_model_ns_jfnk_init.cpp 
+        src/models/ns_jfnk/charm_model_ns_jfnk_dg_operator.c
+        src/models/ns_jfnk/charm_model_ns_jfnk_newton.c
+        src/models/ns_jfnk/charm_model_ns_jfnk_newton_minres.c
         src/models/ns_jfnk/charm_model.c
 )
 

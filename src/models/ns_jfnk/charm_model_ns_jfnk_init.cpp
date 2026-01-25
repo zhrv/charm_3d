@@ -19,9 +19,12 @@ void charm_model_ns_jfnk_init(charm_ctx_t *ctx, YAML::Node model_node, const YAM
     ctx->get_dt_fn              = charm_model_ns_jfnk_get_dt;
 
     ctx->timestep_single_fn     = charm_model_ns_jfnk_timestep_single;
-    ctx->model.ns.use_visc = model_node["use_visc"].as<int>();
-    ctx->model.ns.use_diff = model_node["use_diffusion"].as<int>();
-    ctx->model.ns.t_ref    = model_node["t_ref"].as<charm_real_t>();
+    ctx->model.ns_jfnk.use_visc = model_node["use_visc"].as<int>();
+    ctx->model.ns_jfnk.use_diff = model_node["use_diffusion"].as<int>();
+    ctx->model.ns_jfnk.t_ref    = model_node["t_ref"].as<charm_real_t>();
+
+    ctx->model.ns_jfnk.newton_tol    = model_node["newton_tol"].as<charm_real_t>();
+    ctx->model.ns_jfnk.linsol_tol    = model_node["linsol_tol"].as<charm_real_t>();
 
     ctx->amr_init_fn            = charm_adapt_init;
     ctx->amr_fn                 = charm_adapt;

@@ -63,118 +63,137 @@ static void charm_model_ns_timestep_update_quad_iter_fn (p4est_iter_volume_info_
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
-    charm_real_t              dt = *((charm_real_t *) user_data);
-    charm_vect_t              rhs_ru;
-    charm_vect_t              rhs_rv;
-    charm_vect_t              rhs_rw;
-    charm_vect_t              rhs_re;
-    charm_vect_t              rhs_rc[CHARM_MAX_COMPONETS_COUNT];
+    charm_real_t        dt = *((charm_real_t *) user_data);
+    charm_fields_t      rhs;
+    // charm_vect_t              rhs_ru;
+    // charm_vect_t              rhs_rv;
+    // charm_vect_t              rhs_rw;
+    // charm_vect_t              rhs_re;
+    // charm_vect_t              rhs_rc[CHARM_MAX_COMPONETS_COUNT];
     size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_ru, rhs_ru);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_rv, rhs_rv);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_rw, rhs_rw);
-    charm_matr_vect_mult(data->par.g.a_inv, data->int_re, rhs_re);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_r.ru, rhs.ru);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_r.rv, rhs.rv);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_r.rw, rhs.rw);
+    charm_matr_vect_mult(data->par.g.a_inv, data->int_r.re, rhs.re);
 
     for (j = 0; j < c_count; j++) {
-        charm_matr_vect_mult(data->par.g.a_inv, data->int_rc[j], rhs_rc[j]);
+        charm_matr_vect_mult(data->par.g.a_inv, data->int_r.rc[j], rhs.rc[j]);
     }
 
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->par.c.ru[i] -= _NORM_(dt * rhs_ru[i]);
-        data->par.c.rv[i] -= _NORM_(dt * rhs_rv[i]);
-        data->par.c.rw[i] -= _NORM_(dt * rhs_rw[i]);
-        data->par.c.re[i] -= _NORM_(dt * rhs_re[i]);
-        for (j = 0; j < c_count; j++) {
-            data->par.c.rc[j][i] -= _NORM_(dt * rhs_rc[j][i]);
-        }
-    }
+    FIELDS_AXPY(rhs, data->par.c, -dt);
+
+    // for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+    //     data->par.c.ru[i] -= _NORM_(dt * rhs_ru[i]);
+    //     data->par.c.rv[i] -= _NORM_(dt * rhs_rv[i]);
+    //     data->par.c.rw[i] -= _NORM_(dt * rhs_rw[i]);
+    //     data->par.c.re[i] -= _NORM_(dt * rhs_re[i]);
+    //     for (j = 0; j < c_count; j++) {
+    //         data->par.c.rc[j][i] -= _NORM_(dt * rhs_rc[j][i]);
+    //     }
+    // }
 }
 
 
 static void charm_model_ns_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
+    size_t              c_count = charm_get_comp_count(info->p4est);
     int                 i, j;
 
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->int_ru[i] = 0.;
-        data->int_rv[i] = 0.;
-        data->int_rw[i] = 0.;
-        data->int_re[i] = 0.;
-        for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
-            data->int_rc[j][i] = 0.;
-        }
-    }
+    FIELDS_SET_SCALAR(data->int_r, 0.);
+
+    // for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+    //     data->int_r.ru[i] = 0.;
+    //     data->int_r.rv[i] = 0.;
+    //     data->int_r.rw[i] = 0.;
+    //     data->int_r.re[i] = 0.;
+    //     for (j = 0; j < c_count; j++) {
+    //         data->int_r.rc[j][i] = 0.;
+    //     }
+    // }
 }
 
 
 static void charm_model_ns_timestep_rk_0(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
+    size_t              c_count = charm_get_comp_count(info->p4est);
     int                 i, j;
 
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->par.c_old.ru[i] = data->par.c.ru[i];
-        data->par.c_old.rv[i] = data->par.c.rv[i];
-        data->par.c_old.rw[i] = data->par.c.rw[i];
-        data->par.c_old.re[i] = data->par.c.re[i];
-        for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
-            data->par.c_old.rc[j][i] = data->par.c.rc[j][i];
-        }
-    }
+    FIELDS_COPY(data->par.c_old, data->par.c);
+
+    // for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+    //     data->par.c_old.ru[i] = data->par.c.ru[i];
+    //     data->par.c_old.rv[i] = data->par.c.rv[i];
+    //     data->par.c_old.rw[i] = data->par.c.rw[i];
+    //     data->par.c_old.re[i] = data->par.c.re[i];
+    //     for (j = 0; j < c_count; j++) {
+    //         data->par.c_old.rc[j][i] = data->par.c.rc[j][i];
+    //     }
+    // }
 }
 
 
 static void charm_model_ns_timestep_rk_1(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
+    size_t              c_count = charm_get_comp_count(info->p4est);
     int                 i, j;
 
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->par.c.ru[i] *= 0.25;
-        data->par.c.rv[i] *= 0.25;
-        data->par.c.rw[i] *= 0.25;
-        data->par.c.re[i] *= 0.25;
+    FIELDS_MULT(data->par.c, 0.25);
+    FIELDS_AXPY(data->par.c_old, data->par.c, 0.75);
 
-        data->par.c.ru[i] += 0.75*data->par.c_old.ru[i];
-        data->par.c.rv[i] += 0.75*data->par.c_old.rv[i];
-        data->par.c.rw[i] += 0.75*data->par.c_old.rw[i];
-        data->par.c.re[i] += 0.75*data->par.c_old.re[i];
+    // for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+    //     data->par.c.ru[i] *= 0.25;
+    //     data->par.c.rv[i] *= 0.25;
+    //     data->par.c.rw[i] *= 0.25;
+    //     data->par.c.re[i] *= 0.25;
 
-        for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
-            data->par.c.rc[j][i] *= 0.25;
-            data->par.c.rc[j][i] += 0.75*data->par.c_old.rc[j][i];
-        }
-    }
+    //     data->par.c.ru[i] += 0.75*data->par.c_old.ru[i];
+    //     data->par.c.rv[i] += 0.75*data->par.c_old.rv[i];
+    //     data->par.c.rw[i] += 0.75*data->par.c_old.rw[i];
+    //     data->par.c.re[i] += 0.75*data->par.c_old.re[i];
+
+    //     for (j = 0; j < c_count; j++) {
+    //         data->par.c.rc[j][i] *= 0.25;
+    //         data->par.c.rc[j][i] += 0.75*data->par.c_old.rc[j][i];
+    //     }
+    // }
 }
 
 
 static void charm_model_ns_timestep_rk_2(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
+    size_t              c_count = charm_get_comp_count(info->p4est);
     int                 i, j;
+    charm_real_t        a = 2./3.;
+    charm_real_t        b = 1./3.;
 
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->par.c.ru[i] *= 2.;
-        data->par.c.rv[i] *= 2.;
-        data->par.c.rw[i] *= 2.;
-        data->par.c.re[i] *= 2.;
-        data->par.c.ru[i] /= 3.;
-        data->par.c.rv[i] /= 3.;
-        data->par.c.rw[i] /= 3.;
-        data->par.c.re[i] /= 3.;
-        data->par.c.ru[i] += data->par.c_old.ru[i] / 3.;
-        data->par.c.rv[i] += data->par.c_old.rv[i] / 3.;
-        data->par.c.rw[i] += data->par.c_old.rw[i] / 3.;
-        data->par.c.re[i] += data->par.c_old.re[i] / 3.;
-        for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
-            data->par.c.rc[j][i] *= 2.;
-            data->par.c.rc[j][i] /= 3.;
-            data->par.c.rc[j][i] += data->par.c_old.rc[j][i] / 3.;
-        }
-    }
+    FIELDS_MULT(data->par.c, a);
+    FIELDS_AXPY(data->par.c_old, data->par.c, b);
+
+    // for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+    //     data->par.c.ru[i] *= 2.;
+    //     data->par.c.rv[i] *= 2.;
+    //     data->par.c.rw[i] *= 2.;
+    //     data->par.c.re[i] *= 2.;
+    //     data->par.c.ru[i] /= 3.;
+    //     data->par.c.rv[i] /= 3.;
+    //     data->par.c.rw[i] /= 3.;
+    //     data->par.c.re[i] /= 3.;
+    //     data->par.c.ru[i] += data->par.c_old.ru[i] / 3.;
+    //     data->par.c.rv[i] += data->par.c_old.rv[i] / 3.;
+    //     data->par.c.rw[i] += data->par.c_old.rw[i] / 3.;
+    //     data->par.c.re[i] += data->par.c_old.re[i] / 3.;
+    //     for (j = 0; j < c_count; j++) {
+    //         data->par.c.rc[j][i] *= 2.;
+    //         data->par.c.rc[j][i] /= 3.;
+    //         data->par.c.rc[j][i] += data->par.c_old.rc[j][i] / 3.;
+    //     }
+    // }
 }
 
 

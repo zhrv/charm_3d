@@ -2,7 +2,6 @@
 // Created by zhrv on 10.01.26.
 //
 
-#include <p8est_iterate.h>
 #include <charm_globals.h>
 #include "charm_base_func.h"
 #include "charm_limiter.h"
@@ -11,7 +10,7 @@
 void charm_model_ns_jfnk_timestep_conv(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 void charm_model_ns_jfnk_timestep_diff(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 void charm_model_ns_jfnk_geom_calc(p4est_t *p4est);
-
+void charm_model_ns_jfnk_newton_step(p4est_t * p4est, charm_real_t *dt, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 
 static void charm_model_ns_jfnk_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
@@ -62,68 +61,79 @@ charm_real_t charm_model_ns_jfnk_get_dt (p4est_t * p4est)
 static void charm_model_ns_jfnk_timestep_copy_to_old(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
+    size_t              c_count = charm_get_comp_count(info->p4est);
     int                 i, j;
 
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->par.c_old.ru[i] = data->par.c.ru[i];
-        data->par.c_old.rv[i] = data->par.c.rv[i];
-        data->par.c_old.rw[i] = data->par.c.rw[i];
-        data->par.c_old.re[i] = data->par.c.re[i];
-        for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
-            data->par.c_old.rc[j][i] = data->par.c.rc[j][i];
-        }
-    }
+    FIELDS_COPY(data->par.c_old, data->par.c);
+    // for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+    //     data->par.c_old.ru[i] = data->par.c.ru[i];
+    //     data->par.c_old.rv[i] = data->par.c.rv[i];
+    //     data->par.c_old.rw[i] = data->par.c.rw[i];
+    //     data->par.c_old.re[i] = data->par.c.re[i];
+    //     for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
+    //         data->par.c_old.rc[j][i] = data->par.c.rc[j][i];
+    //     }
+    // }
 }
 
 
 static void charm_model_ns_jfnk_timestep_rk_1(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
+    size_t              c_count = charm_get_comp_count(info->p4est);
     int                 i, j;
 
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->par.c.ru[i] *= 0.25;
-        data->par.c.rv[i] *= 0.25;
-        data->par.c.rw[i] *= 0.25;
-        data->par.c.re[i] *= 0.25;
+    FIELDS_MULT(data->par.c, 0.25);
+    FIELDS_AXPY(data->par.c_old, data->par.c, 0.75);
+    // for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+    //     data->par.c.ru[i] *= 0.25;
+    //     data->par.c.rv[i] *= 0.25;
+    //     data->par.c.rw[i] *= 0.25;
+    //     data->par.c.re[i] *= 0.25;
 
-        data->par.c.ru[i] += 0.75*data->par.c_old.ru[i];
-        data->par.c.rv[i] += 0.75*data->par.c_old.rv[i];
-        data->par.c.rw[i] += 0.75*data->par.c_old.rw[i];
-        data->par.c.re[i] += 0.75*data->par.c_old.re[i];
+    //     data->par.c.ru[i] += 0.75*data->par.c_old.ru[i];
+    //     data->par.c.rv[i] += 0.75*data->par.c_old.rv[i];
+    //     data->par.c.rw[i] += 0.75*data->par.c_old.rw[i];
+    //     data->par.c.re[i] += 0.75*data->par.c_old.re[i];
 
-        for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
-            data->par.c.rc[j][i] *= 0.25;
-            data->par.c.rc[j][i] += 0.75*data->par.c_old.rc[j][i];
-        }
-    }
+    //     for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
+    //         data->par.c.rc[j][i] *= 0.25;
+    //         data->par.c.rc[j][i] += 0.75*data->par.c_old.rc[j][i];
+    //     }
+    // }
 }
 
 
 static void charm_model_ns_jfnk_timestep_rk_2(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
+    size_t              c_count = charm_get_comp_count(info->p4est);
     int                 i, j;
+    charm_real_t        a = 2./3.;
+    charm_real_t        b = 1./3.;
 
-    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
-        data->par.c.ru[i] *= 2.;
-        data->par.c.rv[i] *= 2.;
-        data->par.c.rw[i] *= 2.;
-        data->par.c.re[i] *= 2.;
-        data->par.c.ru[i] /= 3.;
-        data->par.c.rv[i] /= 3.;
-        data->par.c.rw[i] /= 3.;
-        data->par.c.re[i] /= 3.;
-        data->par.c.ru[i] += data->par.c_old.ru[i] / 3.;
-        data->par.c.rv[i] += data->par.c_old.rv[i] / 3.;
-        data->par.c.rw[i] += data->par.c_old.rw[i] / 3.;
-        data->par.c.re[i] += data->par.c_old.re[i] / 3.;
-        for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
-            data->par.c.rc[j][i] *= 2.;
-            data->par.c.rc[j][i] /= 3.;
-            data->par.c.rc[j][i] += data->par.c_old.rc[j][i] / 3.;
-        }
-    }
+    FIELDS_MULT(data->par.c, a);
+    FIELDS_AXPY(data->par.c_old, data->par.c, b);
+
+    // for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+    //     data->par.c.ru[i] *= 2.;
+    //     data->par.c.rv[i] *= 2.;
+    //     data->par.c.rw[i] *= 2.;
+    //     data->par.c.re[i] *= 2.;
+    //     data->par.c.ru[i] /= 3.;
+    //     data->par.c.rv[i] /= 3.;
+    //     data->par.c.rw[i] /= 3.;
+    //     data->par.c.re[i] /= 3.;
+    //     data->par.c.ru[i] += data->par.c_old.ru[i] / 3.;
+    //     data->par.c.rv[i] += data->par.c_old.rv[i] / 3.;
+    //     data->par.c.rw[i] += data->par.c_old.rw[i] / 3.;
+    //     data->par.c.re[i] += data->par.c_old.re[i] / 3.;
+    //     for (j = 0; j < CHARM_MAX_COMPONETS_COUNT; j++) {
+    //         data->par.c.rc[j][i] *= 2.;
+    //         data->par.c.rc[j][i] /= 3.;
+    //         data->par.c.rc[j][i] += data->par.c_old.rc[j][i] / 3.;
+    //     }
+    // }
 }
 
 
@@ -191,6 +201,7 @@ void charm_model_ns_jfnk_timestep_single(p4est_t * p4est, charm_real_t *dt, p4es
     charm_int_t nm_stop = 0;
     while (!nm_stop) { // итерации метода Ньютона
         p4est_iterate (p4est, NULL, NULL, charm_model_ns_jfnk_timestep_copy_to_old, NULL, NULL, NULL);
+        charm_model_ns_jfnk_newton_step(p4est, dt, ghost, ghost_data);
         // p4est_ghost_exchange_data (p4est, ghost, ghost_data);
         // p4est_iterate (p4est, NULL, NULL, charm_model_ns_jfnk_timestep_rk_1, NULL, NULL, NULL);
         // p4est_iterate (p4est, NULL, NULL, charm_model_ns_jfnk_timestep_rk_2, NULL, NULL, NULL);
@@ -205,3 +216,33 @@ void charm_model_ns_jfnk_timestep_single(p4est_t * p4est, charm_real_t *dt, p4es
 }
 
 
+static void _charm_model_ns_jfnk_stash_push_quad_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
+{
+    charm_data_t   *data = charm_get_quad_data(info->quad);
+    size_t          c_count = charm_get_comp_count(info->p4est);
+    charm_int_t     i, j;
+
+    FIELDS_COPY(data->par.model.ns_jfnk.c_stash, data->par.c);
+}
+
+void charm_model_ns_jfnk_stash_push(p4est_t * p4est)
+{
+    p4est_iterate (p4est, NULL, NULL, _charm_model_ns_jfnk_stash_push_quad_iter_fn, NULL, NULL, NULL);
+
+}
+
+
+
+static void _charm_model_ns_jfnk_stash_pop_quad_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
+{
+    charm_data_t   *data = charm_get_quad_data(info->quad);
+    size_t          c_count = charm_get_comp_count(info->p4est);
+    charm_int_t     i, j;
+
+    FIELDS_COPY(data->par.c, data->par.model.ns_jfnk.c_stash);
+}
+
+void charm_model_ns_jfnk_stash_pop(p4est_t * p4est)
+{
+    p4est_iterate(p4est, NULL, NULL, _charm_model_ns_jfnk_stash_pop_quad_iter_fn, NULL, NULL, NULL);
+}
