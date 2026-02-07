@@ -19,6 +19,7 @@ const char *charm_bnd_types[] ={
         "BOUND_SYMMETRY",
         "BOUND_FREE_STREAM",
         "BOUND_PRESSURE",
+        "BOUND_PERIODIC",
         NULL
 };
 
@@ -191,6 +192,9 @@ charm_mesh_type_t charm_mesh_get_type_by_str(char *str)
     }
     else if (strcmp(str, "gmsh_inp") == 0) {
         return CHARM_MESH_GMSH_INP;
+    }
+    else if (strcmp(str, "periodic_box") == 0) {
+        return CHARM_MESH_PERIODIC_BOX;
     }
     else {
         return CHARM_MESH_UNKNOWN;

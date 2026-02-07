@@ -90,6 +90,13 @@ static void charm_mat_eos_switch(charm_prim_t * p, charm_eos_flag_t flag) {
             p->t  = p->e/p->cv;
             break;
 
+        case EOS_R_T_TO_P_CZ_E: // (r,t) => (p, cz, e)
+            if (p->r < CHARM_EPS) p->r = CHARM_EPS;
+            p->e  = p->t*p->cv;
+            p->p  = p->r*p->e*(p->gam-1);
+            p->cz = sqrt(p->gam*p->p/p->r);
+            break;
+
         default:
             CHARM_LERROR("WRONG EOS FLAG\n");
             charm_abort(NULL, 1);

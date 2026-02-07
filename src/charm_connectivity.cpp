@@ -818,6 +818,90 @@ charm_conn_reader_inp (charm_ctx_t *ctx)
 }
 
 
+
+p4est_connectivity_t *
+charm_conn_reader_periodic_box(charm_ctx_t *ctx)
+{
+    int8_t               face;
+    charm_mesh_info_t   *msh = ctx->msh;
+    const p4est_topidx_t num_vertices = P4EST_CHILDREN;
+    const p4est_topidx_t num_trees = 1;
+    const p4est_topidx_t num_edges = 3;
+    const p4est_topidx_t num_corners = 1;
+    const double        vertices[P4EST_CHILDREN * 3] = {
+        msh->xmin, msh->ymin, msh->zmin,
+        msh->xmax, msh->ymin, msh->zmin,
+        msh->xmin, msh->ymax, msh->zmin,
+        msh->xmax, msh->ymax, msh->zmin,
+        msh->xmin, msh->ymin, msh->zmax,
+        msh->xmax, msh->ymin, msh->zmax,
+        msh->xmin, msh->ymax, msh->zmax,
+        msh->xmax, msh->ymax, msh->zmax,
+    };
+    const p4est_topidx_t tree_to_vertex[1 * P4EST_CHILDREN] = {
+        0, 1, 2, 3,
+        4, 5, 6, 7,
+    };
+    const p4est_topidx_t tree_to_tree[1 * P4EST_FACES] = {
+        0, 0, 0, 0,
+        0, 0,
+    };
+    const int8_t        tree_to_face[1 * P4EST_FACES] = {
+        1, 0, 3, 2,
+        5, 4,
+    };
+    const p4est_topidx_t tree_to_edge[1 * P8EST_EDGES] = {
+        0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
+    };
+    const p4est_topidx_t ett_offset[3 + 1] = {
+        0, 4, 8, 12,
+    };
+    const p4est_topidx_t edge_to_tree[P8EST_EDGES] = {
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    };
+    const int8_t        edge_to_edge[P8EST_EDGES] = {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+    };
+    const p4est_topidx_t tree_to_corner[1 * P4EST_CHILDREN] = {
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+    };
+    const p4est_topidx_t ctt_offset[1 + 1] = {
+        0, P4EST_CHILDREN,
+    };
+    const p4est_topidx_t corner_to_tree[P4EST_CHILDREN] = {
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+    };
+    const int8_t        corner_to_corner[P4EST_CHILDREN] = {
+        0, 1, 2, 3,
+        4, 5, 6, 7,
+    };
+
+    p4est_connectivity_t *conn = 
+         p4est_connectivity_new_copy (num_vertices, num_trees,
+                                      num_edges,
+                                      num_corners, vertices, tree_to_vertex,
+                                      tree_to_tree, tree_to_face,
+                                      tree_to_edge, ett_offset,
+                                      edge_to_tree, edge_to_edge,
+                                      tree_to_corner, ctt_offset,
+                                      corner_to_tree, corner_to_corner);
+
+
+
+    // p4est_connectivity_t *conn = p4est_connectivity_new_periodic();
+    p4est_connectivity_set_attr(conn, sizeof(charm_tree_attr_t));
+    charm_tree_attr_t * attr = (charm_tree_attr_t*)(conn->tree_to_attr);
+    for (face = 0; face < CHARM_FACES; ++face) {
+        attr->bnd[face] = NULL;
+    }
+    CHARM_ASSERT(ctx->reg->elem_count);
+    attr->reg = (charm_reg_t*)sc_array_index(ctx->reg, 0);
+    return conn;
+}
+
+
 /**
  *
  */
@@ -829,6 +913,8 @@ charm_conn_reader_t charm_get_conn_reader(charm_ctx_t *ctx)
             return charm_conn_reader_msh;
         case CHARM_MESH_GMSH_INP:
             return charm_conn_reader_inp;
+        case CHARM_MESH_PERIODIC_BOX:
+            return charm_conn_reader_periodic_box;
         case CHARM_MESH_UNKNOWN:
         default:
             return NULL;

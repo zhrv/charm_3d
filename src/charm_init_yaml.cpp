@@ -176,6 +176,9 @@ static void charm_init_fetch_bnd(charm_ctx_t *ctx, const YAML::Node &node, charm
 //            }
 
             break;
+        case BOUND_PERIODIC:
+            bnd->bnd_fn = NULL;
+            break;
         case BOUND_UNKNOWN: // @todo
         default:
             CHARM_LERRORF("Unknown boundary type %s\n", bnd->name);
@@ -366,14 +369,32 @@ static void charm_init_mesh_info(charm_ctx_t *ctx, const YAML::Node &node)
 {
     charm_mesh_info_t *m;// = ctx->msh;
     std::string str;
+    charm_int_t i;
 
     m = CHARM_ALLOC(charm_mesh_info_t, 1);
 
     str = node["files_type"].as<std::string>();
     m->type = charm_mesh_get_type_by_str((char*)str.c_str());
-    str = node["name"].as<std::string>();
-    strcpy(m->filename, str.c_str());
-
+    if (m->type == CHARM_MESH_PERIODIC_BOX) {
+        m->xmin = node["xmin"].as<charm_real_t>();
+        m->xmax = node["xmax"].as<charm_real_t>();
+        m->ymin = node["ymin"].as<charm_real_t>();
+        m->ymax = node["ymax"].as<charm_real_t>();
+        m->zmin = node["zmin"].as<charm_real_t>();
+        m->zmax = node["zmax"].as<charm_real_t>();
+        YAML::Node n = node["n"];
+        i = 0;
+        for (auto ni: n) {
+            m->n[i++] = ni.as<charm_real_t>();
+            if (i > 2) break;
+        }
+        str = "none";
+        strcpy(m->filename, str.c_str());
+    }
+    else {
+        str = node["name"].as<std::string>();
+        strcpy(m->filename, str.c_str());
+    }
     ctx->msh = m;
 }
 

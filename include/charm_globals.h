@@ -47,7 +47,8 @@ typedef enum {
     EOS_R_P_TO_E_T,     // (r,p)    =>  (e,t)
     EOS_T_P_TO_R_CZ,    // (T,p)    =>  (r,cz)
     EOS_T_P_TO_R_CZ_E,  // (T,p)    =>  (r, cz, e)
-    EOS_R_E_TO_P_CZ_T   // (r,e)    =>  (p, cz, T)
+    EOS_R_E_TO_P_CZ_T,  // (r,e)    =>  (p, cz, T)
+    EOS_R_T_TO_P_CZ_E     // (r,t)  =>  (p, cz, e)
 } charm_eos_flag_t;
 
 
@@ -293,6 +294,7 @@ typedef enum {
     BOUND_SYMMETRY,
     BOUND_FREE_STREAM,
     BOUND_PRESSURE,
+    BOUND_PERIODIC,
     BOUND_UNKNOWN
 } charm_bnd_types_t;
 
@@ -314,7 +316,8 @@ typedef enum {
     CHARM_MESH_GMSH_UNV,
     CHARM_MESH_OPENFOAM,
     CHARM_MESH_SALOME_UNV,
-    CHARM_MESH_TETGEN
+    CHARM_MESH_TETGEN,
+    CHARM_MESH_PERIODIC_BOX
 } charm_mesh_type_t;
 
 
@@ -322,6 +325,13 @@ typedef struct charm_mesh_info
 {
     charm_mesh_type_t   type;
     char                filename[128];
+    charm_real_t        xmin;
+    charm_real_t        xmax;
+    charm_real_t        ymin;
+    charm_real_t        ymax;
+    charm_real_t        zmin;
+    charm_real_t        zmax;
+    charm_real_t        n[3];
 } charm_mesh_info_t;
 
 

@@ -43,6 +43,11 @@ if (DEFINED POGGI)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPOGGI") # for RMI modeling
 endif()
 
+if (DEFINED TAYLOR_GREEN)
+    message("\nWARNING: Building for Taylor-Green problem\n")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DTAYLOR_GREEN") # for Taylor-Green modeling
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules")
 find_package(METIS REQUIRED)
 
