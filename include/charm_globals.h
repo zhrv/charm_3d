@@ -175,31 +175,38 @@ typedef struct charm_param
             charm_vec_c_t q;
             charm_real_t d[CHARM_MAX_COMPONETS_COUNT];
             charm_real_t chem_rhs;
-            struct {
-                charm_real_t mu_t;
-                union {
-                    struct {
-                        charm_real_t    nu_; // nu with tilde
-                        charm_vec_t     grad_nu_;
-                        charm_real_t    nu; // kinematic viscosity
-                        charm_real_t    int_nu_;
-                        charm_vec_t     grad_u[CHARM_DIM];
-                    } sa;
-                    struct {
-                        charm_real_t k;
-                        charm_real_t w;
-                    } sst;
-                } model;
-            } turb;
+        } ns;
+        struct {
+            charm_tensor_c_t tau;
+            charm_vec_c_t q;
+            charm_real_t d[CHARM_MAX_COMPONETS_COUNT];
+            charm_real_t chem_rhs;
             charm_fields_t c_result;
             charm_fields_t c_rhs;
+            charm_fields_t c_delta;
             charm_fields_t c_residual;
             charm_fields_t c_Ju;
             charm_fields_t c_Jr;
             charm_fields_t c_Jtmp1;
             charm_fields_t c_Jtmp2;
             charm_fields_t c_Jtmp3;
-        } ns;
+        } ns_jfnk;
+        struct {
+            charm_real_t mu_t;
+            union {
+                struct {
+                    charm_real_t    nu_; // nu with tilde
+                    charm_vec_t     grad_nu_;
+                    charm_real_t    nu; // kinematic viscosity
+                    charm_real_t    int_nu_;
+                    charm_vec_t     grad_u[CHARM_DIM];
+                } sa;
+                struct {
+                    charm_real_t k;
+                    charm_real_t w;
+                } sst;
+            } model;
+        } turb;
     } model;
 
     struct geom
@@ -246,11 +253,13 @@ typedef struct charm_data
 {
     charm_param_t       par;
 
-    charm_vect_t        int_ru;
-    charm_vect_t        int_rv;
-    charm_vect_t        int_rw;
-    charm_vect_t        int_re;
-    charm_vect_t        int_rc[CHARM_MAX_COMPONETS_COUNT];
+    charm_fields_t      integrals;
+
+    // charm_vect_t        int_ru;
+    // charm_vect_t        int_rv;
+    // charm_vect_t        int_rw;
+    // charm_vect_t        int_re;
+    // charm_vect_t        int_rc[CHARM_MAX_COMPONETS_COUNT];
 
     charm_vec_c_t       int_q;
 
@@ -369,41 +378,50 @@ typedef struct charm_ctx
             int                         use_visc;
             int                         use_diff;
             charm_real_t                t_ref;
-            struct {
-                charm_init_fn_t             init_cond_fn;
-                charm_turb_model_fn_t       model_fn;
-                charm_turb_models_t         model_type;
-                union {
-                    struct {
-                        charm_real_t a1;
-                        charm_real_t sigma_k1;
-                        charm_real_t sigma_k2;
-                        charm_real_t sigma_w1;
-                        charm_real_t sigma_w2;
-                        charm_real_t beta_star;
-                        charm_real_t beta_1;
-                        charm_real_t beta_2;
-                        charm_real_t kappa;
-                    } sst;
-
-                    struct {
-                        charm_real_t sigma;
-                        charm_real_t kappa;
-                        charm_real_t cb1;
-                        charm_real_t cb2;
-                        charm_real_t cw1;
-                        charm_real_t cw2;
-                        charm_real_t cw3;
-                        charm_real_t cv1;
-                        charm_real_t ct1;
-                        charm_real_t ct2;
-                        charm_real_t ct3;
-                        charm_real_t ct4;
-                    } sa;
-                } param;
-            } turb;
-
         } ns;
+        struct {
+            int                         use_visc;
+            int                         use_diff;
+            charm_real_t                t_ref;
+            struct {
+                charm_real_t relax;
+                charm_real_t rtol;
+                charm_int_t max_step;
+            } newton; 
+        } ns_jfnk;
+        struct {
+            charm_init_fn_t             init_cond_fn;
+            charm_turb_model_fn_t       model_fn;
+            charm_turb_models_t         model_type;
+            union {
+                struct {
+                    charm_real_t a1;
+                    charm_real_t sigma_k1;
+                    charm_real_t sigma_k2;
+                    charm_real_t sigma_w1;
+                    charm_real_t sigma_w2;
+                    charm_real_t beta_star;
+                    charm_real_t beta_1;
+                    charm_real_t beta_2;
+                    charm_real_t kappa;
+                } sst;
+
+                struct {
+                    charm_real_t sigma;
+                    charm_real_t kappa;
+                    charm_real_t cb1;
+                    charm_real_t cb2;
+                    charm_real_t cw1;
+                    charm_real_t cw2;
+                    charm_real_t cw3;
+                    charm_real_t cv1;
+                    charm_real_t ct1;
+                    charm_real_t ct2;
+                    charm_real_t ct3;
+                    charm_real_t ct4;
+                } sa;
+            } param;
+        } turb;
     } model;
 //    charm_real_t              visc_m;
 //    charm_real_t              visc_l;
@@ -500,11 +518,29 @@ void charm_matr_vect_mult(charm_matr_t a, charm_vect_t b, charm_vect_t res);
 void
 charm_matr_add(charm_matr_t a, charm_matr_t b);
 
+void charm_vect_copy(charm_vect_t dest, charm_vect_t src);
+void charm_vect_mult(charm_vect_t a, charm_real_t b);
+void charm_vect_sub(charm_vect_t a, charm_vect_t b);
 void charm_vect_add(charm_vect_t a, charm_vect_t b);
+void charm_vect_axpy(charm_vect_t x, charm_vect_t y, charm_real_t a);
+
 
 void charm_matr_zero(charm_matr_t a);
 
 void charm_vect_zero(charm_vect_t a);
+
+charm_real_t charm_vect_get_norm2(charm_vect_t f);
+
+
+void charm_fields_copy(charm_fields_t dest, charm_fields_t src, size_t c_count);
+void charm_fields_zero(charm_fields_t f, size_t c_count);
+void charm_fields_add(charm_fields_t a, charm_fields_t b, size_t c_count);
+void charm_fields_sub(charm_fields_t a, charm_fields_t b, size_t c_count);
+void charm_fields_mult(charm_fields_t a, charm_real_t b, size_t c_count);
+void charm_fields_axpy(charm_fields_t x, charm_fields_t y, charm_real_t a, size_t c_count);
+void charm_matr_fields_mult(charm_matr_t a, charm_fields_t b, charm_fields_t res, size_t c_count);
+charm_real_t charm_fields_get_norm2(charm_fields_t f, size_t c_count);
+
 
 charm_ctx_t *charm_get_ctx(p4est_t *p4est);
 

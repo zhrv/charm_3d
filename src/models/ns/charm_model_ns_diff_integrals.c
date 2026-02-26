@@ -42,15 +42,15 @@ static void charm_model_ns_diff_integrals_volume_int_iter_fn (p4est_iter_volume_
 
             phi = charm_base_func(x, ibf, data) * data->par.g.quad_gj[igp] * data->par.g.quad_gw[igp];
 
-            data->int_ru[ibf] += (tau.xx*phi_x+tau.xy*phi_y+tau.xz*phi_z);
-            data->int_rv[ibf] += (tau.xy*phi_x+tau.yy*phi_y+tau.yz*phi_z);
-            data->int_rw[ibf] += (tau.xz*phi_x+tau.yz*phi_y+tau.zz*phi_z);
+            data->integrals.ru[ibf] += (tau.xx*phi_x+tau.xy*phi_y+tau.xz*phi_z);
+            data->integrals.rv[ibf] += (tau.xy*phi_x+tau.yy*phi_y+tau.yz*phi_z);
+            data->integrals.rw[ibf] += (tau.xz*phi_x+tau.yz*phi_y+tau.zz*phi_z);
 
-            data->int_re[ibf] += (tau.xx*p.u+tau.xy*p.v+tau.xz*p.w - qt[0])*phi_x;
-            data->int_re[ibf] += (tau.xy*p.u+tau.yy*p.v+tau.yz*p.w - qt[1])*phi_y;
-            data->int_re[ibf] += (tau.xz*p.u+tau.yz*p.v+tau.zz*p.w - qt[2])*phi_z;
+            data->integrals.re[ibf] += (tau.xx*p.u+tau.xy*p.v+tau.xz*p.w - qt[0])*phi_x;
+            data->integrals.re[ibf] += (tau.xy*p.u+tau.yy*p.v+tau.yz*p.w - qt[1])*phi_y;
+            data->integrals.re[ibf] += (tau.xz*p.u+tau.yz*p.v+tau.zz*p.w - qt[2])*phi_z;
 
-            data->int_re[ibf] += data->par.model.ns.chem_rhs*phi;
+            data->integrals.re[ibf] += data->par.model.ns.chem_rhs*phi;
         }
     }
 }
@@ -127,10 +127,10 @@ static void charm_model_ns_conv_surface_int_iter_bnd (p4est_iter_face_info_t * i
         for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
             if (!side[0]->is.full.is_ghost) {
                 bfv = charm_base_func(x, ibf, udata) * udata->par.g.area[face];
-                udata->int_ru[ibf] -= qu * bfv;
-                udata->int_rv[ibf] -= qv * bfv;
-                udata->int_rw[ibf] -= qw * bfv;
-                udata->int_re[ibf] -= qe * bfv;
+                udata->integrals.ru[ibf] -= qu * bfv;
+                udata->integrals.rv[ibf] -= qv * bfv;
+                udata->integrals.rw[ibf] -= qw * bfv;
+                udata->integrals.re[ibf] -= qe * bfv;
             }
         }
     }
@@ -233,19 +233,19 @@ static void charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t *
                         if (i == h_side) {
                             if (!side[i]->is.hanging.is_ghost[j]) {
                                 bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
-                                udata[i]->int_ru[ibf] -= qu * bfv;
-                                udata[i]->int_rv[ibf] -= qv * bfv;
-                                udata[i]->int_rw[ibf] -= qw * bfv;
-                                udata[i]->int_re[ibf] -= qe * bfv;
+                                udata[i]->integrals.ru[ibf] -= qu * bfv;
+                                udata[i]->integrals.rv[ibf] -= qv * bfv;
+                                udata[i]->integrals.rw[ibf] -= qw * bfv;
+                                udata[i]->integrals.re[ibf] -= qe * bfv;
                             }
                         }
                         else {
                             if (!side[i]->is.full.is_ghost) {
                                 bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
-                                udata[i]->int_ru[ibf] -= qu * bfv;
-                                udata[i]->int_rv[ibf] -= qv * bfv;
-                                udata[i]->int_rw[ibf] -= qw * bfv;
-                                udata[i]->int_re[ibf] -= qe * bfv;
+                                udata[i]->integrals.ru[ibf] -= qu * bfv;
+                                udata[i]->integrals.rv[ibf] -= qv * bfv;
+                                udata[i]->integrals.rw[ibf] -= qw * bfv;
+                                udata[i]->integrals.re[ibf] -= qe * bfv;
                             }
                         }
                     }
@@ -308,10 +308,10 @@ static void charm_model_ns_conv_surface_int_iter_inner (p4est_iter_face_info_t *
                 for (i = 0; i < 2; i++) {
                     if (!side[i]->is.full.is_ghost) {
                         bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
-                        udata[i]->int_ru[ibf] -= qu * bfv;
-                        udata[i]->int_rv[ibf] -= qv * bfv;
-                        udata[i]->int_rw[ibf] -= qw * bfv;
-                        udata[i]->int_re[ibf] -= qe * bfv;
+                        udata[i]->integrals.ru[ibf] -= qu * bfv;
+                        udata[i]->integrals.rv[ibf] -= qv * bfv;
+                        udata[i]->integrals.rw[ibf] -= qw * bfv;
+                        udata[i]->integrals.re[ibf] -= qe * bfv;
                     }
                 }
             }

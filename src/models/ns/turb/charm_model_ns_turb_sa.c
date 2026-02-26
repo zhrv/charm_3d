@@ -26,25 +26,25 @@ void charm_model_ns_turb_sa_init_initial_condition(p4est_t * p4est, p4est_topidx
     charm_data_t       *data    = (charm_data_t *) q->p.user_data;
     charm_param_t      *par     = &data->par;
 
-    par->model.ns.turb.model.sa.nu_ = 0.;
+    par->model.turb.model.sa.nu_ = 0.;
 }
 
 
 static void charm_model_ns_turb_sa_params(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data)
 {
     charm_ctx_t                *ctx = charm_get_ctx(p4est);
-    sigma = ctx->model.ns.turb.param.sa.sigma;
-    kappa = ctx->model.ns.turb.param.sa.kappa;
-    cb1 = ctx->model.ns.turb.param.sa.cb1;
-    cb2 = ctx->model.ns.turb.param.sa.cb2;
-    cw1 = ctx->model.ns.turb.param.sa.cw1;
-    cw2 = ctx->model.ns.turb.param.sa.cw2;
-    cw3 = ctx->model.ns.turb.param.sa.cw3;
-    cv1 = ctx->model.ns.turb.param.sa.cv1;
-    ct1 = ctx->model.ns.turb.param.sa.ct1;
-    ct2 = ctx->model.ns.turb.param.sa.ct2;
-    ct3 = ctx->model.ns.turb.param.sa.ct3;
-    ct4 = ctx->model.ns.turb.param.sa.ct4;
+    sigma = ctx->model.turb.param.sa.sigma;
+    kappa = ctx->model.turb.param.sa.kappa;
+    cb1 = ctx->model.turb.param.sa.cb1;
+    cb2 = ctx->model.turb.param.sa.cb2;
+    cw1 = ctx->model.turb.param.sa.cw1;
+    cw2 = ctx->model.turb.param.sa.cw2;
+    cw3 = ctx->model.turb.param.sa.cw3;
+    cv1 = ctx->model.turb.param.sa.cv1;
+    ct1 = ctx->model.turb.param.sa.ct1;
+    ct2 = ctx->model.turb.param.sa.ct2;
+    ct3 = ctx->model.turb.param.sa.ct3;
+    ct4 = ctx->model.turb.param.sa.ct4;
 
 }
 
@@ -59,10 +59,10 @@ static void charm_model_ns_turb_sa_zero_quad_iter_fn(p4est_iter_volume_info_t * 
 {
     p4est_t *p4est = info->p4est;
     charm_data_t *data = (charm_data_t *) info->quad->p.user_data;
-    charm_real_t nu_ = data->par.model.ns.turb.model.sa.nu_;
+    charm_real_t nu_ = data->par.model.turb.model.sa.nu_;
     charm_real_t volume;
     charm_real_t d = data->par.g.y;
-    charm_real_t *grad_nu_ = data->par.model.ns.turb.model.sa.grad_nu_;
+    charm_real_t *grad_nu_ = data->par.model.turb.model.sa.grad_nu_;
     charm_vec_t  c;
     charm_cons_t cons;
     charm_prim_t prim;
@@ -73,8 +73,8 @@ static void charm_model_ns_turb_sa_zero_quad_iter_fn(p4est_iter_volume_info_t * 
     Omega = 0.;
     for (i = 0; i < CHARM_DIM; i++) {
         for (j = 0; j < CHARM_DIM; j++) {
-            Oij = 2.*(data->par.model.ns.turb.model.sa.grad_u[i][j]
-                     -data->par.model.ns.turb.model.sa.grad_u[j][i]);
+            Oij = 2.*(data->par.model.turb.model.sa.grad_u[i][j]
+                     -data->par.model.turb.model.sa.grad_u[j][i]);
             Omega += Oij*Oij;
         }
     }
@@ -104,7 +104,7 @@ static void charm_model_ns_turb_sa_zero_quad_iter_fn(p4est_iter_volume_info_t * 
     Pnu = cb1*(1.-ft2)*S_*nu_;
     Dnu = (cw1*fw-cb1*ft2/_SQR_(kappa))*_SQR_(nu_/d);
 
-    data->par.model.ns.turb.model.sa.int_nu_ = -volume*(Pnu-Dnu+(scalar_prod(grad_nu_, grad_nu_))*cb2/sigma);
+    data->par.model.turb.model.sa.int_nu_ = -volume*(Pnu-Dnu+(scalar_prod(grad_nu_, grad_nu_))*cb2/sigma);
 }
 
 
@@ -123,13 +123,13 @@ static void charm_model_ns_turb_sa_update_quad_iter_fn(p4est_iter_volume_info_t 
     charm_quad_get_center(data, c);
     charm_get_fields(data, c, &cons);
     charm_param_cons_to_prim(p4est, &prim, &cons);
-    data->par.model.ns.turb.model.sa.nu_ -= _NORM_(dt * data->par.model.ns.turb.model.sa.int_nu_);
+    data->par.model.turb.model.sa.nu_ -= _NORM_(dt * data->par.model.turb.model.sa.int_nu_);
     nu = charm_model_ns_get_visc_mu(p4est, c, data)/prim.r;
-    xi = data->par.model.ns.turb.model.sa.nu_/nu;
+    xi = data->par.model.turb.model.sa.nu_/nu;
     xi3 = pow(xi, 3.);
     fv1 = xi3/(xi3+pow(cv1, 3.));
-    nut = fv1*data->par.model.ns.turb.model.sa.nu_;
-    data->par.model.ns.turb.mu_t = nut*prim.r;
+    nut = fv1*data->par.model.turb.model.sa.nu_;
+    data->par.model.turb.mu_t = nut*prim.r;
 }
 
 
@@ -176,7 +176,7 @@ static void charm_model_ns_turb_sa_surface_int_iter_bnd(p4est_iter_face_info_t *
 
     bnd_type = charm_bnd_get_type(p4est, side[0]->treeid, face);
 
-    int_nu = &(udata->par.model.ns.turb.model.sa.int_nu_);
+    int_nu = &(udata->par.model.turb.model.sa.int_nu_);
 
     for (i = 0; i < 3; i++) {
         l[i] = c[1][i] - c[0][i];
@@ -195,12 +195,12 @@ static void charm_model_ns_turb_sa_surface_int_iter_bnd(p4est_iter_face_info_t *
 
     un[0]       = prim[0].u*n[0]+prim[0].v*n[1]+prim[0].w*n[2];
     mu[0]       = charm_model_ns_get_visc_mu(p4est, x, udata);
-    nu_[0]      = udata->par.model.ns.turb.model.sa.nu_;
+    nu_[0]      = udata->par.model.turb.model.sa.nu_;
     nu[0]       = mu[0]/prim[0].r;
-    int_nu      = &(udata->par.model.ns.turb.model.sa.int_nu_);
-    dnu_dn[0]   = udata->par.model.ns.turb.model.sa.grad_nu_[0]*n[0]+
-                    udata->par.model.ns.turb.model.sa.grad_nu_[1]*n[1]+
-                    udata->par.model.ns.turb.model.sa.grad_nu_[2]*n[2];
+    int_nu      = &(udata->par.model.turb.model.sa.int_nu_);
+    dnu_dn[0]   = udata->par.model.turb.model.sa.grad_nu_[0]*n[0]+
+                    udata->par.model.turb.model.sa.grad_nu_[1]*n[1]+
+                    udata->par.model.turb.model.sa.grad_nu_[2]*n[2];
 
     if (bnd_type == BOUND_WALL_NO_SLIP) {
         qu = 0.;
@@ -213,7 +213,7 @@ static void charm_model_ns_turb_sa_surface_int_iter_bnd(p4est_iter_face_info_t *
     }
     x = udata->par.g.fc[face];
     s = udata->par.g.area[face];
-    nu_[0] = udata->par.model.ns.turb.model.sa.nu;
+    nu_[0] = udata->par.model.turb.model.sa.nu;
     if (!side[0]->is.full.is_ghost) {
 
         *int_nu += qu * s;
@@ -295,12 +295,12 @@ static void charm_model_ns_turb_sa_surface_int_iter_inner(p4est_iter_face_info_t
 
                 un[i] = prim[i].u*n[0]+prim[i].v*n[1]+prim[i].w*n[2];
                 mu[i]       = charm_model_ns_get_visc_mu(p4est, x, udata[i]);
-                nu_[i] = udata[i]->par.model.ns.turb.model.sa.nu_;
+                nu_[i] = udata[i]->par.model.turb.model.sa.nu_;
                 nu[i] = mu[i]/prim[i].r;
-                int_nu[i] = &(udata[i]->par.model.ns.turb.model.sa.int_nu_);
-                dnu_dn[i] = udata[i]->par.model.ns.turb.model.sa.grad_nu_[0]*n[0]+
-                            udata[i]->par.model.ns.turb.model.sa.grad_nu_[1]*n[1]+
-                            udata[i]->par.model.ns.turb.model.sa.grad_nu_[2]*n[2];
+                int_nu[i] = &(udata[i]->par.model.turb.model.sa.int_nu_);
+                dnu_dn[i] = udata[i]->par.model.turb.model.sa.grad_nu_[0]*n[0]+
+                            udata[i]->par.model.turb.model.sa.grad_nu_[1]*n[1]+
+                            udata[i]->par.model.turb.model.sa.grad_nu_[2]*n[2];
             }
             qu = 0.5*(
                         nu_[0]*un[0]-(nu[0]+nu_[0])*dnu_dn[0]/sigma+
@@ -352,12 +352,12 @@ static void charm_model_ns_turb_sa_surface_int_iter_inner(p4est_iter_face_info_t
 
             un[i] = prim[i].u*n[0]+prim[i].v*n[1]+prim[i].w*n[2];
             mu[i]       = charm_model_ns_get_visc_mu(p4est, x, udata[i]);
-            nu_[i] = udata[i]->par.model.ns.turb.model.sa.nu_;
+            nu_[i] = udata[i]->par.model.turb.model.sa.nu_;
             nu[i] = mu[i]/prim[i].r;
-            int_nu[i] = &(udata[i]->par.model.ns.turb.model.sa.int_nu_);
-            dnu_dn[i] = udata[i]->par.model.ns.turb.model.sa.grad_nu_[0]*n[0]+
-                        udata[i]->par.model.ns.turb.model.sa.grad_nu_[1]*n[1]+
-                        udata[i]->par.model.ns.turb.model.sa.grad_nu_[2]*n[2];
+            int_nu[i] = &(udata[i]->par.model.turb.model.sa.int_nu_);
+            dnu_dn[i] = udata[i]->par.model.turb.model.sa.grad_nu_[0]*n[0]+
+                        udata[i]->par.model.turb.model.sa.grad_nu_[1]*n[1]+
+                        udata[i]->par.model.turb.model.sa.grad_nu_[2]*n[2];
         }
         qu = 0.5*(
                 nu_[0]*un[0]-(nu[0]+nu_[0])*dnu_dn[0]/sigma+

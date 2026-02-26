@@ -25,7 +25,7 @@ void charm_model_ns_init_initial_condition (p4est_t * p4est, p4est_topidx_t whic
         data->par.model.ns.d[i] = 0.;
     }
 
-    if (ctx->model.ns.turb.init_cond_fn) ctx->model.ns.turb.init_cond_fn(p4est, which_tree, q);
+    if (ctx->model.turb.init_cond_fn) ctx->model.turb.init_cond_fn(p4est, which_tree, q);
 }
 
 

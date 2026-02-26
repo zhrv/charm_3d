@@ -90,32 +90,32 @@ static charm_turb_models_t charm_turb_model_by_name(const char* name) {
 
 void charm_model_ns_turb_sst_fetch_param(charm_ctx_t *ctx, YAML::Node par)
 {
-    ctx->model.ns.turb.param.sst.a1         = par["a1"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sst.sigma_k1   = par["sigma_k1"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sst.sigma_k2   = par["sigma_k2"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sst.sigma_w1   = par["sigma_w1"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sst.sigma_w2   = par["sigma_w2"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sst.beta_star  = par["beta_star"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sst.beta_1     = par["beta_1"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sst.beta_2     = par["beta_2"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sst.beta_2     = par["beta_2"].as<charm_real_t>();
+    ctx->model.turb.param.sst.a1         = par["a1"].as<charm_real_t>();
+    ctx->model.turb.param.sst.sigma_k1   = par["sigma_k1"].as<charm_real_t>();
+    ctx->model.turb.param.sst.sigma_k2   = par["sigma_k2"].as<charm_real_t>();
+    ctx->model.turb.param.sst.sigma_w1   = par["sigma_w1"].as<charm_real_t>();
+    ctx->model.turb.param.sst.sigma_w2   = par["sigma_w2"].as<charm_real_t>();
+    ctx->model.turb.param.sst.beta_star  = par["beta_star"].as<charm_real_t>();
+    ctx->model.turb.param.sst.beta_1     = par["beta_1"].as<charm_real_t>();
+    ctx->model.turb.param.sst.beta_2     = par["beta_2"].as<charm_real_t>();
+    ctx->model.turb.param.sst.beta_2     = par["beta_2"].as<charm_real_t>();
 }
 
 
 void charm_model_ns_turb_sa_fetch_param(charm_ctx_t *ctx, YAML::Node par)
 {
-    ctx->model.ns.turb.param.sa.sigma   = par["sigma"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sa.kappa   = par["kappa"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sa.cb1     = par["cb1"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sa.cb2     = par["cb2"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sa.cw1     = par["cw1"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sa.cw2     = par["cw2"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sa.cw3     = par["cw3"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sa.cv1     = par["cv1"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sa.ct1     = par["ct1"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sa.ct2     = par["ct2"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sa.ct3     = par["ct3"].as<charm_real_t>();
-    ctx->model.ns.turb.param.sa.ct4     = par["ct4"].as<charm_real_t>();
+    ctx->model.turb.param.sa.sigma   = par["sigma"].as<charm_real_t>();
+    ctx->model.turb.param.sa.kappa   = par["kappa"].as<charm_real_t>();
+    ctx->model.turb.param.sa.cb1     = par["cb1"].as<charm_real_t>();
+    ctx->model.turb.param.sa.cb2     = par["cb2"].as<charm_real_t>();
+    ctx->model.turb.param.sa.cw1     = par["cw1"].as<charm_real_t>();
+    ctx->model.turb.param.sa.cw2     = par["cw2"].as<charm_real_t>();
+    ctx->model.turb.param.sa.cw3     = par["cw3"].as<charm_real_t>();
+    ctx->model.turb.param.sa.cv1     = par["cv1"].as<charm_real_t>();
+    ctx->model.turb.param.sa.ct1     = par["ct1"].as<charm_real_t>();
+    ctx->model.turb.param.sa.ct2     = par["ct2"].as<charm_real_t>();
+    ctx->model.turb.param.sa.ct3     = par["ct3"].as<charm_real_t>();
+    ctx->model.turb.param.sa.ct4     = par["ct4"].as<charm_real_t>();
 
 }
 
@@ -123,27 +123,27 @@ void charm_model_ns_turb_sa_fetch_param(charm_ctx_t *ctx, YAML::Node par)
 static void charm_model_ns_turb_init(charm_ctx_t *ctx, YAML::Node node)
 {
     if (!node.IsDefined()) {
-        ctx->model.ns.turb.init_cond_fn  = nullptr;
-        ctx->model.ns.turb.model_fn = nullptr;
-        ctx->model.ns.turb.model_type = TURB_MODEL_UNKNOWN;
+        ctx->model.turb.init_cond_fn  = nullptr;
+        ctx->model.turb.model_fn = nullptr;
+        ctx->model.turb.model_type = TURB_MODEL_UNKNOWN;
         return;
     }
      
-    ctx->model.ns.turb.model_type = charm_turb_model_by_name(node["model"].as<std::string>().c_str());
+    ctx->model.turb.model_type = charm_turb_model_by_name(node["model"].as<std::string>().c_str());
     
-    switch (ctx->model.ns.turb.model_type) {
+    switch (ctx->model.turb.model_type) {
         case TURB_MODEL_SST:
-            ctx->model.ns.turb.model_fn = charm_model_ns_turb_sst;
+            ctx->model.turb.model_fn = charm_model_ns_turb_sst;
             charm_model_ns_turb_sst_fetch_param(ctx, node["parameters"]);
             break;
         case TURB_MODEL_SA:
-            ctx->model.ns.turb.model_fn = charm_model_ns_turb_sa;
-            ctx->model.ns.turb.init_cond_fn  = charm_model_ns_turb_sa_init_initial_condition;
+            ctx->model.turb.model_fn = charm_model_ns_turb_sa;
+            ctx->model.turb.init_cond_fn  = charm_model_ns_turb_sa_init_initial_condition;
             charm_model_ns_turb_sa_fetch_param(ctx, node["parameters"]);
             break;
         default:
-            ctx->model.ns.turb.init_cond_fn  = nullptr;
-            ctx->model.ns.turb.model_fn = nullptr;
+            ctx->model.turb.init_cond_fn  = nullptr;
+            ctx->model.turb.model_fn = nullptr;
             break;
     }
 }

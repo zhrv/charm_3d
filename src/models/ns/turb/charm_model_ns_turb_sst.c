@@ -83,13 +83,13 @@ static void charm_model_ns_turb_sst_surface_int_iter_bnd(p4est_iter_face_info_t 
             if (!side[0]->is.full.is_ghost) {
                 bfv = charm_base_func(x, ibf, udata) * gw * gj;
                 for (j = 0; j < c_count; j++) {
-                    udata->int_rc[j][ibf] += qc[j] * bfv;
+                    udata->integrals.rc[j][ibf] += qc[j] * bfv;
                 }
 
-                udata->int_ru[ibf] += qu * bfv;
-                udata->int_rv[ibf] += qv * bfv;
-                udata->int_rw[ibf] += qw * bfv;
-                udata->int_re[ibf] += qe * bfv;
+                udata->integrals.ru[ibf] += qu * bfv;
+                udata->integrals.rv[ibf] += qv * bfv;
+                udata->integrals.rw[ibf] += qw * bfv;
+                udata->integrals.re[ibf] += qe * bfv;
             }
         }
     }
@@ -180,24 +180,24 @@ static void charm_model_ns_turb_sst_surface_int_iter_inner(p4est_iter_face_info_
                             if (!side[i]->is.hanging.is_ghost[j]) {
                                 bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
                                 for (cj = 0; cj < c_count; cj++) {
-                                    udata[i]->int_rc[cj][ibf] += qc[cj] * bfv;
+                                    udata[i]->integrals.rc[cj][ibf] += qc[cj] * bfv;
                                 }
-                                udata[i]->int_ru[ibf] += qu * bfv;
-                                udata[i]->int_rv[ibf] += qv * bfv;
-                                udata[i]->int_rw[ibf] += qw * bfv;
-                                udata[i]->int_re[ibf] += qe * bfv;
+                                udata[i]->integrals.ru[ibf] += qu * bfv;
+                                udata[i]->integrals.rv[ibf] += qv * bfv;
+                                udata[i]->integrals.rw[ibf] += qw * bfv;
+                                udata[i]->integrals.re[ibf] += qe * bfv;
                             }
                         }
                         else {
                             if (!side[i]->is.full.is_ghost) {
                                 bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
                                 for (cj = 0; cj < c_count; cj++) {
-                                    udata[i]->int_rc[cj][ibf] += qc[cj] * bfv;
+                                    udata[i]->integrals.rc[cj][ibf] += qc[cj] * bfv;
                                 }
-                                udata[i]->int_ru[ibf] += qu * bfv;
-                                udata[i]->int_rv[ibf] += qv * bfv;
-                                udata[i]->int_rw[ibf] += qw * bfv;
-                                udata[i]->int_re[ibf] += qe * bfv;
+                                udata[i]->integrals.ru[ibf] += qu * bfv;
+                                udata[i]->integrals.rv[ibf] += qv * bfv;
+                                udata[i]->integrals.rw[ibf] += qw * bfv;
+                                udata[i]->integrals.re[ibf] += qe * bfv;
                             }
                         }
                     }
@@ -243,12 +243,12 @@ static void charm_model_ns_turb_sst_surface_int_iter_inner(p4est_iter_face_info_
                     if (!side[i]->is.full.is_ghost) {
                         bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
                         for (j = 0; j < c_count; j++) {
-                            udata[i]->int_rc[j][ibf] += qc[j] * bfv;
+                            udata[i]->integrals.rc[j][ibf] += qc[j] * bfv;
                         }
-                        udata[i]->int_ru[ibf] += qu * bfv;
-                        udata[i]->int_rv[ibf] += qv * bfv;
-                        udata[i]->int_rw[ibf] += qw * bfv;
-                        udata[i]->int_re[ibf] += qe * bfv;
+                        udata[i]->integrals.ru[ibf] += qu * bfv;
+                        udata[i]->integrals.rv[ibf] += qv * bfv;
+                        udata[i]->integrals.rw[ibf] += qw * bfv;
+                        udata[i]->integrals.re[ibf] += qe * bfv;
                     }
                 }
             }

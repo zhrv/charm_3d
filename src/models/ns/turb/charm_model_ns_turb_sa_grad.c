@@ -11,8 +11,8 @@ static void charm_model_ns_turb_sa_grad_zero_quad_iter_fn(p4est_iter_volume_info
     charm_data_t *data = (charm_data_t *) info->quad->p.user_data;
     int i;
     for (i = 0; i < CHARM_DIM; i++) {
-        data->par.model.ns.turb.model.sa.grad_nu_[i] = 0.;
-        memset(data->par.model.ns.turb.model.sa.grad_u[i], 0, sizeof(charm_vec_t));
+        data->par.model.turb.model.sa.grad_nu_[i] = 0.;
+        memset(data->par.model.turb.model.sa.grad_u[i], 0, sizeof(charm_vec_t));
     }
 }
 
@@ -23,10 +23,10 @@ static void charm_model_ns_turb_sa_grad_update_quad_iter_fn(p4est_iter_volume_in
     charm_real_t volume = data->par.g.volume;
     int i;
     for (i = 0; i < CHARM_DIM; i++) {
-        data->par.model.ns.turb.model.sa.grad_nu_[i] /= volume;
-        data->par.model.ns.turb.model.sa.grad_u[i][0] /= volume;
-        data->par.model.ns.turb.model.sa.grad_u[i][1] /= volume;
-        data->par.model.ns.turb.model.sa.grad_u[i][2] /= volume;
+        data->par.model.turb.model.sa.grad_nu_[i] /= volume;
+        data->par.model.turb.model.sa.grad_u[i][0] /= volume;
+        data->par.model.turb.model.sa.grad_u[i][1] /= volume;
+        data->par.model.turb.model.sa.grad_u[i][2] /= volume;
     }
 }
 
@@ -74,7 +74,7 @@ static void charm_model_ns_turb_sa_grad_surface_int_iter_bnd(p4est_iter_face_inf
     charm_quad_get_center(udata, c[0]);
     charm_face_get_center(udata, face, c[1]);
 
-    int_nu = &(udata->par.model.ns.turb.model.sa.int_nu_);
+    int_nu = &(udata->par.model.turb.model.sa.int_nu_);
 
     for (i = 0; i < 3; i++) {
         l[i] = c[1][i] - c[0][i];
@@ -88,7 +88,7 @@ static void charm_model_ns_turb_sa_grad_surface_int_iter_bnd(p4est_iter_face_inf
 
     charm_face_get_center(udata, face, x);
     s = charm_face_get_area(udata, face);
-    nu_[0] = udata->par.model.ns.turb.model.sa.nu_;
+    nu_[0] = udata->par.model.turb.model.sa.nu_;
     charm_get_fields(udata, x, &cons);
     charm_param_cons_to_prim(p4est, &(prim[0]), &cons);
     charm_bnd_cond(p4est, side[0]->treeid, face, &(prim[0]), &(prim[1]), n);
@@ -97,7 +97,7 @@ static void charm_model_ns_turb_sa_grad_surface_int_iter_bnd(p4est_iter_face_inf
     for (i = 0; i < 2; i++) {
         charm_get_fields(udata, x, &cons);
         charm_param_cons_to_prim(p4est, &(prim[i]), &cons);
-        qu += udata->par.model.ns.turb.model.sa.nu_; // TODO оптимизировать
+        qu += udata->par.model.turb.model.sa.nu_; // TODO оптимизировать
         gu[0] += prim[i].u;
         gu[1] += prim[i].v;
         gu[2] += prim[i].w;
@@ -108,10 +108,10 @@ static void charm_model_ns_turb_sa_grad_surface_int_iter_bnd(p4est_iter_face_inf
     gu[2] *= 0.5;
     if (!side[0]->is.full.is_ghost) {
         for (k = 0; k < CHARM_DIM; k++) {
-            udata->par.model.ns.turb.model.sa.grad_nu_[i] += qu * s * n[i];
-            udata->par.model.ns.turb.model.sa.grad_u[0][i] += gu[0] * s * n[i];
-            udata->par.model.ns.turb.model.sa.grad_u[1][i] += gu[1] * s * n[i];
-            udata->par.model.ns.turb.model.sa.grad_u[2][i] += gu[2] * s * n[i];
+            udata->par.model.turb.model.sa.grad_nu_[i] += qu * s * n[i];
+            udata->par.model.turb.model.sa.grad_u[0][i] += gu[0] * s * n[i];
+            udata->par.model.turb.model.sa.grad_u[1][i] += gu[1] * s * n[i];
+            udata->par.model.turb.model.sa.grad_u[2][i] += gu[2] * s * n[i];
         }
     }
 
@@ -189,7 +189,7 @@ static void charm_model_ns_turb_sa_grad_surface_int_iter_inner(p4est_iter_face_i
             for (i = 0; i < 2; i++) {
                 charm_get_fields(udata[i], x, &(cons[i]));
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
-                qu += udata[i]->par.model.ns.turb.model.sa.nu_;
+                qu += udata[i]->par.model.turb.model.sa.nu_;
                 gu[0] += prim[i].u;
                 gu[1] += prim[i].v;
                 gu[2] += prim[i].w;
@@ -202,20 +202,20 @@ static void charm_model_ns_turb_sa_grad_surface_int_iter_inner(p4est_iter_face_i
                 if (i == h_side) {
                     if (!side[i]->is.hanging.is_ghost[j]) {
                         for (k = 0; k < CHARM_DIM; k++) {
-                            udata[i]->par.model.ns.turb.model.sa.grad_nu_[i] += qu * (i ? -1. : 1.) * s * n[i];
-                            udata[i]->par.model.ns.turb.model.sa.grad_u[0][i] += gu[0] * (i ? -1. : 1.) * s * n[i];
-                            udata[i]->par.model.ns.turb.model.sa.grad_u[1][i] += gu[1] * (i ? -1. : 1.) * s * n[i];
-                            udata[i]->par.model.ns.turb.model.sa.grad_u[2][i] += gu[2] * (i ? -1. : 1.) * s * n[i];
+                            udata[i]->par.model.turb.model.sa.grad_nu_[i] += qu * (i ? -1. : 1.) * s * n[i];
+                            udata[i]->par.model.turb.model.sa.grad_u[0][i] += gu[0] * (i ? -1. : 1.) * s * n[i];
+                            udata[i]->par.model.turb.model.sa.grad_u[1][i] += gu[1] * (i ? -1. : 1.) * s * n[i];
+                            udata[i]->par.model.turb.model.sa.grad_u[2][i] += gu[2] * (i ? -1. : 1.) * s * n[i];
                         }
                     }
                 }
                 else {
                     if (!side[i]->is.full.is_ghost) {
                         for (k = 0; k < CHARM_DIM; k++) {
-                            udata[i]->par.model.ns.turb.model.sa.grad_nu_[i] += qu * (i ? -1. : 1.) * s * n[i];
-                            udata[i]->par.model.ns.turb.model.sa.grad_u[0][i] += gu[0] * (i ? -1. : 1.) * s * n[i];
-                            udata[i]->par.model.ns.turb.model.sa.grad_u[1][i] += gu[1] * (i ? -1. : 1.) * s * n[i];
-                            udata[i]->par.model.ns.turb.model.sa.grad_u[2][i] += gu[2] * (i ? -1. : 1.) * s * n[i];
+                            udata[i]->par.model.turb.model.sa.grad_nu_[i] += qu * (i ? -1. : 1.) * s * n[i];
+                            udata[i]->par.model.turb.model.sa.grad_u[0][i] += gu[0] * (i ? -1. : 1.) * s * n[i];
+                            udata[i]->par.model.turb.model.sa.grad_u[1][i] += gu[1] * (i ? -1. : 1.) * s * n[i];
+                            udata[i]->par.model.turb.model.sa.grad_u[2][i] += gu[2] * (i ? -1. : 1.) * s * n[i];
                         }
                     }
                 }
@@ -253,7 +253,7 @@ static void charm_model_ns_turb_sa_grad_surface_int_iter_inner(p4est_iter_face_i
         for (i = 0; i < 2; i++) {
             charm_get_fields(udata[i], x, &(cons[i]));
             charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
-            qu    += udata[i]->par.model.ns.turb.model.sa.nu_;
+            qu    += udata[i]->par.model.turb.model.sa.nu_;
             gu[0] += prim[i].u;
             gu[1] += prim[i].v;
             gu[2] += prim[i].w;
@@ -266,10 +266,10 @@ static void charm_model_ns_turb_sa_grad_surface_int_iter_inner(p4est_iter_face_i
         for (i = 0; i < 2; i++) {
             if (!side[i]->is.full.is_ghost) {
                 for (k = 0; k < CHARM_DIM; k++) {
-                    udata[i]->par.model.ns.turb.model.sa.grad_nu_[i] += qu * (i ? -1. : 1.) * s * n[i];
-                    udata[i]->par.model.ns.turb.model.sa.grad_u[0][i] += gu[0] * (i ? -1. : 1.) * s * n[i];
-                    udata[i]->par.model.ns.turb.model.sa.grad_u[1][i] += gu[1] * (i ? -1. : 1.) * s * n[i];
-                    udata[i]->par.model.ns.turb.model.sa.grad_u[2][i] += gu[2] * (i ? -1. : 1.) * s * n[i];
+                    udata[i]->par.model.turb.model.sa.grad_nu_[i] += qu * (i ? -1. : 1.) * s * n[i];
+                    udata[i]->par.model.turb.model.sa.grad_u[0][i] += gu[0] * (i ? -1. : 1.) * s * n[i];
+                    udata[i]->par.model.turb.model.sa.grad_u[1][i] += gu[1] * (i ? -1. : 1.) * s * n[i];
+                    udata[i]->par.model.turb.model.sa.grad_u[2][i] += gu[2] * (i ? -1. : 1.) * s * n[i];
                 }
             }
         }

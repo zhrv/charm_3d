@@ -57,7 +57,7 @@ void charm_model_ns_jfnk_geom_calc(p4est_t *p4est)
 {
     sc_array_t *fc;
     charm_ctx_t *ctx = charm_get_ctx(p4est);
-    if (ctx->model.ns.turb.model_type == TURB_MODEL_UNKNOWN) return;
+    if (ctx->model.turb.model_type == TURB_MODEL_UNKNOWN) return;
 
     fc = sc_array_new(3*sizeof(charm_real_t));
     p4est_iterate (p4est,
