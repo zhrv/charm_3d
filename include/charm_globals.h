@@ -190,6 +190,7 @@ typedef struct charm_param
             charm_fields_t c_Jtmp1;
             charm_fields_t c_Jtmp2;
             charm_fields_t c_Jtmp3;
+            charm_fields_t c_stash;
         } ns_jfnk;
         struct {
             charm_real_t mu_t;
@@ -384,9 +385,10 @@ typedef struct charm_ctx
             int                         use_diff;
             charm_real_t                t_ref;
             struct {
-                charm_real_t relax;
-                charm_real_t rtol;
-                charm_int_t max_step;
+                charm_real_t            relax;
+                charm_real_t            rtol;
+                charm_int_t             max_step;
+                charm_real_t            j_eps;
             } newton; 
         } ns_jfnk;
         struct {

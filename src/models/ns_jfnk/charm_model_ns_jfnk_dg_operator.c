@@ -12,12 +12,49 @@ void charm_model_ns_jfnk_dg_operator_conv(p4est_t * p4est, p4est_ghost_t * ghost
 void charm_model_ns_jfnk_dg_operator_diff(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 
 
-static void charm_model_ns_jfnk_dg_operator_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+static void charm_model_ns_jfnk_dg_operator_stash_push_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
     size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
+
+    charm_fields_copy(data->par.model.ns_jfnk.c_stash, data->par.c, c_count);
+}
+
+
+void charm_model_ns_jfnk_dg_operator_stash_push(p4est_t * p4est)
+{
+    p4est_iterate (p4est, NULL, NULL,
+            charm_model_ns_jfnk_dg_operator_stash_push_quad_iter_fn,         
+            NULL, NULL, NULL);                                      
+}
+
+
+static void charm_model_ns_jfnk_dg_operator_stash_pop_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+{
+    charm_data_t       *data = charm_get_quad_data(info->quad);
+    charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
+    size_t              c_count = ctx->comp->elem_count;
+    int                 i, j;
+
+    charm_fields_copy(data->par.c, data->par.model.ns_jfnk.c_stash, c_count);
+}
+
+
+void charm_model_ns_jfnk_dg_operator_stash_pop(p4est_t * p4est)
+{
+    p4est_iterate (p4est, NULL, NULL,
+            charm_model_ns_jfnk_dg_operator_stash_pop_quad_iter_fn,         
+            NULL, NULL, NULL);                                      
+}
+
+
+static void charm_model_ns_jfnk_dg_operator_zero_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
+{
+    charm_data_t       *data = charm_get_quad_data(info->quad);
+    charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
+    size_t              c_count = ctx->comp->elem_count;
 
     charm_fields_zero(data->integrals, c_count);
 }
@@ -47,7 +84,7 @@ void charm_model_ns_jfnk_dg_operator(p4est_t * p4est, charm_real_t dt, p4est_gho
     // charm_data_t       *ghost_data  = *_ghost_data;
 
     p4est_ghost_exchange_data (p4est, ghost, ghost_data);           
-    p4est_iterate (p4est, ghost, (void *) ghost_data,               
+    p4est_iterate (p4est, NULL, NULL,               
             charm_model_ns_jfnk_dg_operator_zero_quad_iter_fn,         
             NULL, NULL, NULL);                                      
     charm_model_ns_jfnk_dg_operator_diff(p4est, ghost, ghost_data);    
