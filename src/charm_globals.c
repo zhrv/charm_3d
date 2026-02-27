@@ -494,6 +494,17 @@ void charm_vect_sub(charm_vect_t a, charm_vect_t b)
 }
 
 
+charm_real_t charm_vect_dot(charm_vect_t a, charm_vect_t b)
+{
+    int i;
+    charm_real_t res = 0.;
+    for (i = 0; i < CHARM_BASE_FN_COUNT; i++) {
+        res += a[i] * b[i];
+    }
+    return res;
+}
+
+
 void charm_vect_mult(charm_vect_t a, charm_real_t b)
 {
     int i;
@@ -625,18 +636,24 @@ void charm_matr_fields_mult(charm_matr_t a, charm_fields_t b, charm_fields_t res
 }
 
 
-charm_real_t charm_fields_get_norm2(charm_fields_t f, size_t c_count)
+charm_real_t charm_fields_dot(charm_fields_t a, charm_fields_t b, size_t c_count)
 {
     size_t j;
-    charm_real_t norm2 = 0.;
-    norm2 += charm_vect_get_norm2(f.ru);
-    norm2 += charm_vect_get_norm2(f.rv);
-    norm2 += charm_vect_get_norm2(f.rw);
-    norm2 += charm_vect_get_norm2(f.re);
+    charm_real_t res = 0.;
+    res += charm_vect_dot(a.ru, b.ru);
+    res += charm_vect_dot(a.rv, b.rv);
+    res += charm_vect_dot(a.rw, b.rw);
+    res += charm_vect_dot(a.re, b.re);
     for (j = 0; j < c_count; j++) {
-        norm2 += charm_vect_get_norm2(f.rc[j]);
+        res += charm_vect_dot(a.rc[j], b.rc[j]);
     }
-    return norm2;
+    return res;
+}
+
+
+charm_real_t charm_fields_get_norm2(charm_fields_t f, size_t c_count)
+{
+    return charm_fields_dot(f, f, c_count);
 }
 
 

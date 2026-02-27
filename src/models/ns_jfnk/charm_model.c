@@ -12,7 +12,7 @@ void charm_model_ns_jfnk_timestep_conv(p4est_t * p4est, p4est_ghost_t * ghost, c
 void charm_model_ns_jfnk_timestep_diff(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 void charm_model_ns_jfnk_geom_calc(p4est_t *p4est);
 
-charm_int_t charm_model_ns_jfnk_newton_step(p4est_t * p4est, charm_real_t fld_old_norm, p4est_ghost_t * ghost, charm_data_t * ghost_data);
+charm_int_t charm_model_ns_jfnk_newton_step(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data);
 
 
 static void charm_model_ns_jfnk_timestep_min_dt_quad_iter_fn (p4est_iter_volume_info_t * info, void *user_data)
@@ -77,7 +77,7 @@ static void _charm_model_ns_jfnk_calc_old_norm2_quad_iter_fn (p4est_iter_volume_
     *err2 += charm_fields_get_norm2(data->par.c_old, c_count);
 }
 
-charm_real_t charm_model_ns_jfnk_calc_old_norm2 (p4est_t * p4est)
+static void charm_model_ns_jfnk_calc_old_norm2 (p4est_t * p4est)
 {
     charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;
     charm_real_t        loc_err2, glob_err2;
@@ -92,7 +92,7 @@ charm_real_t charm_model_ns_jfnk_calc_old_norm2 (p4est_t * p4est)
     mpiret = sc_MPI_Allreduce (&loc_err2, &glob_err2, 1, sc_MPI_DOUBLE, sc_MPI_SUM, p4est->mpicomm);
     SC_CHECK_MPI (mpiret);
 
-    return sqrt(glob_err2);
+    ctx->tmp.ns_jfnk.fld_old_norm = sqrt(glob_err2);
 }
 
 
@@ -132,6 +132,8 @@ void charm_model_ns_jfnk_timestep_single(p4est_t * p4est, charm_real_t *dt, p4es
         *dt = ctx->get_dt_fn(p4est);
     }
 
+    ctx->tmp.ns_jfnk.dt = *dt;
+
     /* repartition */
     if (repartition_period) {
         if (ctx->timestep && !(ctx->timestep % repartition_period)) {
@@ -160,14 +162,16 @@ void charm_model_ns_jfnk_timestep_single(p4est_t * p4est, charm_real_t *dt, p4es
         p4est_ghost_exchange_data (p4est, ghost, ghost_data);
     }
 
-    p4est_iterate (p4est, NULL, NULL, charm_model_ns_jfnk_timestep_copy_to_old_quad_iter_fn, NULL, NULL, NULL);
-    fld_old_norm = charm_model_ns_jfnk_calc_old_norm2 (p4est);
+    p4est_iterate (p4est, NULL, NULL, 
+        charm_model_ns_jfnk_timestep_copy_to_old_quad_iter_fn, 
+        NULL, NULL, NULL);
+    charm_model_ns_jfnk_calc_old_norm2 (p4est);
 
     nm_stop = 0;
     nm_step = 0;
     while (!nm_stop  && nm_step < ctx->model.ns_jfnk.newton.max_step) { // итерации метода Ньютона
         
-        nm_stop = charm_model_ns_jfnk_newton_step(p4est, fld_old_norm, ghost, ghost_data);
+        nm_stop = charm_model_ns_jfnk_newton_step(p4est, ghost, ghost_data);
         nm_step++;
     }
 

@@ -184,12 +184,13 @@ typedef struct charm_param
             charm_fields_t c_result;
             charm_fields_t c_rhs;
             charm_fields_t c_delta;
+            charm_fields_t c_delta_old;
             charm_fields_t c_residual;
-            charm_fields_t c_Ju;
-            charm_fields_t c_Jr;
-            charm_fields_t c_Jtmp1;
-            charm_fields_t c_Jtmp2;
-            charm_fields_t c_Jtmp3;
+            charm_fields_t c_ju;
+            charm_fields_t c_jr;
+            charm_fields_t c_jtmp1;
+            charm_fields_t c_jtmp2;
+            charm_fields_t c_jtmp3;
             charm_fields_t c_stash;
         } ns_jfnk;
         struct {
@@ -389,6 +390,8 @@ typedef struct charm_ctx
                 charm_real_t            rtol;
                 charm_int_t             max_step;
                 charm_real_t            j_eps;
+                charm_real_t            solver_rtol;
+                charm_int_t             solver_max_step;
             } newton; 
         } ns_jfnk;
         struct {
@@ -425,6 +428,14 @@ typedef struct charm_ctx
             } param;
         } turb;
     } model;
+
+    union {
+        struct {
+            charm_real_t dt;
+            charm_real_t fld_old_norm;
+            charm_real_t rhs_norm;
+        } ns_jfnk;
+    } tmp;
 //    charm_real_t              visc_m;
 //    charm_real_t              visc_l;
 
@@ -525,6 +536,7 @@ void charm_vect_mult(charm_vect_t a, charm_real_t b);
 void charm_vect_sub(charm_vect_t a, charm_vect_t b);
 void charm_vect_add(charm_vect_t a, charm_vect_t b);
 void charm_vect_axpy(charm_vect_t x, charm_vect_t y, charm_real_t a);
+charm_real_t charm_vect_dot(charm_vect_t a, charm_vect_t b);
 
 
 void charm_matr_zero(charm_matr_t a);
@@ -539,8 +551,10 @@ void charm_fields_zero(charm_fields_t f, size_t c_count);
 void charm_fields_add(charm_fields_t a, charm_fields_t b, size_t c_count);
 void charm_fields_sub(charm_fields_t a, charm_fields_t b, size_t c_count);
 void charm_fields_mult(charm_fields_t a, charm_real_t b, size_t c_count);
+charm_real_t charm_fields_dot(charm_fields_t a, charm_fields_t b, size_t c_count);
 void charm_fields_axpy(charm_fields_t x, charm_fields_t y, charm_real_t a, size_t c_count);
 void charm_matr_fields_mult(charm_matr_t a, charm_fields_t b, charm_fields_t res, size_t c_count);
+charm_real_t charm_fields_get_norm2(charm_fields_t f, size_t c_count);
 charm_real_t charm_fields_get_norm2(charm_fields_t f, size_t c_count);
 
 
@@ -603,6 +617,19 @@ charm_real_t charm_comp_calc_enthalpy(charm_comp_t *comp, charm_real_t t);
 #ifdef __cplusplus
 }
 #endif
+
+#define CONCAT_IMPL(a, b) a ## b
+#define CONCAT(a, b) CONCAT_IMPL(a, b)
+
+#define CHARM_DECL_QUAD_ITER(_NAME_, _BODY_) \
+    static inline void CONCAT(_NAME_, _iter_fn) (p4est_iter_volume_info_t *info, void *user_data) _BODY_ \
+    void _NAME_(p4est_t * p4est) {p4est_iterate(p4est, NULL, NULL, CONCAT(_NAME_, _iter_fn), NULL, NULL, NULL);}
+
+#define CHARM_DECL_QUAD_ITER_STATIC(_NAME_, _BODY_) \
+    static inline void CONCAT(_NAME_, _iter_fn) (p4est_iter_volume_info_t *info, void *user_data) _BODY_ \
+    static inline void _NAME_(p4est_t * p4est) {p4est_iterate(p4est, NULL, NULL, CONCAT(_NAME_, _iter_fn), NULL, NULL, NULL);}
+
+
 
 
 #endif //CHARM_3D_CHARM_GLOBALS_H
