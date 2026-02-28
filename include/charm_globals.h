@@ -15,6 +15,7 @@
 
 typedef double              charm_real_t;
 typedef int                 charm_int_t;
+typedef size_t              charm_size_t;
 typedef unsigned int        charm_uint_t;
 typedef double              charm_vec_t[CHARM_DIM];
 
@@ -188,7 +189,7 @@ typedef struct charm_param
             charm_fields_t c_residual;
             charm_fields_t c_ju;
             charm_fields_t c_jr;
-            charm_fields_t c_jtmp1;
+            charm_fields_t c_dg_res;
             charm_fields_t c_jtmp2;
             charm_fields_t c_jtmp3;
             charm_fields_t c_stash;
@@ -365,10 +366,10 @@ typedef struct charm_ctx
     int                 log_period;         /**< the number of time steps between writing log */
     int                 min_level;          /**< the minimal level */
     int                 max_level;          /**< the allowed level */
-    charm_real_t              CFL;                /**< the CFL */
-    charm_real_t              dt;
-    charm_real_t              t;                  /**< the current time */
-    charm_real_t              time;               /**< the max time */
+    charm_real_t        CFL;                /**< the CFL */
+    charm_real_t        dt;
+    charm_real_t        t;                  /**< the current time */
+    charm_real_t        time;               /**< the max time */
     int                 timestep;
 
     union {
@@ -487,19 +488,19 @@ charm_real_t charm_quad_get_volume(charm_data_t *d);
 
 charm_comp_t *charm_get_comp(p4est_t *p4est, int i);
 
-size_t charm_get_comp_count(p4est_t *p4est);
+charm_size_t charm_get_comp_count(p4est_t *p4est);
 
 charm_reaction_t *charm_get_reaction(p4est_t *p4est, int i);
 
-size_t charm_get_reactions_count(p4est_t *p4est);
+charm_size_t charm_get_reactions_count(p4est_t *p4est);
 
 charm_comp_t *charm_comp_find_by_id(charm_ctx_t *ctx, int id);
 
-int charm_comp_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index);
+int charm_comp_index_find_by_id(charm_ctx_t *ctx, int id, charm_size_t *index);
 
 charm_mat_t *charm_mat_find_by_id(charm_ctx_t *ctx, int id);
 
-int charm_mat_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index);
+int charm_mat_index_find_by_id(charm_ctx_t *ctx, int id, charm_size_t *index);
 
 charm_reg_t *charm_reg_find_by_id(charm_ctx_t *ctx, int id);
 
@@ -546,16 +547,16 @@ void charm_vect_zero(charm_vect_t a);
 charm_real_t charm_vect_get_norm2(charm_vect_t f);
 
 
-void charm_fields_copy(charm_fields_t dest, charm_fields_t src, size_t c_count);
-void charm_fields_zero(charm_fields_t f, size_t c_count);
-void charm_fields_add(charm_fields_t a, charm_fields_t b, size_t c_count);
-void charm_fields_sub(charm_fields_t a, charm_fields_t b, size_t c_count);
-void charm_fields_mult(charm_fields_t a, charm_real_t b, size_t c_count);
-charm_real_t charm_fields_dot(charm_fields_t a, charm_fields_t b, size_t c_count);
-void charm_fields_axpy(charm_fields_t x, charm_fields_t y, charm_real_t a, size_t c_count);
-void charm_matr_fields_mult(charm_matr_t a, charm_fields_t b, charm_fields_t res, size_t c_count);
-charm_real_t charm_fields_get_norm2(charm_fields_t f, size_t c_count);
-charm_real_t charm_fields_get_norm2(charm_fields_t f, size_t c_count);
+void charm_fields_copy(charm_fields_t dest, charm_fields_t src, charm_size_t c_count);
+void charm_fields_zero(charm_fields_t f, charm_size_t c_count);
+void charm_fields_add(charm_fields_t a, charm_fields_t b, charm_size_t c_count);
+void charm_fields_sub(charm_fields_t a, charm_fields_t b, charm_size_t c_count);
+void charm_fields_mult(charm_fields_t a, charm_real_t b, charm_size_t c_count);
+charm_real_t charm_fields_dot(charm_fields_t a, charm_fields_t b, charm_size_t c_count);
+void charm_fields_axpy(charm_fields_t x, charm_fields_t y, charm_real_t a, charm_size_t c_count);
+void charm_matr_fields_mult(charm_matr_t a, charm_fields_t b, charm_fields_t res, charm_size_t c_count);
+charm_real_t charm_fields_get_norm2(charm_fields_t f, charm_size_t c_count);
+charm_real_t charm_fields_get_norm2(charm_fields_t f, charm_size_t c_count);
 
 
 charm_ctx_t *charm_get_ctx(p4est_t *p4est);
@@ -621,16 +622,60 @@ charm_real_t charm_comp_calc_enthalpy(charm_comp_t *comp, charm_real_t t);
 #define CONCAT_IMPL(a, b) a ## b
 #define CONCAT(a, b) CONCAT_IMPL(a, b)
 
+
 #define CHARM_DECL_QUAD_ITER(_NAME_, _BODY_) \
-    static inline void CONCAT(_NAME_, _iter_fn) (p4est_iter_volume_info_t *info, void *user_data) _BODY_ \
-    void _NAME_(p4est_t * p4est) {p4est_iterate(p4est, NULL, NULL, CONCAT(_NAME_, _iter_fn), NULL, NULL, NULL);}
+    static inline void CONCAT(_NAME_, _quad_iter_fn) (p4est_iter_volume_info_t *info, void *user_data) _BODY_ \
+    void _NAME_(p4est_t * p4est) {p4est_iterate(p4est, NULL, NULL, CONCAT(_NAME_, _quad_iter_fn), NULL, NULL, NULL);}
+
 
 #define CHARM_DECL_QUAD_ITER_STATIC(_NAME_, _BODY_) \
-    static inline void CONCAT(_NAME_, _iter_fn) (p4est_iter_volume_info_t *info, void *user_data) _BODY_ \
-    static inline void _NAME_(p4est_t * p4est) {p4est_iterate(p4est, NULL, NULL, CONCAT(_NAME_, _iter_fn), NULL, NULL, NULL);}
+    static inline void CONCAT(_NAME_, _quad_iter_fn) (p4est_iter_volume_info_t *info, void *user_data) _BODY_ \
+    static inline void _NAME_(p4est_t * p4est) {p4est_iterate(p4est, NULL, NULL, CONCAT(_NAME_, _quad_iter_fn), NULL, NULL, NULL);}
+
+
+#define CHARM_DECL_FIELDS_DOT_FUNC(_NAME_, _FLD1_, _FLD2_) \
+    static inline void CONCAT(_NAME_, _quad_iter_fn) (p4est_iter_volume_info_t * info, void *user_data)\
+    {                                                                                           \
+        charm_real_t   *res = (charm_real_t*) user_data;                                       \
+        charm_data_t   *data = charm_get_quad_data(info->quad);                                 \
+        charm_ctx_t    *ctx = (charm_ctx_t*)info->p4est->user_pointer;                          \
+        charm_size_t          c_count = ctx->comp->elem_count;                                        \
+        *res += charm_fields_dot(_FLD1_, _FLD2_, c_count);              \
+    }                                                                                           \
+    static inline charm_real_t _NAME_ (p4est_t * p4est)                                                \
+    {                                                                                           \
+        charm_ctx_t        *ctx = (charm_ctx_t *) p4est->user_pointer;                          \
+        charm_real_t        loc_res, glob_res;                                                  \
+        int                 mpiret;                                                             \
+                                                                                                \
+        loc_res = 0.0;                                                                          \
+        p4est_iterate (p4est, NULL,                                                             \
+                    (void *) &loc_res,                                                          \
+                    CONCAT(_NAME_, _quad_iter_fn),                                              \
+                    NULL, NULL, NULL);                                                          \
+                                                                                                \
+        mpiret = sc_MPI_Allreduce (&loc_res, &glob_res, 1, sc_MPI_DOUBLE, sc_MPI_SUM, p4est->mpicomm);\
+        SC_CHECK_MPI (mpiret);                                                                  \
+                                                                                                \
+        return glob_res;                                                                        \
+    }
+
+
+#define CHARM_DECL_FIELDS_AXPY_FUNC(_NAME_, _FLD_X_, _FLD_Y_) \
+    static void CONCAT(_NAME_, _quad_iter_fn)(p4est_iter_volume_info_t * info, void *user_data) \
+    {                                                                                           \
+        charm_data_t       *data = charm_get_quad_data(info->quad);                             \
+        charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;                      \
+        charm_size_t              c_count = ctx->comp->elem_count;                                    \
+        charm_real_t       *a = (charm_real_t*)user_data;                                       \
+        charm_fields_axpy(_FLD_X_, _FLD_Y_, *a, c_count);                                       \
+    }                                                                                           \
+    static inline void _NAME_(p4est_t * p4est, charm_real_t a)                                  \
+    {                                                                                           \
+        p4est_iterate(p4est, NULL, (void*)&a, CONCAT(_NAME_, _quad_iter_fn), NULL, NULL, NULL); \
+    }
 
 
 
 
 #endif //CHARM_3D_CHARM_GLOBALS_H
-

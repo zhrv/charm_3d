@@ -14,7 +14,7 @@ void charm_model_ns_jfnk_init_initial_condition (p4est_t * p4est, p4est_topidx_t
     charm_tree_attr_t  *attr;
     charm_reg_t        *reg;
     int                 i;
-    size_t              c_count = charm_get_comp_count(p4est);
+    charm_size_t              c_count = charm_get_comp_count(p4est);
     charm_mat_t        *mat;
 
     charm_geom_quad_calc(p4est, q, which_tree);

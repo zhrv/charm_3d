@@ -22,7 +22,7 @@ static void charm_init_fetch_bnd(charm_ctx_t *ctx, const YAML::Node &node, charm
 {
     YAML::Node n2, n3;
     charm_int_t i, id;
-    size_t idx;
+    charm_size_t idx;
     charm_real_t c;
     charm_int_t c_count = ctx->comp->elem_count;
     strcpy(bnd->name, node["name"].as<std::string>().c_str());
@@ -309,7 +309,7 @@ static void charm_init_fetch_reg(charm_ctx_t *ctx, const YAML::Node &node, charm
 {
     YAML::Node n1;
     int id, i;
-    size_t idx;
+    charm_size_t idx;
     charm_real_t c;
 
     std::string str;
@@ -406,7 +406,7 @@ bool charm_init_yaml_check_version(std::string v)
     std::vector<int> ver, cver;
     std::string delimiter = ".";
 
-    size_t pos = 0;
+    charm_size_t pos = 0;
     std::string token;
     while ((pos = v.find(delimiter)) != std::string::npos) {
         token = v.substr(0, pos);

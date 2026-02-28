@@ -29,7 +29,7 @@ static void charm_model_ns_diff_grad_volume_int_iter_fn (p4est_iter_volume_info_
     charm_real_t             *x;
     charm_real_t              lambda, mu, kt, lp, lm, h;
     int                 i;
-    size_t              c_count = charm_get_comp_count(info->p4est);
+    charm_size_t              c_count = charm_get_comp_count(info->p4est);
     charm_comp_t       *comp;
 
     for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
@@ -89,7 +89,7 @@ static void charm_model_ns_diff_grad_surface_int_iter_bnd (p4est_iter_face_info_
     charm_real_t bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
-    size_t              c_count = charm_get_comp_count(info->p4est);
+    charm_size_t              c_count = charm_get_comp_count(info->p4est);
 
 
     int8_t face;
@@ -212,7 +212,7 @@ static void charm_model_ns_diff_grad_surface_int_iter_inner (p4est_iter_face_inf
     charm_real_t                  l[3];
     int8_t                  face[2];
     charm_real_t                  lambda[2], mu[2], flambda, fmu, lp, lm, kt, dm;
-    size_t                  c_count = charm_get_comp_count(p4est);
+    charm_size_t                  c_count = charm_get_comp_count(p4est);
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     side[1] = p4est_iter_fside_array_index_int(sides, 1);

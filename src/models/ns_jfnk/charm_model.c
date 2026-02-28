@@ -62,7 +62,7 @@ static void charm_model_ns_jfnk_timestep_copy_to_old_quad_iter_fn(p4est_iter_vol
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
-    size_t              c_count = ctx->comp->elem_count;
+    charm_size_t              c_count = ctx->comp->elem_count;
 
     charm_fields_copy(data->par.c_old, data->par.c, c_count);
 }
@@ -73,7 +73,7 @@ static void _charm_model_ns_jfnk_calc_old_norm2_quad_iter_fn (p4est_iter_volume_
     charm_real_t   *err2 = (charm_real_t*) user_data;
     charm_data_t   *data = charm_get_quad_data(info->quad);
     charm_ctx_t    *ctx = (charm_ctx_t*)info->p4est->user_pointer;
-    size_t          c_count = ctx->comp->elem_count;
+    charm_size_t          c_count = ctx->comp->elem_count;
     *err2 += charm_fields_get_norm2(data->par.c_old, c_count);
 }
 

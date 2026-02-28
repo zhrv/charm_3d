@@ -11,7 +11,7 @@
 static void _charm_limiter_bj_init_iter_fn(p4est_iter_volume_info_t * info, void *user_data)
 {
     charm_data_t *p = charm_get_quad_data(info->quad);
-    size_t c_count = charm_get_comp_count(info->p4est);
+    charm_size_t c_count = charm_get_comp_count(info->p4est);
     charm_cons_t cons;
     int j;
 
@@ -33,7 +33,7 @@ static void _charm_limiter_bj_neigh_iter_bnd(p4est_iter_face_info_t * info, void
     p4est_t *p4est = info->p4est;
     charm_data_t *ghost_data = (charm_data_t *) user_data;
     charm_data_t *udata;
-    size_t c_count = charm_get_comp_count(info->p4est);
+    charm_size_t c_count = charm_get_comp_count(info->p4est);
     charm_real_t n[3];
     charm_real_t qr, qu, qv, qw, qe;
     charm_real_t bfv;
@@ -104,7 +104,7 @@ static void _charm_limiter_bj_neigh_iter_inner(p4est_iter_face_info_t * info, vo
     charm_real_t                  c[3];
     int8_t                  face[2];
     charm_real_t                  vol, svol;
-    size_t                  c_count = charm_get_comp_count(info->p4est);
+    charm_size_t                  c_count = charm_get_comp_count(info->p4est);
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);
     side[1] = p4est_iter_fside_array_index_int(sides, 1);
@@ -246,8 +246,8 @@ static void _charm_limiter_bj_calc_iter_fn(p4est_iter_volume_info_t * info, void
     int i,j;
     charm_vec_t v[8];
     charm_cons_t cons;
-    size_t                  c_count = charm_get_comp_count(info->p4est);
-    size_t                  f_count = c_count+4;
+    charm_size_t                  c_count = charm_get_comp_count(info->p4est);
+    charm_size_t                  f_count = c_count+4;
     CHARM_ASSERT(p->par.l.count == 7);
 
     u_min = CHARM_ALLOC(charm_real_t, f_count);

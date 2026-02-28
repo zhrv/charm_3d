@@ -198,7 +198,7 @@ charm_real_t charm_base_func_dz(charm_real_t* x, int k, charm_data_t *p) {
 void charm_get_fields(charm_data_t* p, charm_real_t* x, charm_cons_t* c){
     p4est_t *p4est = charm_get_p4est();
     int i, k;
-    size_t c_count = charm_get_comp_count(p4est);; // @todo fix by real components count
+    charm_size_t c_count = charm_get_comp_count(p4est);; // @todo fix by real components count
     charm_real_t fnx;
 //    c->ro = charm_get_field_ro(p, x);
     c->ru = 0.;
@@ -226,7 +226,7 @@ void charm_get_fields_avg(charm_data_t* p, charm_cons_t* c)
 {
     p4est_t *p4est = charm_get_p4est();
     int k, igp;
-    size_t c_count = charm_get_comp_count(p4est);; // @todo fix by real components count
+    charm_size_t c_count = charm_get_comp_count(p4est);; // @todo fix by real components count
     charm_real_t *gx, gjw;
     charm_cons_t _c;
     c->ru = 0.;

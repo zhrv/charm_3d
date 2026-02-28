@@ -28,8 +28,8 @@ static void charm_model_ns_jfnk_conv_volume_int_iter_fn (p4est_iter_volume_info_
     charm_real_t              hu, hv, hw, he, *hc;
     charm_real_t              phi_x, phi_y, phi_z, phi;
     charm_real_t             *x;
-    size_t              c_count = charm_get_comp_count(info->p4est);
-    size_t              cj;
+    charm_size_t              c_count = charm_get_comp_count(info->p4est);
+    charm_size_t              cj;
 
     fc = CHARM_ALLOC(charm_real_t, c_count);
     gc = CHARM_ALLOC(charm_real_t, c_count);
@@ -100,7 +100,7 @@ static void charm_model_ns_jfnk_conv_surface_int_iter_bnd (p4est_iter_face_info_
     charm_real_t bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
-    size_t              c_count = charm_get_comp_count(info->p4est);
+    charm_size_t              c_count = charm_get_comp_count(info->p4est);
 
 
     int8_t face;
@@ -185,7 +185,7 @@ static void charm_model_ns_jfnk_conv_surface_int_iter_inner (p4est_iter_face_inf
     charm_real_t                  c[2][3];
     charm_real_t                  l[3];
     int8_t                  face[2];
-    size_t                  c_count = charm_get_comp_count(info->p4est);
+    charm_size_t                  c_count = charm_get_comp_count(info->p4est);
 
 
     qc = CHARM_ALLOC(charm_real_t, c_count);

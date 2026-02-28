@@ -30,7 +30,7 @@ static void charm_model_ns_turb_sst_surface_int_iter_bnd(p4est_iter_face_info_t 
     charm_real_t bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
-    size_t              c_count = charm_get_comp_count(info->p4est);
+    charm_size_t              c_count = charm_get_comp_count(info->p4est);
 
 
     int8_t face;
@@ -116,7 +116,7 @@ static void charm_model_ns_turb_sst_surface_int_iter_inner(p4est_iter_face_info_
     charm_real_t                  c[2][3];
     charm_real_t                  l[3];
     int8_t                  face[2];
-    size_t                  c_count = charm_get_comp_count(info->p4est);
+    charm_size_t                  c_count = charm_get_comp_count(info->p4est);
 
 
     qc = CHARM_ALLOC(charm_real_t, c_count);

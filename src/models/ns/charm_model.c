@@ -63,7 +63,7 @@ static void charm_model_ns_timestep_update_quad_iter_fn (p4est_iter_volume_info_
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
-    size_t              c_count = ctx->comp->elem_count;
+    charm_size_t              c_count = ctx->comp->elem_count;
     charm_real_t        dt = *((charm_real_t *) user_data);
     charm_fields_t      rhs;
     int                 i, j;
@@ -78,7 +78,7 @@ static void charm_model_ns_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t 
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
-    size_t              c_count = ctx->comp->elem_count;
+    charm_size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
     charm_fields_zero(data->integrals, c_count);
@@ -89,7 +89,7 @@ static void charm_model_ns_timestep_rk_0(p4est_iter_volume_info_t * info, void *
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
-    size_t              c_count = ctx->comp->elem_count;
+    charm_size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
     charm_fields_copy(data->par.c_old, data->par.c, c_count);
@@ -100,7 +100,7 @@ static void charm_model_ns_timestep_rk_1(p4est_iter_volume_info_t * info, void *
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
-    size_t              c_count = ctx->comp->elem_count;
+    charm_size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
     charm_fields_mult(data->par.c, 0.25, c_count);
@@ -112,7 +112,7 @@ static void charm_model_ns_timestep_rk_2(p4est_iter_volume_info_t * info, void *
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
-    size_t              c_count = ctx->comp->elem_count;
+    charm_size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
     charm_fields_mult(data->par.c, 2./3., c_count);

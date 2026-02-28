@@ -97,7 +97,7 @@ charm_real_t charm_quad_get_volume(charm_data_t *d)
 
 charm_mat_t * charm_mat_find_by_id(charm_ctx_t *ctx, int id)
 {
-    size_t i;
+    charm_size_t i;
     sc_array_t *arr = ctx->mat;
     charm_mat_t * mat;
 
@@ -112,9 +112,9 @@ charm_mat_t * charm_mat_find_by_id(charm_ctx_t *ctx, int id)
     return NULL;
 }
 
-int charm_mat_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index)
+int charm_mat_index_find_by_id(charm_ctx_t *ctx, int id, charm_size_t *index)
 {
-    size_t i;
+    charm_size_t i;
     sc_array_t *arr = ctx->mat;
     charm_mat_t * mat;
 
@@ -132,7 +132,7 @@ int charm_mat_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index)
 
 charm_comp_t * charm_comp_find_by_id(charm_ctx_t *ctx, int id)
 {
-    size_t i;
+    charm_size_t i;
     sc_array_t *arr = ctx->comp;
     charm_comp_t * comp;
 
@@ -147,9 +147,9 @@ charm_comp_t * charm_comp_find_by_id(charm_ctx_t *ctx, int id)
     return NULL;
 }
 
-int charm_comp_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index)
+int charm_comp_index_find_by_id(charm_ctx_t *ctx, int id, charm_size_t *index)
 {
-    size_t i;
+    charm_size_t i;
     sc_array_t *arr = ctx->comp;
     charm_comp_t * comp;
 
@@ -167,7 +167,7 @@ int charm_comp_index_find_by_id(charm_ctx_t *ctx, int id, size_t *index)
 
 charm_reg_t * charm_reg_find_by_id(charm_ctx_t *ctx, int id)
 {
-  size_t i;
+  charm_size_t i;
   sc_array_t *arr = ctx->reg;
   charm_reg_t * reg;
 
@@ -210,9 +210,9 @@ charm_tree_attr_t * charm_get_tree_attr(p4est_t * p4est, p4est_topidx_t which_tr
 void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * c)
 {
     charm_ctx_t * ctx       = charm_get_ctx(p4est);
-    size_t        c_count   = ctx->comp->elem_count;
+    charm_size_t        c_count   = ctx->comp->elem_count;
     charm_mat_t * mat       = charm_mat_find_by_id(ctx, c->mat_id);
-    size_t i;
+    charm_size_t i;
 
     p->mat_id = c->mat_id;
     p->r      = 0.;
@@ -237,8 +237,8 @@ void charm_param_cons_to_prim(p4est_t * p4est, charm_prim_t * p, charm_cons_t * 
 
 void charm_param_prim_to_cons(p4est_t * p4est, charm_cons_t * c, charm_prim_t * p)
 {
-    size_t c_count = charm_get_comp_count(p4est);
-    size_t i;
+    charm_size_t c_count = charm_get_comp_count(p4est);
+    charm_size_t i;
     c->mat_id = p->mat_id;
     c->ru = p->r * p->u;
     c->rv = p->r * p->v;
@@ -544,9 +544,9 @@ charm_real_t charm_vect_get_norm2(charm_vect_t a)
 }
 
 
-void charm_fields_copy(charm_fields_t dest, charm_fields_t src, size_t c_count)
+void charm_fields_copy(charm_fields_t dest, charm_fields_t src, charm_size_t c_count)
 {
-    size_t j;
+    charm_size_t j;
     charm_vect_copy(dest.ru, src.ru);
     charm_vect_copy(dest.rv, src.rv);
     charm_vect_copy(dest.rw, src.rw);
@@ -557,9 +557,9 @@ void charm_fields_copy(charm_fields_t dest, charm_fields_t src, size_t c_count)
 }
 
 
-void charm_fields_zero(charm_fields_t f, size_t c_count)
+void charm_fields_zero(charm_fields_t f, charm_size_t c_count)
 {
-    size_t j;
+    charm_size_t j;
     charm_vect_zero(f.ru);
     charm_vect_zero(f.rv);
     charm_vect_zero(f.rw);
@@ -570,9 +570,9 @@ void charm_fields_zero(charm_fields_t f, size_t c_count)
 }
 
 
-void charm_fields_add(charm_fields_t a, charm_fields_t b, size_t c_count)
+void charm_fields_add(charm_fields_t a, charm_fields_t b, charm_size_t c_count)
 {
-    size_t j;
+    charm_size_t j;
     charm_vect_add(a.ru, b.ru);
     charm_vect_add(a.rv, b.rv);
     charm_vect_add(a.rw, b.rw);
@@ -583,9 +583,9 @@ void charm_fields_add(charm_fields_t a, charm_fields_t b, size_t c_count)
 }
 
 
-void charm_fields_sub(charm_fields_t a, charm_fields_t b, size_t c_count)
+void charm_fields_sub(charm_fields_t a, charm_fields_t b, charm_size_t c_count)
 {
-    size_t j;
+    charm_size_t j;
     charm_vect_sub(a.ru, b.ru);
     charm_vect_sub(a.rv, b.rv);
     charm_vect_sub(a.rw, b.rw);
@@ -596,9 +596,9 @@ void charm_fields_sub(charm_fields_t a, charm_fields_t b, size_t c_count)
 }
 
 
-void charm_fields_mult(charm_fields_t a, charm_real_t b, size_t c_count)
+void charm_fields_mult(charm_fields_t a, charm_real_t b, charm_size_t c_count)
 {
-    size_t j;
+    charm_size_t j;
     charm_vect_mult(a.ru, b);
     charm_vect_mult(a.rv, b);
     charm_vect_mult(a.rw, b);
@@ -609,9 +609,9 @@ void charm_fields_mult(charm_fields_t a, charm_real_t b, size_t c_count)
 }
 
 
-void charm_fields_axpy(charm_fields_t x, charm_fields_t y, charm_real_t a, size_t c_count)
+void charm_fields_axpy(charm_fields_t x, charm_fields_t y, charm_real_t a, charm_size_t c_count)
 {
-    size_t j;
+    charm_size_t j;
     charm_vect_axpy(x.ru, y.ru, a);
     charm_vect_axpy(x.rv, y.rv, a);
     charm_vect_axpy(x.rw, y.rw, a);
@@ -622,9 +622,9 @@ void charm_fields_axpy(charm_fields_t x, charm_fields_t y, charm_real_t a, size_
 }
 
 
-void charm_matr_fields_mult(charm_matr_t a, charm_fields_t b, charm_fields_t res, size_t c_count)
+void charm_matr_fields_mult(charm_matr_t a, charm_fields_t b, charm_fields_t res, charm_size_t c_count)
 {
-    size_t j;
+    charm_size_t j;
     charm_matr_vect_mult(a, b.ru, res.ru);
     charm_matr_vect_mult(a, b.rv, res.rv);
     charm_matr_vect_mult(a, b.rw, res.rw);
@@ -636,9 +636,9 @@ void charm_matr_fields_mult(charm_matr_t a, charm_fields_t b, charm_fields_t res
 }
 
 
-charm_real_t charm_fields_dot(charm_fields_t a, charm_fields_t b, size_t c_count)
+charm_real_t charm_fields_dot(charm_fields_t a, charm_fields_t b, charm_size_t c_count)
 {
-    size_t j;
+    charm_size_t j;
     charm_real_t res = 0.;
     res += charm_vect_dot(a.ru, b.ru);
     res += charm_vect_dot(a.rv, b.rv);
@@ -651,7 +651,7 @@ charm_real_t charm_fields_dot(charm_fields_t a, charm_fields_t b, size_t c_count
 }
 
 
-charm_real_t charm_fields_get_norm2(charm_fields_t f, size_t c_count)
+charm_real_t charm_fields_get_norm2(charm_fields_t f, charm_size_t c_count)
 {
     return charm_fields_dot(f, f, c_count);
 }
@@ -691,7 +691,7 @@ charm_comp_t * charm_get_comp(p4est_t * p4est, int i)
 }
 
 
-size_t charm_get_comp_count(p4est_t* p4est)
+charm_size_t charm_get_comp_count(p4est_t* p4est)
 {
     charm_ctx_t * ctx       = charm_get_ctx(p4est);
     return ctx->comp->elem_count;
@@ -706,7 +706,7 @@ charm_reaction_t * charm_get_reaction(p4est_t * p4est, int i)
 }
 
 
-size_t charm_get_reactions_count(p4est_t* p4est)
+charm_size_t charm_get_reactions_count(p4est_t* p4est)
 {
     charm_ctx_t * ctx       = charm_get_ctx(p4est);
     return ctx->reactions == NULL ? 0 : ctx->reactions->elem_count;
@@ -716,7 +716,7 @@ size_t charm_get_reactions_count(p4est_t* p4est)
 charm_real_t charm_get_heat_k(p4est_t* p4est, charm_real_t *x, charm_data_t* data)
 {
     charm_ctx_t *ctx = charm_get_ctx(p4est);
-    size_t c_count = charm_get_comp_count(p4est);
+    charm_size_t c_count = charm_get_comp_count(p4est);
     charm_comp_t *comp;
     charm_cons_t cons;
     charm_prim_t prim;

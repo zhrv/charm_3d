@@ -22,7 +22,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
     int                 j;
     charm_cons_t        cons;
     charm_prim_t        prim;
-    size_t              c_count = charm_get_comp_count(p4est);
+    charm_size_t              c_count = charm_get_comp_count(p4est);
 
     tree = p4est_tree_array_index (p4est->trees, which_tree);
     local_id += tree->quadrants_offset;   /* now the id is relative to the MPI process */
@@ -44,7 +44,7 @@ static void charm_interpolate_cell_solution (p4est_iter_volume_info_t * info, vo
         this_u[8+j] = prim.c[j];
     }
     for (j = 0; j < 8 + c_count; j++) {
-        this_u_ptr = (charm_real_t *) sc_array_index (u_interp[j], (size_t)local_id);
+        this_u_ptr = (charm_real_t *) sc_array_index (u_interp[j], (charm_size_t)local_id);
         this_u_ptr[0] = this_u[j];
     }
     CHARM_FREE(this_u);
@@ -57,7 +57,7 @@ void charm_write_solution (p4est_t * p4est)
 {
     char                filename[BUFSIZ] = { '\0' };
     sc_array_t        **u_interp;
-    size_t              numquads;
+    charm_size_t              numquads;
     int                 i, timestep;
     int                 num_cell_scalars;
     int                 num_cell_vectors;
@@ -69,7 +69,7 @@ void charm_write_solution (p4est_t * p4est)
     timestep = ctx->timestep;
     snprintf (filename, 33, CHARM_STRING "_%08d", timestep);
 
-    numquads = (size_t)p4est->local_num_quadrants;
+    numquads = (charm_size_t)p4est->local_num_quadrants;
 
     num_cell_vectors = 0;
     num_cell_scalars = 8 + (int)ctx->comp->elem_count;

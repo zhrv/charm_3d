@@ -144,7 +144,7 @@ static void charm_model_ns_turb_sa_surface_int_iter_bnd(p4est_iter_face_info_t *
     charm_real_t  qu;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
-    size_t              c_count = charm_get_comp_count(info->p4est);
+    charm_size_t              c_count = charm_get_comp_count(info->p4est);
 
     charm_bnd_types_t bnd_type;
     int8_t face;

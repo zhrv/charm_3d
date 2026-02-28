@@ -143,7 +143,7 @@ static char        *
 charm_connectivity_getline_upper (FILE * stream)
 {
     char               *line = CHARM_ALLOC (char, 1024), *linep = line;
-    size_t              lenmax = 1024, len = lenmax;
+    charm_size_t              lenmax = 1024, len = lenmax;
     int                 c;
 
     if (line == NULL)
@@ -188,7 +188,7 @@ charm_connectivity_getline_upper (FILE * stream)
 
 charm_bnd_t * charm_conn_bnd_find_by_id(charm_ctx_t* ctx, int id)
 {
-    size_t i;
+    charm_size_t i;
     int patch_found = 0;
     charm_patch_t *p;
     charm_bnd_t   *bnd;
@@ -219,7 +219,7 @@ charm_bnd_t * charm_conn_bnd_find_by_id(charm_ctx_t* ctx, int id)
 
 charm_reg_t * charm_conn_reg_find_by_id(charm_ctx_t* ctx, int id)
 {
-    size_t i;
+    charm_size_t i;
     int patch_found = 0;
     charm_patch_t *p;
     charm_reg_t   *reg;

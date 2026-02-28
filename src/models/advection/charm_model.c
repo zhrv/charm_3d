@@ -39,7 +39,7 @@ static void _charm_adv_surface_int_iter_bnd (p4est_iter_face_info_t * info, void
     charm_real_t bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
-    size_t              c_count = charm_get_comp_count(info->p4est);
+    charm_size_t              c_count = charm_get_comp_count(info->p4est);
 
 
     int8_t face;
@@ -100,7 +100,7 @@ static void _charm_adv_surface_int_iter_inner (p4est_iter_face_info_t * info, vo
     charm_real_t            l[3];
     charm_real_t            vn;
     int8_t                  face[2];
-    size_t                  c_count = charm_get_comp_count(info->p4est);
+    charm_size_t                  c_count = charm_get_comp_count(info->p4est);
 
 
     side[0] = p4est_iter_fside_array_index_int(sides, 0);

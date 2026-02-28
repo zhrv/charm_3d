@@ -75,8 +75,8 @@ static void _charm_convect_volume_int_iter_fn(p4est_iter_volume_info_t * info, v
     charm_real_t              hu, hv, hw, he, *hc;
     charm_real_t              phi_x, phi_y, phi_z, phi;
     charm_real_t             *x;
-    size_t              c_count = charm_get_comp_count(info->p4est);
-    size_t              cj;
+    charm_size_t              c_count = charm_get_comp_count(info->p4est);
+    charm_size_t              cj;
 
     fc = CHARM_ALLOC(charm_real_t, c_count);
     gc = CHARM_ALLOC(charm_real_t, c_count);
@@ -148,7 +148,7 @@ static void _charm_convect_surface_int_iter_bnd (p4est_iter_face_info_t * info, 
     charm_real_t bfv;
     p4est_iter_face_side_t *side[2];
     sc_array_t *sides = &(info->sides);
-    size_t              c_count = charm_get_comp_count(info->p4est);
+    charm_size_t              c_count = charm_get_comp_count(info->p4est);
 
 
     int8_t face;
@@ -230,7 +230,7 @@ static void _charm_convect_surface_int_iter_inner (p4est_iter_face_info_t * info
     charm_real_t                  c[2][3];
     charm_real_t                  l[3];
     int8_t                  face[2];
-    size_t                  c_count = charm_get_comp_count(info->p4est);
+    charm_size_t                  c_count = charm_get_comp_count(info->p4est);
 
 
     qc = CHARM_ALLOC(charm_real_t, c_count);
@@ -404,7 +404,7 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
-    size_t              c_count = ctx->comp->elem_count;
+    charm_size_t              c_count = ctx->comp->elem_count;
     charm_real_t        dt = *((charm_real_t *) user_data);
     charm_fields_t      rhs;
 
@@ -417,7 +417,7 @@ static void charm_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, v
 {
     charm_data_t       *data = charm_get_quad_data(info->quad);
     charm_ctx_t        *ctx = (charm_ctx_t*)info->p4est->user_pointer;
-    size_t              c_count = ctx->comp->elem_count;
+    charm_size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
     charm_fields_zero(data->integrals, c_count);

@@ -12,7 +12,7 @@ void charm_model_ns_jfnk_dg_operator_diff_integrals(p4est_t * p4est, p4est_ghost
 charm_real_t charm_model_ns_jfnk_get_visc_mu(p4est_t* p4est, charm_real_t *x, charm_data_t* data)
 {
     charm_ctx_t *ctx = charm_get_ctx(p4est);
-    size_t c_count = charm_get_comp_count(p4est);
+    charm_size_t c_count = charm_get_comp_count(p4est);
     charm_comp_t *comp;
     charm_cons_t cons;
     charm_prim_t prim;

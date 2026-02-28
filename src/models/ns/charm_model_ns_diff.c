@@ -13,7 +13,7 @@ void charm_model_ns_timestep_turb(p4est_t * p4est, p4est_ghost_t * ghost, charm_
 charm_real_t charm_model_ns_get_visc_mu(p4est_t* p4est, charm_real_t *x, charm_data_t* data)
 {
     charm_ctx_t *ctx = charm_get_ctx(p4est);
-    size_t c_count = charm_get_comp_count(p4est);
+    charm_size_t c_count = charm_get_comp_count(p4est);
     charm_comp_t *comp;
     charm_cons_t cons;
     charm_prim_t prim;
@@ -66,7 +66,7 @@ static void charm_model_ns_timestep_diffusion_quad_iter_fn(p4est_iter_volume_inf
     charm_prim_t        prim;
     charm_comp_t       *ci, *cj;
     charm_ctx_t        *ctx = charm_get_ctx(info->p4est);
-    size_t              c_count = charm_get_comp_count(info->p4est);
+    charm_size_t              c_count = charm_get_comp_count(info->p4est);
     int                 i, j;
     charm_real_t        s_xd, dij, pabs, td, wd, *x, s;
 
@@ -115,7 +115,7 @@ static void charm_model_ns_timestep_diffusion_quad_iter_fn(p4est_iter_volume_inf
 
 void charm_model_ns_timestep_diffusion(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data)
 {
-    size_t c_count = charm_get_comp_count(p4est);
+    charm_size_t c_count = charm_get_comp_count(p4est);
     if (c_count < 2) return;
     p4est_iterate (p4est, NULL, NULL,
                    charm_model_ns_timestep_diffusion_quad_iter_fn,

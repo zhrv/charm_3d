@@ -43,7 +43,7 @@ static void charm_model_ns_turb_sa_grad_surface_int_iter_bnd(p4est_iter_face_inf
     charm_vec_t                 gu;
     p4est_iter_face_side_t     *side[2];
     sc_array_t                 *sides = &(info->sides);
-    size_t                      c_count = charm_get_comp_count(info->p4est);
+    charm_size_t                      c_count = charm_get_comp_count(info->p4est);
 
 
     int8_t face;

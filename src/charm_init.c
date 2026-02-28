@@ -24,7 +24,7 @@ void charm_init_initial_condition (p4est_t * p4est, p4est_topidx_t which_tree, p
     charm_tree_attr_t  *attr;
     charm_reg_t        *reg;
     int                 i;
-    size_t              c_count = charm_get_comp_count(p4est);
+    charm_size_t              c_count = charm_get_comp_count(p4est);
     charm_mat_t        *mat;
 
     charm_geom_quad_calc(p4est, q, which_tree);
@@ -98,7 +98,7 @@ void _charm_init_initial_condition_taylor_green (p4est_t * p4est, p4est_topidx_t
     charm_tree_attr_t  *attr    = charm_get_tree_attr(p4est, which_tree);
     charm_reg_t        *reg     = attr->reg;
     int                 i;
-    size_t              c_count = charm_get_comp_count(p4est);
+    charm_size_t              c_count = charm_get_comp_count(p4est);
     charm_mat_t        *mat;
     charm_comp_t       *comp    = sc_array_index(ctx->comp, 0);
 

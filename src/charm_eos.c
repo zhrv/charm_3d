@@ -129,7 +129,7 @@ void charm_mat_eos_mix(p4est_t * p4est, charm_prim_t * p, charm_eos_flag_t flag)
 {
     charm_ctx_t *ctx = (charm_ctx_t *) p4est->user_pointer;
     charm_mat_t *mat = charm_mat_find_by_id(ctx, p->mat_id);
-    size_t c_count   = charm_get_comp_count(p4est);
+    charm_size_t c_count   = charm_get_comp_count(p4est);
     int i;
     charm_comp_t *comp = charm_get_comp(p4est, 0);
     charm_real_t t;

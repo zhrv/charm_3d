@@ -15,8 +15,8 @@ static void charm_model_ns_chem_rhs(p4est_t * p4est, charm_data_t *data)
     charm_real_t       R   = charm_eos_get_r();
     charm_cons_t cons;
     charm_prim_t prim;
-    size_t r_count = charm_get_reactions_count(p4est);
-    size_t c_count = charm_get_comp_count(p4est);
+    charm_size_t r_count = charm_get_reactions_count(p4est);
+    charm_size_t c_count = charm_get_comp_count(p4est);
     charm_reaction_t * r;
     int i, j, m, n, ic;
     charm_real_t w;
@@ -62,8 +62,8 @@ static void charm_model_ns_chem_rhs_save(p4est_t * p4est, charm_data_t *data)
     charm_real_t R = charm_eos_get_r();
     charm_cons_t cons;
     charm_prim_t prim;
-    size_t r_count = charm_get_reactions_count(p4est);
-    size_t c_count = charm_get_comp_count(p4est);
+    charm_size_t r_count = charm_get_reactions_count(p4est);
+    charm_size_t c_count = charm_get_comp_count(p4est);
     charm_reaction_t * r;
     charm_comp_t *comp;
     int i, m, n;
@@ -107,7 +107,7 @@ static void charm_model_ns_chem_iter_fn(p4est_iter_volume_info_t * info, void *u
     p4est_t *p4est = info->p4est;
     charm_data_t *data = charm_get_quad_data(info->quad);
     charm_ctx_t *ctx = charm_get_ctx(p4est);
-    size_t c_count = charm_get_comp_count(p4est);
+    charm_size_t c_count = charm_get_comp_count(p4est);
     charm_cons_t cons;
     charm_prim_t prim;
     charm_comp_t *comp;
@@ -168,8 +168,8 @@ void charm_model_ns_timestep_chem(p4est_t * p4est, p4est_ghost_t * ghost, charm_
         return;
     }
 
-    size_t c_count = charm_get_comp_count(p4est);
-    size_t r_count = charm_get_reactions_count(p4est);
+    charm_size_t c_count = charm_get_comp_count(p4est);
+    charm_size_t r_count = charm_get_reactions_count(p4est);
 
     chem_k     = CHARM_ALLOC(charm_real_t, r_count);
     chem_w     = CHARM_ALLOC(charm_real_t, r_count);

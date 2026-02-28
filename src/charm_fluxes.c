@@ -258,7 +258,7 @@ void charm_calc_flux_lf(p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu, 
     charm_real_t   alpha;
     charm_real_t   vn[2], **ff/*[5][2]*/, **uu/*[5][2]*/, fc;
     charm_real_t **q;
-    size_t   f_count;
+    charm_size_t   f_count;
     charm_real_t   rs[2], rs_, rr, ur, vr, wr, vrn;
 
     charm_ctx_t *ctx = charm_get_ctx(p4est);
@@ -324,7 +324,7 @@ void charm_calc_flux_lf(p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu, 
 static void _charm_calc_flux_hllc_x_1(p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu, charm_real_t* qv, charm_real_t* qw, charm_real_t* qe, charm_real_t qc[])
 {
     int             i;
-    size_t          c_count = charm_get_comp_count(p4est);
+    charm_size_t          c_count = charm_get_comp_count(p4est);
     charm_real_t          sl, sr, p_star, s_star, p_pvrs, ql, qr, tmp;
 
     p_pvrs = 0.5*(prim[0].p+prim[1].p)-0.5*(prim[1].u-prim[0].u)*0.25*(prim[0].r+prim[1].r)*(prim[0].cz+prim[1].cz);
@@ -442,7 +442,7 @@ void charm_calc_flux_hllc(p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu
     charm_real_t ri, ei, pi, uu[3], uv[3];
     charm_real_t nt[3][3], vv[2][3], vn[2][3];
     charm_real_t r_[2], u_[2], v_[2], w_[2], p_[2];
-    size_t          c_count = charm_get_comp_count(p4est);
+    charm_size_t          c_count = charm_get_comp_count(p4est);
     charm_real_t _qu, _qv, _qw;
 
     charm_prim_t prim_[2];
@@ -516,7 +516,7 @@ void charm_calc_flux_cd(p4est_t *p4est, charm_prim_t prim[2], charm_real_t* qu, 
     charm_real_t   alpha;
     charm_real_t   vn[2], **ff/*[5][2]*/;
     charm_real_t **q;
-    size_t   f_count;
+    charm_size_t   f_count;
 
     charm_ctx_t *ctx = charm_get_ctx(p4est);
     f_count = 4+ctx->comp->elem_count;

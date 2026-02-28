@@ -134,7 +134,7 @@ static
 
 static int
 charm_vtk_write_binary (FILE * vtkfile, char *numeric_data,
-                        size_t byte_length)
+                        charm_size_t byte_length)
 {
 #ifndef CHARM_VTK_COMPRESSION
   return sc_vtk_write_binary (vtkfile, numeric_data, byte_length);
@@ -352,7 +352,7 @@ charm_vtk_write_header (charm_vtk_context_t * cont)
 #endif
   charm_real_t              h2, eta_x, eta_y, eta_z = 0.;
   charm_real_t              xyz[3], XYZ[3];   /* 3 not P4EST_DIM */
-  size_t              num_quads, zz;
+  charm_size_t              num_quads, zz;
   p4est_topidx_t      jt;
   p4est_topidx_t      vt[P4EST_CHILDREN];
   p4est_locidx_t      quad_count, Npoints;
@@ -416,7 +416,7 @@ charm_vtk_write_header (charm_vtk_context_t * cont)
     cont->nodes = nodes = p4est_nodes_new (p4est, NULL);
     indeps = &nodes->indep_nodes;
     cont->num_points = Npoints = nodes->num_owned_indeps;
-    P4EST_ASSERT ((size_t) Npoints == indeps->elem_count);
+    P4EST_ASSERT ((charm_size_t) Npoints == indeps->elem_count);
 
     /* Establish a reverse lookup table from a node to its first reference.
      * It is slow to run twice through memory like this.  However, we also know
@@ -873,7 +873,7 @@ charm_vtk_write_point_datav (charm_vtk_context_t * cont,
                     P4EST_STRING
                     "_vtk: Error: incorrect point scalar data type;"
                     " scalar data must contain charm_real_ts.");
-    SC_CHECK_ABORT (values[all]->elem_count == (size_t) cont->num_corners,
+    SC_CHECK_ABORT (values[all]->elem_count == (charm_size_t) cont->num_corners,
                     P4EST_STRING
                     "_vtk: Error: incorrect point scalar data count; see "
                     P4EST_STRING "_vtk.h for more details.");
@@ -896,7 +896,7 @@ charm_vtk_write_point_datav (charm_vtk_context_t * cont,
                     P4EST_STRING
                     "_vtk: Error: incorrect point vector data type;"
                     " vector data must contain charm_real_ts.");
-    SC_CHECK_ABORT (values[all]->elem_count == 3 * (size_t) cont->num_corners,
+    SC_CHECK_ABORT (values[all]->elem_count == 3 * (charm_size_t) cont->num_corners,
                     P4EST_STRING
                     "_vtk: Error: incorrect point vector data count; see "
                     P4EST_STRING "_vtk.h for more details.");
@@ -1049,7 +1049,7 @@ charm_vtk_write_cell_datav (charm_vtk_context_t * cont,
   char                cell_scalars[BUFSIZ], cell_vectors[BUFSIZ];
   const char         *name, **names;
   sc_array_t        **values;
-  size_t              num_quads, zz;
+  charm_size_t              num_quads, zz;
   sc_array_t         *quadrants;
   p4est_quadrant_t   *quad;
 #ifdef CHARM_VTK_ASCII
@@ -1084,7 +1084,7 @@ charm_vtk_write_cell_datav (charm_vtk_context_t * cont,
                     P4EST_STRING
                     "_vtk: Error: incorrect cell scalar data type; scalar data must contain charm_real_ts.");
     SC_CHECK_ABORT (values[all]->elem_count ==
-                    (size_t) cont->p4est->local_num_quadrants,
+                    (charm_size_t) cont->p4est->local_num_quadrants,
                     P4EST_STRING
                     "_vtk: Error: incorrect cell scalar data count; scalar data must contain exactly p4est->local_num_quadrants charm_real_ts.");
   }
@@ -1105,7 +1105,7 @@ charm_vtk_write_cell_datav (charm_vtk_context_t * cont,
                     P4EST_STRING
                     "_vtk: Error: incorrect cell vector data type; vector data must contain charm_real_ts.");
     SC_CHECK_ABORT (values[all]->elem_count ==
-                    3 * (size_t) cont->p4est->local_num_quadrants,
+                    3 * (charm_size_t) cont->p4est->local_num_quadrants,
                     P4EST_STRING
                     "_vtk: Error: incorrect cell vector data count; vector data must contain exactly 3*p4est->local_num_quadrants charm_real_ts.");
   }
@@ -1411,7 +1411,7 @@ charm_vtk_write_point_scalar (charm_vtk_context_t * cont,
 #endif
   Npoints = cont->num_points;
   ntc = cont->node_to_corner;
-  P4EST_ASSERT (values != NULL && values->elem_count == (size_t) Ncorners);
+  P4EST_ASSERT (values != NULL && values->elem_count == (charm_size_t) Ncorners);
   if (ntc == NULL) {
     /* we are writing a discontinuous field, possibly due to vertex scaling */
     P4EST_ASSERT (cont->num_corners == cont->num_points);
@@ -1644,7 +1644,7 @@ charm_vtk_context_t *charm_vtk_write_cell_data (charm_vtk_context_t * cont,
   char                cell_scalars[BUFSIZ], cell_vectors[BUFSIZ];
   const char         *name, **names;
 //  sc_array_t        **values;
-  size_t              num_quads, zz;
+  charm_size_t              num_quads, zz;
   sc_array_t         *quadrants;
   p4est_quadrant_t   *quad;
 #ifdef CHARM_VTK_ASCII
@@ -1689,7 +1689,7 @@ charm_vtk_context_t *charm_vtk_write_cell_data (charm_vtk_context_t * cont,
                         P4EST_STRING
                                 "_vtk: Error: incorrect cell vector data type; vector data must contain charm_real_ts.");
         SC_CHECK_ABORT (values[all]->elem_count ==
-                        3 * (size_t) cont->p4est->local_num_quadrants,
+                        3 * (charm_size_t) cont->p4est->local_num_quadrants,
                         P4EST_STRING
                                 "_vtk: Error: incorrect cell vector data count; vector data must contain exactly 3*p4est->local_num_quadrants charm_real_ts.");
     }

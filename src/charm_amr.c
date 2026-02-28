@@ -208,7 +208,7 @@ static void charm_replace_quads (p4est_t * p4est, p4est_topidx_t which_tree,
                                  int num_incoming, p4est_quadrant_t * incoming[])
 {
     const int           N = CHARM_BASE_FN_COUNT;
-    size_t              c_count = charm_get_comp_count(p4est);
+    charm_size_t              c_count = charm_get_comp_count(p4est);
     charm_data_t       *parent_data, *child_data;
     int                 i, j, m, n, igp;
     charm_real_t              vol, svol;
