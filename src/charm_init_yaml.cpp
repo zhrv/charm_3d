@@ -15,6 +15,7 @@
 #ifdef CHARM_CONFIG_YAML
 
 void charm_model_ns_init(charm_ctx_t *ctx, YAML::Node model_node, const YAML::Node &yaml);
+void charm_model_ns_jfnk_init(charm_ctx_t *ctx, YAML::Node model_node, const YAML::Node &yaml);
 void charm_model_euler_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yaml);
 void charm_model_adv_init(charm_ctx_t *ctx, YAML::Node model_node, YAML::Node yaml);
 
@@ -529,6 +530,9 @@ void charm_init_context_yaml(charm_ctx_t *ctx)
         }
         else if (str == "NS") {
             charm_model_ns_init(ctx, model, config);
+        }
+        else if (str == "NS_JFNK") {
+            charm_model_ns_jfnk_init(ctx, model, config);
         }
         else if (str == "ADV") {
             charm_model_adv_init(ctx, model, config);

@@ -5,7 +5,7 @@
 #      -DTAYLOR_GREEN=ON
 ##########################################################
 method: CHARM_3D
-version: 0.1.4
+version: 0.1.5
 control:
   FLUX_TYPE:              HLLC
   LIMITER:                BJ
@@ -21,10 +21,17 @@ control:
   FILE_OUTPUT_STEP:       100      # количество итераций, через которые выполняется вывод результатов в файл
   LOG_OUTPUT_STEP:        1        # интервал вывода краткой информации в лог-файл
   MODEL:
-    name:           NS
+    name:           NS_JFNK
     use_visc:       0
     use_diffusion:  0
     t_ref:          273.0
+    newton: 
+      relax:              1.0e-1
+      rtol:               1.0e-2
+      max_step:           100
+      j_eps:              1.0e-9
+      solver_rtol:        1.0e-2
+      solver_max_step:    50
     # turbulence:
     #   #model: SST
     #   #parameters: { a1: 0.31, sigma_k1: 0.85, sigma_k2: 1.0, sigma_w1: 0.5, sigma_w2: 0.856, beta_star: 0.09, beta_1: 0.075, beta_2: 0.0828, kappa: 0.41}
