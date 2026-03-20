@@ -408,8 +408,8 @@ static void charm_timestep_update_quad_iter_fn (p4est_iter_volume_info_t * info,
     charm_real_t        dt = *((charm_real_t *) user_data);
     charm_fields_t      rhs;
 
-    charm_matr_fields_mult(data->par.g.a_inv, data->integrals, rhs, c_count);
-    charm_fields_axpy(rhs, data->par.c, dt, c_count);
+    charm_matr_fields_mult(data->par.g.a_inv, &(data->integrals), &rhs, c_count);
+    charm_fields_axpy(&rhs, &(data->par.c), dt, c_count);
 }
 
 
@@ -420,7 +420,7 @@ static void charm_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t * info, v
     charm_size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
-    charm_fields_zero(data->integrals, c_count);
+    charm_fields_zero(&(data->integrals), c_count);
 }
 
 

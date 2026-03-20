@@ -68,9 +68,9 @@ static void charm_model_ns_timestep_update_quad_iter_fn (p4est_iter_volume_info_
     charm_fields_t      rhs;
     int                 i, j;
 
-    charm_matr_fields_mult(data->par.g.a_inv, data->integrals, rhs, c_count);
+    charm_matr_fields_mult(data->par.g.a_inv, &(data->integrals), &rhs, c_count);
 
-    charm_fields_axpy(rhs, data->par.c, dt, c_count);
+    charm_fields_axpy(&rhs, &(data->par.c), dt, c_count);
 }
 
 
@@ -81,7 +81,7 @@ static void charm_model_ns_timestep_zero_quad_iter_fn (p4est_iter_volume_info_t 
     charm_size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
-    charm_fields_zero(data->integrals, c_count);
+    charm_fields_zero(&(data->integrals), c_count);
 }
 
 
@@ -92,7 +92,7 @@ static void charm_model_ns_timestep_rk_0(p4est_iter_volume_info_t * info, void *
     charm_size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
-    charm_fields_copy(data->par.c_old, data->par.c, c_count);
+    charm_fields_copy(&(data->par.c_old), &(data->par.c), c_count);
 }
 
 
@@ -103,8 +103,8 @@ static void charm_model_ns_timestep_rk_1(p4est_iter_volume_info_t * info, void *
     charm_size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
-    charm_fields_mult(data->par.c, 0.25, c_count);
-    charm_fields_axpy(data->par.c_old, data->par.c, 0.75, c_count);
+    charm_fields_mult(&(data->par.c), 0.25, c_count);
+    charm_fields_axpy(&(data->par.c_old), &(data->par.c), 0.75, c_count);
 }
 
 
@@ -115,8 +115,8 @@ static void charm_model_ns_timestep_rk_2(p4est_iter_volume_info_t * info, void *
     charm_size_t              c_count = ctx->comp->elem_count;
     int                 i, j;
 
-    charm_fields_mult(data->par.c, 2./3., c_count);
-    charm_fields_axpy(data->par.c_old, data->par.c, 1./3., c_count);
+    charm_fields_mult(&(data->par.c), 2./3., c_count);
+    charm_fields_axpy(&(data->par.c_old), &(data->par.c), 1./3., c_count);
 }
 
 
