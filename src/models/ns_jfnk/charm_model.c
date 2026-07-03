@@ -159,7 +159,7 @@ void charm_model_ns_jfnk_timestep_single(p4est_t * p4est, charm_real_t *dt, p4es
     if (!ghost) {
         ghost = p4est_ghost_new (p4est, CHARM_CONNECT_FULL);
         ghost_data = CHARM_ALLOC (charm_data_t, ghost->ghosts.elem_count);
-        p4est_ghost_exchange_data (p4est, ghost, ghost_data);
+        //p4est_ghost_exchange_data (p4est, ghost, ghost_data);
     }
 
     p4est_iterate (p4est, NULL, NULL, 
@@ -170,7 +170,7 @@ void charm_model_ns_jfnk_timestep_single(p4est_t * p4est, charm_real_t *dt, p4es
     nm_stop = 0;
     nm_step = 0;
     while (!nm_stop  && nm_step < ctx->model.ns_jfnk.newton.max_step) { // итерации метода Ньютона
-        
+        p4est_ghost_exchange_data (p4est, ghost, ghost_data);
         nm_stop = charm_model_ns_jfnk_newton_step(p4est, ghost, ghost_data);
         nm_step++;
     }

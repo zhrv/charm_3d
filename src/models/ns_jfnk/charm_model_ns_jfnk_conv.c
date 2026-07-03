@@ -288,6 +288,9 @@ static void charm_model_ns_jfnk_conv_surface_int_iter_inner (p4est_iter_face_inf
         charm_quad_get_center(udata[0], c[0]);
         charm_face_get_center(udata[0], face[0], c[1]);
 
+                x  = udata[0]->par.g.face_gp[face[0]][igp];
+                gw = udata[0]->par.g.face_gw[face[0]][igp];
+                gj = udata[0]->par.g.face_gj[face[0]][igp];
         for (i = 0; i < 3; i++) {
             l[i] = c[1][i]-c[0][i];
         }
@@ -299,9 +302,6 @@ static void charm_model_ns_jfnk_conv_surface_int_iter_inner (p4est_iter_face_inf
         }
 
         for (igp = 0; igp < CHARM_FACE_GP_COUNT; igp++) {
-            x  = udata[0]->par.g.face_gp[face[0]][igp];
-            gw = udata[0]->par.g.face_gw[face[0]][igp];
-            gj = udata[0]->par.g.face_gj[face[0]][igp];
             for (i = 0; i < 2; i++) {
                 charm_get_fields(udata[i], x, &(cons[i]));
                 charm_param_cons_to_prim(p4est, &(prim[i]), &(cons[i]));
@@ -309,6 +309,9 @@ static void charm_model_ns_jfnk_conv_surface_int_iter_inner (p4est_iter_face_inf
             ctx->flux_fn(p4est, prim, &qu, &qv, &qw, &qe, qc, n);  // flux from side 0 to side 1
             for (ibf = 0; ibf < CHARM_BASE_FN_COUNT; ibf++) {
                 for (i = 0; i < 2; i++) {
+                    x  = udata[i]->par.g.face_gp[face[i]][igp];
+                    gw = udata[i]->par.g.face_gw[face[i]][igp];
+                    gj = udata[i]->par.g.face_gj[face[i]][igp];
                     if (!side[i]->is.full.is_ghost) {
                         bfv = (i ? -1. : 1.) * charm_base_func(x, ibf, udata[i]) * gw * gj;
                         for (j = 0; j < c_count; j++) {

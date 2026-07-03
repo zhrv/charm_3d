@@ -8,7 +8,7 @@
 
 void charm_model_ns_jfnk_dg_operator(p4est_t * p4est, p4est_ghost_t * _ghost, charm_data_t * _ghost_data);
 void charm_model_ns_jfnk_dg_operator_stash_push(p4est_t * p4est);
-void charm_model_ns_jfnk_dg_operator_stash_pop(p4est_t * p4est);
+void charm_model_ns_jfnk_dg_operator_stash_pop(p4est_t * p4est, p4est_ghost_t * _ghost, charm_data_t * _ghost_data);
 
 
 static inline void _result_to_rhs_quad_iter_fn(p4est_iter_volume_info_t *info, void *user_data)
@@ -108,7 +108,7 @@ static inline void calc_ju(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t 
     calc_ju_add_arg(p4est, ctx->model.ns_jfnk.newton.j_eps);
     charm_model_ns_jfnk_dg_operator(p4est, ghost, ghost_data);
     calc_ju_result(p4est);
-    charm_model_ns_jfnk_dg_operator_stash_pop(p4est);        
+    charm_model_ns_jfnk_dg_operator_stash_pop(p4est, ghost, ghost_data);    
 }
 
 
@@ -169,7 +169,7 @@ static inline void calc_jr(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t 
     calc_jr_add_arg(p4est, ctx->model.ns_jfnk.newton.j_eps);
     charm_model_ns_jfnk_dg_operator(p4est, ghost, ghost_data);
     calc_jr_result(p4est);
-    charm_model_ns_jfnk_dg_operator_stash_pop(p4est);        
+    charm_model_ns_jfnk_dg_operator_stash_pop(p4est, ghost, ghost_data);    
 }
 
 static inline void calc_ju_r_jr(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data)

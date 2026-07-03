@@ -40,9 +40,10 @@ static inline void _charm_model_ns_jfnk_dg_operator_stash_pop_quad_iter_fn(p4est
     charm_fields_copy(&(data->par.c), &(data->par.model.ns_jfnk.c_stash), c_count);
 }
 
-void charm_model_ns_jfnk_dg_operator_stash_pop(p4est_t * p4est) 
+void charm_model_ns_jfnk_dg_operator_stash_pop(p4est_t * p4est, p4est_ghost_t * ghost, charm_data_t * ghost_data) 
 {
     p4est_iterate(p4est, NULL, NULL, _charm_model_ns_jfnk_dg_operator_stash_pop_quad_iter_fn, NULL, NULL, NULL);
+    p4est_ghost_exchange_data (p4est, ghost, ghost_data); 
 }
 
 
